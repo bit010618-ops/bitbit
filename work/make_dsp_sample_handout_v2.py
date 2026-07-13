@@ -579,7 +579,7 @@ def draw_signal_classification_examples(doc):
         c.line(px, base - 2, px, base + 2)
         if n == 0:
             offset = label_geometry["origin_tick"]
-            c.drawRightString(px + offset["x_offset"], base + offset["y_offset"], "0")
+            c.drawString(px + offset["x_offset"], base + offset["y_offset"], "0")
         else:
             offset = label_geometry["regular_tick"]
             c.drawCentredString(px + offset["x_offset"], base + offset["y_offset"], str(n))
@@ -617,7 +617,7 @@ def draw_rect_sequence_example(doc):
         c.line(px, base - 2, px, base + 2)
         if n == 0:
             offset = label_geometry["origin_tick"]
-            c.drawRightString(px + offset["x_offset"], base + offset["y_offset"], "0")
+            c.drawString(px + offset["x_offset"], base + offset["y_offset"], "0")
         else:
             offset = label_geometry["regular_tick"]
             c.drawCentredString(px + offset["x_offset"], base + offset["y_offset"], str(n))
@@ -744,7 +744,7 @@ def _nice_tick_labels(n_min, n_max):
 def discrete_axis_label_geometry():
     """Shared clearances for labels around discrete-time axes."""
     return {
-        "origin_tick": {"x_offset": -7, "y_offset": -20},
+        "origin_tick": {"x_offset": 5, "y_offset": -20, "anchor": "left"},
         "regular_tick": {"x_offset": 0, "y_offset": -13},
         "positive_zero_sample_value": {"x_offset": -6, "y_offset": -2},
     }
@@ -798,7 +798,7 @@ def draw_discrete_axes_plot(c, x, y, w, h, values, n_min=None, n_max=None, title
         if n in tick_labels:
             if n == 0:
                 offset = label_geometry["origin_tick"]
-                c.drawRightString(px + offset["x_offset"], y0 + offset["y_offset"], "0")
+                c.drawString(px + offset["x_offset"], y0 + offset["y_offset"], "0")
             else:
                 offset = label_geometry["regular_tick"]
                 c.drawCentredString(px + offset["x_offset"], y0 + offset["y_offset"], str(n))
