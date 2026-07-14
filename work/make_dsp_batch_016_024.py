@@ -234,7 +234,7 @@ def draw_example2_plot(doc):
         title="x(1-2n)",
         axis_v_min=-3.2,
         axis_v_max=6.4,
-        value_label_offsets={-1: (3, 0)},
+        value_label_offsets={-1: (9, 0)},
     )
     doc.y -= 168
 

@@ -67,6 +67,33 @@ def system_chain(doc,title,labels,colors_fill=None):
     doc.y=top-h
 
 
+def draw_dat_conversion_chain(doc):
+    h = 95
+    doc.ensure(h + 8)
+    c = doc.c
+    top = doc.y
+    c.setFont('CNB', 10)
+    c.setFillColor(BLUE_DARK)
+    c.drawString(MARGIN_X, top - 6, '单级转换系统')
+    x = MARGIN_X + 40
+    y = top - 50
+    draw_math_at(c, r'x(n)', x - 42, y + 7, 38, 16, 11, name='dat_chain_x')
+    labels = ['↑L\n内插', '', '↓M\n抽取']
+    fills = [YELLOW, CYAN, YELLOW]
+    for i, label in enumerate(labels):
+        bx = x + i * 105
+        arrow(c, bx - 30 if i == 0 else bx - 26, y, bx, y, BLUE, 1.1)
+        block(c, bx, y, 68, 32, label, stroke=BLUE, fill=fills[i])
+        if i == 1:
+            draw_math_at(c, r'H(e^{j\omega})', bx + 7, y + 11, 54, 13, 9.5, name='dat_chain_filter')
+            c.setFillColor(TEXT)
+            c.setFont('CNB', 7.6)
+            c.drawCentredString(bx + 34, y - 10, '低通滤波')
+    arrow(c, x + 2 * 105 + 68, y, x + 2 * 105 + 112, y, BLUE, 1.1)
+    draw_math_at(c, r'y(n)', x + 2 * 105 + 118, y + 7, 40, 16, 11, name='dat_chain_y')
+    doc.y = top - h
+
+
 def spectrum_axis_geometry():
     return {"vertical_arrow_headroom": 12}
 
@@ -136,7 +163,8 @@ def decimation_full_derivation(doc):
 
 
 def interpolation_derivation(doc):
-    draw_formula_block(doc,r'x_p(n)=x(n/L),\quad n=0,\pm L,\pm 2L,\ldots;\qquad x_p(n)=0,\quad \mathrm{else}','interp_piece',fontsize=12,max_h=42)
+    draw_formula_block(doc,r'x_p(n)=x(n/L),\quad n=0,\pm L,\pm 2L,\ldots','interp_piece',fontsize=14,max_h=34)
+    doc.p('其余整数 n 处取值均为 0。')
     draw_formula_block(doc,r'X_p(e^{j\omega})=X(e^{j\omega L})','interp_freq',fontsize=18,max_h=36)
     red_line(doc,'内插使采样率提高，同时在频域产生 L-1 个镜像谱，必须接低通内插滤波器去除镜像。')
 
@@ -183,6 +211,193 @@ def filter_cascade(doc,kind='dec'):
         red_line(doc,'内插滤波器要补偿插零造成的幅度变化，所以通带增益为 L。')
 
 
+def draw_decimation_filter_example_page(doc):
+    """Source pages 414-416: complete M=8 Hanning-window FIR example."""
+    doc.new_page()
+    doc.h2('7.2.4 例：M=8 抽取滤波器设计')
+    doc.p('对输入序列作 8 倍抽取。为避免混叠，先设计截止频率为 π/8 的 40 阶线性相位 FIR 低通滤波器，再进行抽取。')
+    draw_formula_block(
+        doc,
+        r'\omega_c=\frac{\pi}{M}=\frac{\pi}{8},\qquad N-1=40,\qquad '
+        r'\tau=\frac{N-1}{2}=20',
+        'dec_m8_order_delay', fontsize=17, max_h=45,
+    )
+    blue_label(doc, '汉宁窗')
+    draw_formula_block(
+        doc,
+        r'w(n)=\left[0.5-0.5\cos\left(\frac{n\pi}{20}\right)\right]R_{41}(n)',
+        'dec_m8_hanning_window', fontsize=17, max_h=44,
+    )
+    blue_label(doc, '理想低通冲激响应平移并加窗')
+    draw_formula_block(
+        doc,
+        r'h(n)=\frac{\sin\left[\frac{\pi}{8}(n-20)\right]}{\pi(n-20)}'
+        r'\left[0.5-0.5\cos\left(\frac{n\pi}{20}\right)\right]R_{41}(n)',
+        'dec_m8_full_impulse', fontsize=15.5, max_h=62,
+    )
+    doc.p('滤波器输出每隔 8 点保留一个样本，系统差分方程为')
+    draw_formula_block(
+        doc,
+        r'x_d(n)=\sum_{k=0}^{40}h(k)x(8n-k)',
+        'dec_m8_difference_equation', fontsize=18, max_h=42,
+    )
+    red_line(doc, '先抗混叠滤波，再作 8 倍抽取；40 阶 FIR 的群延迟为 20 个输入采样周期。')
+
+
+def draw_source_filter_cascade_page(doc):
+    """Source page 422: preserve the two different filter/operator orders."""
+    doc.new_page()
+    doc.h2('7.3.3 抽取滤波器与内插滤波器的级联位置')
+    system_chain(doc, 'M 倍抽取：先抗混叠滤波，再抽取', ['h_a(n)\n抗混叠', '↓M\n抽取'], [CYAN, YELLOW])
+    draw_formula_block(
+        doc,
+        r'\omega_{c,a}=\frac{\pi}{M},\qquad x_d(n)=\left[x(n)*h_a(n)\right]_{n=mM}',
+        'source_decimation_cascade', fontsize=15, max_h=40,
+    )
+    system_chain(doc, 'L 倍内插：先插零，再抗镜像滤波', ['↑L\n内插', 'h_i(n)\n抗镜像'], [YELLOW, CYAN])
+    draw_formula_block(
+        doc,
+        r'\omega_{c,i}=\frac{\pi}{L},\qquad x_i(n)=x_p(n)*h_i(n)',
+        'source_interpolation_cascade', fontsize=15, max_h=40,
+    )
+    red_line(doc, '两条级联的顺序不能互换：抽取滤波器位于抽取器之前，内插滤波器位于内插器之后。')
+
+
+def _rate_circle_colored(c, x, y, label, color):
+    c.setStrokeColor(color)
+    c.setFillColor(color)
+    c.setLineWidth(1.15)
+    c.circle(x, y, 18, stroke=1, fill=0)
+    c.setFont('CNB', 10.5)
+    c.drawCentredString(x, y - 4, label)
+
+
+def _dashed_group(c, x, y, w, h, label, color):
+    c.saveState()
+    c.setStrokeColor(color)
+    c.setDash(4, 3)
+    c.setLineWidth(1.0)
+    c.rect(x, y, w, h, stroke=1, fill=0)
+    c.restoreState()
+    c.setFillColor(color)
+    c.setFont('CNB', 9.2)
+    c.drawCentredString(x + w / 2, y + h - 14, label)
+
+
+def draw_fractional_conversion_source_page(doc):
+    """Source page 423: two source subsystems and their combined equivalent."""
+    doc.new_page()
+    doc.h2('7.4.1 L/M 倍采样率转换的单级结构')
+    c = doc.c
+    top = doc.y - 12
+    y = top - 92
+    x0 = MARGIN_X + 18
+    up_x, hi_x, hd_x, down_x = x0 + 80, x0 + 138, x0 + 290, x0 + 390
+
+    _dashed_group(c, x0 + 50, y - 39, 205, 92, '内插', RED)
+    _dashed_group(c, x0 + 275, y - 39, 190, 92, '抽取', BLUE)
+    draw_math_at(c, r'x(n)', x0 - 2, y + 10, 45, 18, 11, name='fractional_source_x')
+    arrow(c, x0 + 44, y, up_x - 18, y, RED, 1.1)
+    _rate_circle_colored(c, up_x, y, '↑L', RED)
+    arrow(c, up_x + 18, y, hi_x, y, RED, 1.1)
+    block(c, hi_x, y, 82, 38, '', stroke=RED, fill=LIGHT_YELLOW)
+    draw_math_at(c, r'h_i(n)', hi_x + 14, y + 8, 54, 20, 11, name='fractional_hi')
+    arrow(c, hi_x + 82, y, hd_x, y, BLUE, 1.1)
+    block(c, hd_x, y, 82, 38, '', stroke=BLUE, fill=CYAN)
+    draw_math_at(c, r'h_d(n)', hd_x + 14, y + 8, 54, 20, 11, name='fractional_hd')
+    arrow(c, hd_x + 82, y, down_x - 18, y, BLUE, 1.1)
+    _rate_circle_colored(c, down_x, y, '↓M', BLUE)
+    arrow(c, down_x + 18, y, down_x + 58, y, BLUE, 1.1)
+    draw_math_at(c, r'x_d(n)', down_x + 62, y + 10, 52, 18, 11, name='fractional_source_y')
+
+    doc.y = y - 62
+    draw_formula_block(doc, r'h(n)=h_i(n)*h_d(n)', 'fractional_time_product', fontsize=16, max_h=36)
+    draw_formula_block(doc, r'H(e^{j\omega})=H_i(e^{j\omega})H_d(e^{j\omega})', 'fractional_freq_product', fontsize=16, max_h=36)
+
+    c = doc.c
+    y2 = doc.y - 52
+    ex0 = MARGIN_X + 108
+    draw_math_at(c, r'x(n)', ex0 - 62, y2 + 8, 44, 18, 11, name='fractional_eq_x')
+    arrow(c, ex0 - 18, y2, ex0, y2, RED, 1.1)
+    _rate_circle_colored(c, ex0 + 18, y2, '↑L', RED)
+    arrow(c, ex0 + 36, y2, ex0 + 72, y2, RED, 1.1)
+    block(c, ex0 + 72, y2, 84, 38, '', stroke=RED, fill=LIGHT_YELLOW)
+    draw_math_at(c, r'h(n)', ex0 + 90, y2 + 8, 48, 20, 11, name='fractional_h')
+    arrow(c, ex0 + 156, y2, ex0 + 198, y2, BLUE, 1.1)
+    _rate_circle_colored(c, ex0 + 216, y2, '↓M', BLUE)
+    arrow(c, ex0 + 234, y2, ex0 + 278, y2, BLUE, 1.1)
+    draw_math_at(c, r'x_d(n)', ex0 + 282, y2 + 8, 52, 18, 11, name='fractional_eq_y')
+    doc.y = y2 - 48
+    draw_formula_block(
+        doc,
+        r'H(e^{j\omega})=L,\quad |\omega|\leq\omega_c;\qquad '
+        r'H(e^{j\omega})=0,\quad \omega_c<|\omega|\leq\pi',
+        'fractional_source_filter', fontsize=14.5, max_h=48,
+    )
+    draw_formula_block(doc, r'\omega_c=\min\left(\frac{\pi}{L},\frac{\pi}{M}\right)',
+                       'fractional_source_cutoff', fontsize=19, max_h=42)
+
+
+def multistage_source_geometry():
+    return {
+        'group_count': 2,
+        'first_group_x': MARGIN_X + 94,
+        'second_group_x': MARGIN_X + 292,
+        'group_width': 168,
+        'right_edge': MARGIN_X + 460,
+    }
+
+
+def _draw_multistage_group(c, x, y, suffix):
+    _dashed_group(c, x - 12, y - 43, 168, 86, '', RED)
+    _rate_circle_colored(c, x + 15, y, f'↑L{suffix}', RED)
+    arrow(c, x + 33, y, x + 54, y, RED, 1.0)
+    block(c, x + 54, y, 56, 36, '', stroke=RED, fill=LIGHT_YELLOW)
+    draw_math_at(c, fr'h_{suffix}(n)', x + 61, y + 7, 42, 18, 10, name=f'multistage_h_{suffix}')
+    arrow(c, x + 110, y, x + 122, y, RED, 1.0)
+    _rate_circle_colored(c, x + 140, y, f'↓M{suffix}', RED)
+
+
+def draw_multistage_factorization_page(doc):
+    """Source pages 427 and 431-432: exact first/last-stage topology plus DAT example."""
+    doc.new_page()
+    doc.h2('7.4.2 多级采样率转换')
+    draw_formula_block(doc, r'\frac{L}{M}=\prod_{i=1}^{r}\frac{L_i}{M_i}',
+                       'multistage_source_ratio', fontsize=19, max_h=42)
+    draw_formula_block(doc, r'\frac{147}{160}=\frac{7}{8}\cdot\frac{7}{5}\cdot\frac{3}{4}',
+                       'multistage_source_factorization', fontsize=17, max_h=38)
+    doc.p('当 L 或 M 很大时，单级低通滤波器的截止频率很小、实现代价很高；可分解为多级采样率转换系统。')
+    geometry = multistage_source_geometry()
+    c = doc.c
+    y = doc.y - 65
+    draw_math_at(c, r'x(n)', MARGIN_X + 18, y + 8, 42, 18, 11, name='multistage_x')
+    arrow(c, MARGIN_X + 62, y, geometry['first_group_x'] - 12, y, RED, 1.0)
+    for i in range(2):
+        gx = geometry['first_group_x'] if i == 0 else geometry['second_group_x']
+        suffix = '1' if i == 0 else 'r'
+        _draw_multistage_group(c, gx, y, suffix)
+    arrow(c, geometry['first_group_x'] + 158, y, geometry['first_group_x'] + 174, y, RED, 1.0)
+    c.setFillColor(TEXT)
+    c.setFont('CNB', 12)
+    c.drawCentredString(geometry['first_group_x'] + 184, y - 3, '...')
+    arrow(c, geometry['first_group_x'] + 194, y, geometry['second_group_x'] - 12, y, RED, 1.0)
+    arrow(c, geometry['right_edge'], y, geometry['right_edge'] + 20, y, RED, 1.0)
+    draw_math_at(c, r'x_d(n)', geometry['right_edge'] + 2, y + 24, 45, 18, 11, name='multistage_y')
+    doc.y = y - 68
+    red_line(doc, '每一级均按“内插、滤波、抽取”连接；各级因子的乘积分别等于总 L 和总 M。')
+
+    doc.new_page()
+    doc.h2('例：DAT 44.1 kHz 转换为 48 kHz')
+    doc.p('数字录音带（DAT）驱动器的采样频率为 48 kHz，而激光唱盘（CD）播放器以 44.1 kHz 工作。为把声音从 CD 录制到 DAT，画出单级转换系统，并求 L、M 的最小可能值以及适当的滤波器。')
+    draw_dat_conversion_chain(doc)
+    draw_formula_block(doc, r'\frac{48000}{44100}=\frac{160}{147}=\frac{2^5\cdot5}{3\cdot7^2}',
+                       'dat_source_ratio', fontsize=18, max_h=44)
+    draw_formula_block(doc, r'L=160,\qquad M=147', 'dat_source_factors', fontsize=18, max_h=36)
+    draw_formula_block(doc, r'\omega_c=\min\left(\frac{\pi}{L},\frac{\pi}{M}\right)=\frac{\pi}{160}',
+                       'dat_source_cutoff', fontsize=17, max_h=40)
+    red_line(doc, '单级结构的最小整数因子为 L=160、M=147；实际实现通常再分解为多级以降低运算量。')
+
+
 def lm_conversion(doc):
     h=200; doc.ensure(h+8); c=doc.c; top=doc.y
     c.setFont('CNB',10); c.setFillColor(BLUE_DARK); c.drawString(MARGIN_X,top-6,'L/M 倍采样率转换结构')
@@ -209,6 +424,181 @@ def multistage(doc):
     doc.y -= 18
     draw_formula_block(doc,r'44100\to48000:\quad \frac{48000}{44100}=\frac{160}{147}=\frac{2^5\cdot5}{3\cdot7^2}','audio_ratio',fontsize=14,max_h=38)
     doc.y=top-h
+
+
+def _figure_page(doc, title):
+    """Reserve a full A4 content page for one source-slide figure group."""
+    doc.ensure(690)
+    doc.h2(title)
+    return doc.c, doc.y - 10
+
+
+def _stem_envelope(c, x, y, w, h, sample_count, keep_every=1, label=''):
+    """Source-style red discrete samples under a dotted smooth envelope."""
+    c.setStrokeColor(BLUE_DARK)
+    c.setFillColor(BLUE_DARK)
+    c.setLineWidth(0.8)
+    arrow(c, x, y, x + w, y, BLUE_DARK, 0.8)
+    arrow(c, x, y - 5, x, y + h + 8, BLUE_DARK, 0.8)
+    points = []
+    for i in range(sample_count):
+        u = i / max(1, sample_count - 1)
+        amp = h * (0.28 + 0.68 * math.sin(math.pi * u) ** 0.8)
+        points.append((x + 8 + u * (w - 18), y + amp))
+    c.setStrokeColor(RED)
+    c.setFillColor(RED)
+    c.setLineWidth(0.85)
+    for i, (px, py) in enumerate(points):
+        if i % keep_every:
+            continue
+        c.line(px, y, px, py)
+        c.circle(px, py, 1.7, stroke=0, fill=1)
+    c.setDash(2, 2)
+    for (x1, y1), (x2, y2) in zip(points, points[1:]):
+        c.line(x1, y1, x2, y2)
+    c.setDash()
+    if label:
+        c.setFillColor(TEXT)
+        c.setFont('CNB', 8.5)
+        c.drawString(x + 3, y + h + 14, label)
+
+
+def _draw_spectrum_title(c, x, y, w, h, title):
+    if not title:
+        return
+    if title.isascii() and any(token in title for token in ('\\', '^', '_', '{')):
+        key = sum((i + 1) * ord(ch) for i, ch in enumerate(title))
+        draw_math_at(c, title, x + 3, y + h + 14, w * 0.72, 17, 10.2, name=f'spectrum_title_{key}')
+    else:
+        c.setFillColor(TEXT)
+        c.setFont('CNB', 8.4)
+        c.drawString(x + 3, y + h + 14, title)
+
+
+def _triangle_spectrum(c, x, y, w, h, centers, half_width, labels=(), title=''):
+    """Draw the periodic triangular spectra used on source pages 409-412."""
+    c.setStrokeColor(BLUE_DARK)
+    c.setFillColor(BLUE_DARK)
+    c.setLineWidth(0.8)
+    arrow(c, x, y, x + w, y, BLUE_DARK, 0.8)
+    arrow(c, x + w / 2, y - 4, x + w / 2, y + h + 8, BLUE_DARK, 0.8)
+    c.setStrokeColor(RED)
+    c.setLineWidth(1.1)
+    for center, amp in centers:
+        cx = x + w / 2 + center * w
+        hw = half_width * w
+        c.line(cx - hw, y, cx, y + h * amp)
+        c.line(cx, y + h * amp, cx + hw, y)
+    c.setFillColor(TEXT)
+    c.setFont('CN', 7.2)
+    for rel, text in labels:
+        c.drawCentredString(x + w / 2 + rel * w, y - 12, text)
+    _draw_spectrum_title(c, x, y, w, h, title)
+
+
+def draw_decimation_sampling_theorem_page(doc):
+    """Recreate source page 409: M=2 sampling and spectrum correspondence."""
+    c, top = _figure_page(doc, '7.2.2 用图示采样定理理解整数倍抽取')
+    draw_formula_block(doc, r'x_d(n)=x(nM),\quad M=2', 'dec_graph_m2', fontsize=16, max_h=34)
+    top = doc.y - 8
+    left = MARGIN_X + 12
+    right = MARGIN_X + 292
+    row_gap = 190
+
+    _stem_envelope(c, left, top - 80, 225, 62, 19, keep_every=1, label=r'x(n)')
+    draw_math_at(c, r'f_{s1}=16\,\mathrm{kHz}', left + 62, top - 94, 110, 18, 10.5, name='dec_fs16')
+    _triangle_spectrum(
+        c, right, top - 80, 235, 62,
+        [(-0.42, .72), (0, 1), (.42, .72)], .10,
+        [(-.42, '-16'), (-.10, '-4'), (0, '0'), (.10, '4'), (.42, '16')],
+        title=r'X_1(jf)',
+    )
+
+    _stem_envelope(c, left, top - row_gap - 80, 225, 62, 19, keep_every=2, label=r'x_d(n)=x(nM)')
+    draw_math_at(c, r'f_{s2}=8\,\mathrm{kHz}', left + 68, top - row_gap - 94, 105, 18, 10.5, name='dec_fs8')
+    _triangle_spectrum(
+        c, right, top - row_gap - 80, 235, 62,
+        [(-.42, .70), (-.21, .42), (0, 1), (.21, .42), (.42, .70)], .13,
+        [(-.42, '-8'), (-.21, '-4'), (0, '0'), (.21, '4'), (.42, '8')],
+        title=r'X_2(jf)',
+    )
+
+    c.setFillColor(RED)
+    c.setFont('CNB', 9.2)
+    c.drawString(MARGIN_X + 25, top - 405, '抽取后采样率减半，频谱副本间隔也减半；若副本相交就会发生混叠。')
+    doc.y = 78
+
+
+def draw_decimation_spectral_construction_page(doc):
+    """Recreate source pages 410-412: stretch, shift, sum and no-alias condition."""
+    c, top = _figure_page(doc, '7.2.3 抽取频谱的拉伸、移位与求和')
+    draw_formula_block(
+        doc,
+        r'X_d(e^{j\omega})=\frac{1}{2}\left[X_1(e^{j\omega})+X_1(e^{j(\omega-\pi)})\right]',
+        'dec_shift_sum_formula', fontsize=16, max_h=40,
+    )
+    top = doc.y - 12
+    panel_w = 225
+    panel_h = 62
+    left = MARGIN_X + 18
+    right = MARGIN_X + 296
+    rows = [top - 75, top - 245, top - 415]
+
+    _triangle_spectrum(c, left, rows[0], panel_w, panel_h, [(0, 1), (-.38, .72), (.38, .72)], .12,
+                       [(-.38, '-2π'), (-.12, '-π/2'), (0, '0'), (.12, 'π/2'), (.38, '2π')], title=r'X_1(e^{j\omega})')
+    _triangle_spectrum(c, right, rows[0], panel_w, panel_h, [(0, 1), (-.30, .72), (.30, .72)], .18,
+                       [(-.30, '-2π'), (0, '0'), (.30, '2π')], title='频率轴拉伸')
+
+    _triangle_spectrum(c, left, rows[1], panel_w, panel_h, [(0, 1), (-.30, .72), (.30, .72)], .18,
+                       [(-.30, '-2π'), (0, '0'), (.30, '2π')], title=r'X_1(e^{j\omega})')
+    _triangle_spectrum(c, right, rows[1], panel_w, panel_h,
+                       [(0, 1), (-.30, .72), (.30, .72), (-.15, .68), (.15, .68)], .14,
+                       [(-.30, '-2π'), (-.15, '-π'), (0, '0'), (.15, 'π'), (.30, '2π')], title='频移 π 后的频谱')
+
+    _triangle_spectrum(c, left, rows[2], panel_w, panel_h,
+                       [(0, .62), (-.30, .46), (.30, .46), (-.15, .44), (.15, .44)], .14,
+                       [(-.30, '-2π'), (-.15, '-π'), (0, '0'), (.15, 'π'), (.30, '2π')], title='求和并乘以 1/2')
+    draw_math_at(
+        c,
+        r'\frac{1}{2}\left[X_1(e^{j\omega})+X_1(e^{j(\omega-\pi)})\right]',
+        right + 8, rows[2] + 30, 210, 32, 12.5, name='dec_shift_sum_result',
+    )
+    c.setFillColor(RED)
+    c.setFont('CNB', 9.2)
+    c.drawString(MARGIN_X + 30, top - 520, '无混叠条件：抽取前原序列必须限带到 |ω|≤π/M。')
+    doc.y = 78
+
+
+def draw_interpolation_sampling_theorem_page(doc):
+    """Recreate source pages 419-421: zero stuffing, mirror spectra and filtering."""
+    c, top = _figure_page(doc, '7.3.2 L=2 内插的插零、镜像频谱与抗镜像滤波')
+    draw_formula_block(doc, r'X_p(e^{j\omega})=X(e^{j2\omega}),\qquad L=2', 'interp_graph_l2', fontsize=16, max_h=36)
+    top = doc.y - 8
+    left = MARGIN_X + 12
+    right = MARGIN_X + 292
+    row_gap = 178
+
+    _stem_envelope(c, left, top - 72, 225, 58, 13, keep_every=1, label=r'x(n)')
+    draw_math_at(c, r'f_{s1}=8\,\mathrm{kHz}', left + 64, top - 88, 105, 18, 10.5, name='interp_fs8')
+    _triangle_spectrum(c, right, top - 72, 235, 58,
+                       [(-.38, .70), (0, 1), (.38, .70)], .13,
+                       [(-.38, '-2π'), (-.10, '-π/2'), (0, '0'), (.10, 'π/2'), (.38, '2π')], title=r'X(e^{j\omega})')
+
+    _stem_envelope(c, left, top - row_gap - 72, 225, 58, 25, keep_every=2, label=r'x_p(n)')
+    draw_math_at(c, r'f_{s2}=16\,\mathrm{kHz}', left + 62, top - row_gap - 88, 110, 18, 10.5, name='interp_fs16')
+    _triangle_spectrum(c, right, top - row_gap - 72, 235, 58,
+                       [(-.38, .68), (-.19, .68), (0, 1), (.19, .68), (.38, .68)], .095,
+                       [(-.38, '-2π'), (-.19, '-π'), (0, '0'), (.19, 'π'), (.38, '2π')], title=r'X_p(e^{j\omega})=X(e^{j2\omega})')
+
+    _stem_envelope(c, left, top - 2 * row_gap - 72, 225, 58, 25, keep_every=1, label=r'x_i(n)')
+    _triangle_spectrum(c, right, top - 2 * row_gap - 72, 235, 58,
+                       [(0, 1), (-.38, .65), (.38, .65)], .10,
+                       [(-.38, '-2π'), (-.10, '-π/2'), (0, '0'), (.10, 'π/2'), (.38, '2π')], title='抗镜像滤波后')
+    draw_math_at(c, r'H_i(e^{j\omega})', right + 72, top - 2 * row_gap - 106, 90, 20, 11, name='interp_hi_label')
+    c.setFillColor(RED)
+    c.setFont('CNB', 9.2)
+    c.drawString(MARGIN_X + 25, top - 520, '插零使频谱出现 L-1 个镜像；理想低通滤波器保留基带并补偿幅度。')
+    doc.y = 78
 
 
 def fractional_conversion_details(doc):
@@ -242,39 +632,259 @@ def fractional_conversion_details(doc):
     red_line(doc,'多级分解时，各级因子的乘积必须分别等于总内插因子 L 和总抽取因子 M。')
 
 
-def tdm_fdm(doc):
-    h=330; doc.ensure(h+8); c=doc.c; top=doc.y
-    c.setFont('CNB',10); c.setFillColor(BLUE_DARK); c.drawString(MARGIN_X,top-6,'时分复用与频分复用')
-    x=MARGIN_X+20; y=top-70
-    c.setFont('CNB',9); c.setFillColor(TEXT); c.drawString(MARGIN_X, y+44, '时分复用（TDM）')
-    for i in range(3):
-        yy=y+28-i*24
-        draw_math_at(c,fr'x_{i+1}(n)',x,yy+5,43,14,9.5,name=f'tdmx{i}')
-        arrow(c,x+45,yy,x+82,yy,RED,0.9)
-        block(c,x+88,yy,40,20,'',stroke=RED)
-        draw_centered_multiline_text(c,x+108,yy,'↑3','CNB',8.8,color=TEXT)
-        arrow(c,x+128,yy,x+205,y,RED,0.9)
-    block(c,x+211,y,78,30,'TDM 串行通道',stroke=GREEN,fill=LIGHT_YELLOW)
-    # tdm_demux: three centered down-sampling blocks on the receive side.
-    for i in range(3):
-        yy=y+28-i*24
-        arrow(c,x+289,y,x+345,yy,RED,0.9)
-        block(c,x+351,yy,40,20,'',stroke=RED)
-        draw_centered_multiline_text(c,x+371,yy,'↓3','CNB',8.8,color=TEXT)
-        arrow(c,x+391,yy,x+430,yy,RED,0.9)
-        draw_math_at(c,fr'x_{i+1}(n)',x+435,yy+5,43,14,9.5,name=f'tdm_out_{i}')
-    c.setFont('CN',8.6); c.setFillColor(TEXT); c.drawString(x,y-48,'TDM：三路序列按时间交织为一路串行序列，接收端再按相位分离。')
+def _rate_circle(c, x, y, label):
+    c.setStrokeColor(RED)
+    c.setFillColor(RED)
+    c.setLineWidth(1.15)
+    c.circle(x, y, 17, stroke=1, fill=0)
+    c.setFont('CNB', 10.5)
+    c.drawCentredString(x, y - 4, label)
 
-    y2=top-225
-    c.setFont('CNB',9); c.setFillColor(TEXT); c.drawString(MARGIN_X, y2+44, '频分复用（FDM）')
-    for i,lab in enumerate(['LP','BP','HP']):
-        draw_math_at(c,fr'x_{i+1}(n)',x,y2+28-i*24,45,14,9.5,name=f'fdmx{i}')
-        arrow(c,x+55,y2+26-i*24,x+132,y2+26-i*24,RED,0.9)
-        block(c,x+138,y2+26-i*24,58,20,lab+' 滤波',stroke=RED)
-        arrow(c,x+196,y2+26-i*24,x+292,y2,RED,0.9)
-    block(c,x+300,y2,72,38,'频带合成\ny(n)',stroke=GREEN,fill=LIGHT_YELLOW)
-    c.setFont('CN',8.6); c.setFillColor(TEXT); c.drawString(x,y2-48,'FDM：三路数据分别搬移到低频、中频和高频子带后合成。')
-    doc.y=top-h
+
+def _delay_mark(c, x, y, name):
+    draw_math_at(c, r'z^{-1}', x, y, 34, 15, 10.2, name=name)
+
+
+def _draw_green_transmission_arrow(c, x, y, direction='horizontal'):
+    c.saveState()
+    c.setStrokeColor(GREEN)
+    c.setFillColor(LIGHT_YELLOW)
+    c.setLineWidth(1.25)
+    p = c.beginPath()
+    if direction == 'vertical':
+        p.moveTo(x - 13, y - 26)
+        p.lineTo(x + 13, y - 26)
+        p.lineTo(x + 13, y + 7)
+        p.lineTo(x + 22, y + 7)
+        p.lineTo(x, y + 30)
+        p.lineTo(x - 22, y + 7)
+        p.lineTo(x - 13, y + 7)
+        p.close()
+        c.drawPath(p, stroke=1, fill=1)
+        draw_centered_multiline_text(c, x, y - 7, '数据\n传输', 'CNB', 7.8, leading=10, color=TEXT)
+    else:
+        width, height = 94, 32
+        p.moveTo(x, y - height / 2)
+        p.lineTo(x + width - 19, y - height / 2)
+        p.lineTo(x + width - 19, y - height / 2 - 7)
+        p.lineTo(x + width, y)
+        p.lineTo(x + width - 19, y + height / 2 + 7)
+        p.lineTo(x + width - 19, y + height / 2)
+        p.lineTo(x, y + height / 2)
+        p.close()
+        c.drawPath(p, stroke=1, fill=1)
+        c.setFillColor(TEXT)
+        c.setFont('CNB', 8.4)
+        c.drawCentredString(x + 40, y - 3, '数据传输')
+    c.restoreState()
+
+
+def tdm_source_geometry():
+    return {
+        'input_x': MARGIN_X + 20,
+        'rate_x': MARGIN_X + 138,
+        'left_bus': MARGIN_X + 252,
+        'data_x': MARGIN_X + 260,
+        'right_bus': MARGIN_X + 320,
+        'out_rate_x': MARGIN_X + 400,
+        'output_label_end': MARGIN_X + 514,
+    }
+
+
+def fdm_source_geometry():
+    return {
+        'input_x': MARGIN_X + 28,
+        'rate_x': MARGIN_X + 132,
+        'filter_x': MARGIN_X + 198,
+        'bus_x': MARGIN_X + 330,
+        'left_spectrum_x': MARGIN_X + 22,
+        'middle_spectrum_x': MARGIN_X + 205,
+        'right_spectrum_x': MARGIN_X + 372,
+        'right_spectrum_end': MARGIN_X + 490,
+    }
+
+
+def draw_tdm_source_topology(doc):
+    doc.new_page()
+    doc.h2('7.4.3 多采样率系统的应用 - 时分复用（TDM）')
+    c = doc.c
+    y3, y2, y1 = doc.y - 70, doc.y - 140, doc.y - 210
+    geometry = tdm_source_geometry()
+    input_x, rate_x, left_bus = geometry['input_x'], geometry['rate_x'], geometry['left_bus']
+    right_bus, out_rate_x = geometry['right_bus'], geometry['out_rate_x']
+
+    for idx, (row_y, subscript) in enumerate(((y3, 3), (y2, 2), (y1, 1))):
+        draw_math_at(c, fr'x_{subscript}(n)', input_x, row_y + 7, 56, 20, 12, name=f'tdm_in_x{subscript}')
+        arrow(c, input_x + 60, row_y, rate_x - 17, row_y, RED, 1.1)
+        _rate_circle(c, rate_x, row_y, '↑3')
+        arrow(c, rate_x + 17, row_y, left_bus, row_y, RED, 1.1)
+
+    # Source page 428: each upper branch is delayed before joining the next row.
+    c.setStrokeColor(RED)
+    c.setLineWidth(1.15)
+    arrow(c, left_bus, y3, left_bus, y2, RED, 1.1)
+    arrow(c, left_bus, y2, left_bus, y1, RED, 1.1)
+    _delay_mark(c, left_bus - 42, (y3 + y2) / 2, 'tdm_tx_delay_1')
+    _delay_mark(c, left_bus - 42, (y2 + y1) / 2, 'tdm_tx_delay_2')
+    arrow(c, left_bus, y1, left_bus + 42, y1, RED, 1.1)
+    draw_math_at(c, r'y(n)', left_bus + 44, y1 + 8, 38, 18, 11, name='tdm_serial_y')
+
+    # The source depicts transmission as an annotation between two independent chains.
+    data_x = geometry['data_x'] + 28
+    _draw_green_transmission_arrow(c, data_x, y2, direction='vertical')
+    arrow(c, right_bus - 42, y3, right_bus, y3, RED, 1.1)
+    draw_math_at(c, r'y(n)', right_bus - 40, y3 + 22, 38, 18, 11, name='tdm_rx_y')
+
+    # Receive side: two z^-1 delays feed the three ↓3 phase branches.
+    arrow(c, right_bus, y3, right_bus, y2, RED, 1.1)
+    arrow(c, right_bus, y2, right_bus, y1, RED, 1.1)
+    _delay_mark(c, right_bus + 8, (y3 + y2) / 2, 'tdm_rx_delay_1')
+    _delay_mark(c, right_bus + 8, (y2 + y1) / 2, 'tdm_rx_delay_2')
+    for row_y, subscript in ((y3, 1), (y2, 2), (y1, 3)):
+        arrow(c, right_bus, row_y, out_rate_x - 17, row_y, RED, 1.1)
+        _rate_circle(c, out_rate_x, row_y, '↓3')
+        arrow(c, out_rate_x + 17, row_y, out_rate_x + 58, row_y, RED, 1.1)
+        draw_math_at(c, fr'x_{subscript}(n)', out_rate_x + 62, row_y + 7, 52, 20, 12, name=f'tdm_out_x{subscript}')
+
+    doc.y = y1 - 65
+    draw_formula_block(
+        doc,
+        r'y(n)=\{\ldots,x_1(0),x_2(0),x_3(0),x_1(1),x_2(1),x_3(1),\ldots\}',
+        'tdm_serial_sequence', fontsize=13.5, max_h=34, gap=7,
+    )
+    doc.p('三路序列经不同延时后按时间交织为一路串行序列；接收端用相同延时链和三个相位支路分离。')
+
+
+def _fdm_mini_spectrum(c, x, y, w, h, expr, kind):
+    if kind in ('u1', 'u2', 'u3'):
+        c.saveState()
+        c.setFillColor(CYAN)
+        if kind == 'u1':
+            _fill_band(c, x + w * .18, y, w * .64, h)
+        elif kind == 'u2':
+            _fill_band(c, x, y, w * .24, h)
+            _fill_band(c, x + w * .76, y, w * .24, h)
+        else:
+            _fill_band(c, x, y, w * .56, h)
+        c.restoreState()
+    c.setStrokeColor(BLACK)
+    c.setFillColor(BLACK)
+    c.setLineWidth(0.8)
+    arrow(c, x, y, x + w, y, BLACK, 0.8)
+    arrow(c, x, y - 3, x, y + h, BLACK, 0.8)
+    draw_math_at(c, expr, x + 2, y + h + 9, w * 0.72, 15, 9.5, name='fdm_spec_' + kind)
+    c.setStrokeColor(RED)
+    c.setLineWidth(1.05)
+    if kind in ('x1', 'u1'):
+        pts = [(0, 0), (.42, .70), (1, 0)]
+    elif kind in ('x2', 'u2'):
+        pts = [(0, 0), (.50, .72), (1, 0)]
+    elif kind in ('x3', 'u3'):
+        pts = [(0, .72), (.50, 0), (1, .72)]
+    else:
+        pts = [(0, 0), (.18, .65), (.36, 0), (.54, .65), (.72, 0), (.90, .65), (1, 0)]
+    p = c.beginPath()
+    p.moveTo(x + pts[0][0] * w, y + pts[0][1] * h)
+    for px, py in pts[1:]:
+        p.lineTo(x + px * w, y + py * h)
+    c.drawPath(p, stroke=1, fill=0)
+    c.setFillColor(TEXT)
+    c.setFont('CN', 7.2)
+    c.drawString(x - 4, y - 12, '0')
+    c.drawRightString(x + w, y - 12, '2π')
+    c.drawString(x + w + 4, y - 2, 'ω')
+
+
+def draw_fdm_source_topology(doc):
+    doc.new_page()
+    doc.h2('7.4.3 多采样率系统的应用 - 频分复用（FDM）')
+    c = doc.c
+    rows = [doc.y - 58, doc.y - 116, doc.y - 174]
+    geometry = fdm_source_geometry()
+    input_x, rate_x, filter_x, bus_x = geometry['input_x'], geometry['rate_x'], geometry['filter_x'], geometry['bus_x']
+    filter_exprs = (r'\mathrm{LP\ DF}\quad G_1(z)', r'\mathrm{BP\ DF}\quad G_2(z)', r'\mathrm{HP\ DF}\quad G_3(z)')
+    for i, row_y in enumerate(rows, start=1):
+        draw_math_at(c, fr'x_{i}(n)', input_x, row_y + 7, 52, 19, 11.5, name=f'fdm_input_{i}')
+        arrow(c, input_x + 58, row_y, rate_x - 17, row_y, RED, 1.1)
+        _rate_circle(c, rate_x, row_y, '↑3')
+        arrow(c, rate_x + 17, row_y, filter_x, row_y, RED, 1.1)
+        block(c, filter_x, row_y, 94, 42, '', stroke=RED, fill=None)
+        draw_math_at(c, filter_exprs[i - 1], filter_x + 8, row_y + 1, 78, 29, 10.5, name=f'fdm_filter_{i}')
+        arrow(c, filter_x + 94, row_y, bus_x, row_y, RED, 1.1)
+
+    c.setStrokeColor(RED)
+    c.setLineWidth(1.15)
+    c.line(bus_x, rows[0], bus_x, rows[2])
+    arrow(c, bus_x, rows[2], bus_x + 42, rows[2], RED, 1.1)
+    draw_math_at(c, r'y(n)', bus_x + 46, rows[2] + 12, 38, 18, 11, name='fdm_output_y')
+    _draw_green_transmission_arrow(c, bus_x + 78, rows[2], direction='horizontal')
+
+    panel_y = doc.y - 330
+    left, middle, right = geometry['left_spectrum_x'], geometry['middle_spectrum_x'], geometry['right_spectrum_x']
+    for i, expr in enumerate((r'X_1(e^{j\omega})', r'X_2(e^{j\omega})', r'X_3(e^{j\omega})')):
+        _fdm_mini_spectrum(c, left, panel_y - i * 86, 118, 42, expr, f'x{i + 1}')
+        _fdm_mini_spectrum(c, middle, panel_y - i * 86, 118, 42, expr.replace('e^{j\\omega}', 'e^{j3\\omega}'), f'u{i + 1}')
+    _fdm_mini_spectrum(c, right, panel_y - 86, 118, 42, r'Y(e^{j\omega})', 'y')
+    c.setFillColor(RED)
+    c.setFont('CNB', 9.2)
+    c.drawString(MARGIN_X + 24, panel_y - 278, '三路频谱分别配置到低频、中频和高频子带后，在公共汇流线上合成。')
+    doc.y = 75
+
+
+def _fill_band(c, x, y, w, h):
+    c.rect(x, y, w, h, stroke=0, fill=1)
+
+
+def draw_tdm_fdm_definition_page(doc):
+    doc.new_page()
+    doc.h2('时分复用与频分复用的基本概念')
+    red_line(doc, '时分复用（TDM）是一种将多个数据流在同一个通信介质上同时进行传输的方法。其基本原理是通过时间轴的切割，使得每个数据流在一定时间内占据全部传输资源。')
+    c = doc.c
+    top = doc.y - 18
+    input_x = MARGIN_X + 36
+    mux_x = MARGIN_X + 176
+    slot_x = MARGIN_X + 252
+    demux_x = MARGIN_X + 398
+    output_x = MARGIN_X + 514
+    colors_slots = (colors.HexColor('#BDE7FF'), colors.HexColor('#A9D9FF'), colors.HexColor('#8CCBFF'), colors.HexColor('#73BAF2'))
+    rows = [top - i * 28 for i in range(4)]
+    for i, (row_y, label) in enumerate(zip(rows, ('A', 'B', 'C', 'D'))):
+        c.setFillColor(TEXT)
+        c.setFont('CNB', 8.8)
+        c.drawCentredString(input_x, row_y - 3, label)
+        arrow(c, input_x + 12, row_y, mux_x - 10, top - 42, BLACK, .8)
+        c.drawCentredString(output_x, row_y - 3, label)
+        arrow(c, demux_x + 10, top - 42, output_x - 12, row_y, BLACK, .8)
+    c.setStrokeColor(BLACK)
+    c.setFillColor(colors.white)
+    c.circle(mux_x, top - 42, 13, stroke=1, fill=1)
+    c.circle(demux_x, top - 42, 13, stroke=1, fill=1)
+    c.setFont('CNB', 7.5)
+    c.setFillColor(TEXT)
+    c.drawCentredString(mux_x, top - 45, '复用')
+    c.drawCentredString(demux_x, top - 45, '分离')
+    arrow(c, mux_x + 14, top - 42, slot_x, top - 42, BLACK, .9)
+    slot_w = 25
+    for i, fill in enumerate(colors_slots):
+        c.setFillColor(fill)
+        c.setStrokeColor(BLACK)
+        c.rect(slot_x + i * slot_w, top - 53, slot_w, 22, stroke=1, fill=1)
+        c.setFillColor(TEXT)
+        c.setFont('CNB', 7.8)
+        c.drawCentredString(slot_x + i * slot_w + slot_w / 2, top - 46, str(i + 1))
+    arrow(c, slot_x + 4 * slot_w, top - 42, demux_x - 14, top - 42, BLACK, .9)
+    c.setFillColor(TEXT)
+    c.setFont('CN', 8.3)
+    c.drawCentredString(slot_x + 2 * slot_w, top - 72, '同一传输通道中的连续时隙')
+    doc.y = top - 112
+    doc.p('频分复用（FDM）是将用于传输信道的总带宽划分成若干个子频带（或称子信道），每一个子信道传输一路信号。')
+    red_line(doc, '频分复用的所有用户在同一时间占用不同的带宽资源（频率）。')
+
+
+def tdm_fdm(doc):
+    draw_tdm_source_topology(doc)
+    draw_fdm_source_topology(doc)
+    draw_tdm_fdm_definition_page(doc)
 
 
 def triangle_spectrum(c, x, y, w, h, label, half_band='π/3', peaks=(0.5,)):
@@ -296,6 +906,48 @@ def triangle_spectrum(c, x, y, w, h, label, half_band='π/3', peaks=(0.5,)):
     c.drawCentredString(center + w * 0.11, y - 13, half_band)
 
 
+def draw_up2_filter_down2_spectra_page(doc):
+    """Source page 426: retain all four spectra in the ↑2/filter/↓2 example."""
+    doc.new_page()
+    doc.h2('例 3  ↑2、低通滤波器与 ↓2 的等效系统')
+    system_chain(doc, '原课件系统框图', ['↑2', '低通滤波器\nωc=π/4，增益2', '↓2'], [YELLOW, CYAN, YELLOW])
+    c = doc.c
+    top = doc.y - 12
+    left = MARGIN_X + 32
+    right = MARGIN_X + 302
+    row1 = top - 78
+    row2 = top - 255
+    panel_w, panel_h = 220, 58
+    _triangle_spectrum(
+        c, left, row1, panel_w, panel_h,
+        [(0, 1), (-.40, .72), (.40, .72)], .12,
+        [(-.40, '-2π'), (-.12, '-π/2'), (0, '0'), (.12, 'π/2'), (.40, '2π')],
+        title='原信号频谱',
+    )
+    _triangle_spectrum(
+        c, right, row1, panel_w, panel_h,
+        [(0, 1), (-.20, .82), (.20, .82), (-.40, .62), (.40, .62)], .09,
+        [(-.40, '-2π'), (-.20, '-π'), (0, '0'), (.20, 'π'), (.40, '2π')],
+        title='插零后频谱',
+    )
+    _triangle_spectrum(
+        c, left, row2, panel_w, panel_h,
+        [(0, 1), (-.40, .62), (.40, .62)], .08,
+        [(-.40, '-2π'), (-.10, '-π/4'), (0, '0'), (.10, 'π/4'), (.40, '2π')],
+        title='低通后频谱',
+    )
+    _triangle_spectrum(
+        c, right, row2, panel_w, panel_h,
+        [(0, 1), (-.40, .72), (.40, .72)], .12,
+        [(-.40, '-2π'), (-.12, '-π/2'), (0, '0'), (.12, 'π/2'), (.40, '2π')],
+        title='抽取后频谱',
+    )
+    c.setFillColor(RED)
+    c.setFont('CNB', 9.2)
+    c.drawString(MARGIN_X + 38, top - 395, '等效系统：截止频率为 π/2，增益为 1 的低通滤波器。')
+    doc.y = 78
+
+
 def source_exercises_and_answers(doc):
     """Source pages 424-436: examples, review questions, and supplied answers."""
     doc.h2('本章原课件例题与课后题')
@@ -312,10 +964,7 @@ def source_exercises_and_answers(doc):
     ])
     red_line(doc, '答案：A、C。因为 48/32=3/2，所以 L=3，M=2。')
 
-    doc.h3('例 3  ↑2、低通滤波器与 ↓2 的等效系统')
-    system_chain(doc, '原课件系统框图', ['↑2', '低通滤波器\nωc=π/4，增益2', '↓2'], [YELLOW, CYAN, YELLOW])
-    doc.p('内插产生镜像，经截止频率 π/4、增益 2 的低通滤波器后再作 2 倍抽取。对原输入而言，整个系统等效为低通滤波器。')
-    red_line(doc, '答案：截止频率为 π/2，增益为 1（选 D）。')
+    draw_up2_filter_down2_spectra_page(doc)
 
     doc.h2('课后题与答案')
     doc.h3('第 2 题  D=2 直接抽取')
@@ -353,29 +1002,25 @@ def build():
     system_chain(doc,'M 倍抽取结构',['↓M\n抽取'],[YELLOW])
     decimation_derivation(doc)
     decimation_full_derivation(doc)
+    draw_decimation_sampling_theorem_page(doc)
+    draw_decimation_spectral_construction_page(doc)
     freq_replicas(doc,'抽取造成的频谱压缩和混叠',mode='dec')
     filter_cascade(doc,'dec')
-    doc.h3('例：抽取滤波器设计')
-    doc.p('若 x(n) 的取样频率为 f_s=2f_h，h 为信号最高频率。要作 M=8 的抽取，需要先用抗混叠低通滤波器限制带宽。')
-    draw_formula_block(doc,r'\omega_c=\frac{\pi}{M}=\frac{\pi}{8},\qquad h(n)=h_d(n)w(n)','dec_example',fontsize=15,max_h=36)
-    doc.p('若采用汉宁窗设计 40 阶 FIR 抗混叠滤波器，则 N=41，群延迟为 20，系统差分方程为卷积和形式。')
-    draw_formula_block(doc,r'x_d(n)=\sum_{k=0}^{40}h(k)x(8n-k)','dec_diff',fontsize=15,max_h=36)
-    red_line(doc,'FIR 滤波器的差分方程也就是线性卷积表达式。')
+    draw_decimation_filter_example_page(doc)
 
     doc.h2('7.3 信号的整数倍内插')
     doc.p('L 倍内插通过在相邻样本之间插入 L-1 个零，使采样率提高为原来的 L 倍。')
     system_chain(doc,'L 倍内插结构',['↑L\n内插'],[YELLOW])
     interpolation_derivation(doc)
     interpolation_full_derivation(doc)
+    draw_interpolation_sampling_theorem_page(doc)
     freq_replicas(doc,'内插造成的镜像频谱',mode='int')
     filter_cascade(doc,'int')
-    doc.h3('抽取滤波器与内插滤波器的级联位置')
-    doc.bullet(['抽取时：先低通滤波，再抽取，用于抗混叠。','内插时：先插零，再低通滤波，用于抗镜像。','两者的截止频率分别和 M、L 有关，通带增益不同。'])
+    draw_source_filter_cascade_page(doc)
 
     doc.h2('7.4 采样率转换与应用')
-    lm_conversion(doc)
-    doc.p('实现分数倍采样率转换时，一般先内插、再滤波、最后抽取。这样可避免直接在低采样率下丢失应保留的频谱信息。')
-    fractional_conversion_details(doc)
+    draw_fractional_conversion_source_page(doc)
+    draw_multistage_factorization_page(doc)
     tdm_fdm(doc)
     source_exercises_and_answers(doc)
 
