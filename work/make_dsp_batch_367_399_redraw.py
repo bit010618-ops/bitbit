@@ -11,6 +11,7 @@ from make_dsp_batch_266_300_redraw import (
     RED, PALE_BLUE, YELLOW, draw_math_at, draw_formula_block,
     draw_note, arrow, dot, wrap, draw_centered_multiline_text
 )
+from make_dsp_sample_handout_v2 import piecewise_png
 
 OUT_DIR=ROOT/'outputs'
 PDF_PATH=OUT_DIR/'DSP讲义重制_第十二批_原PPT367-399页_FIR滤波器设计_手绘复刻版.pdf'
@@ -36,6 +37,11 @@ def label_line(doc, label, text, red=False):
     c.setFont('CNB',9.6); c.setFillColor(BLUE_DARK); c.drawString(MARGIN_X, doc.y, label)
     c.setFont('CN',9.4); c.setFillColor(RED if red else TEXT); c.drawString(MARGIN_X+72, doc.y, text)
     doc.y-=17
+
+
+def draw_piecewise2(doc, name, lhs, row1, row2, height=62, fontsize=17):
+    path = piecewise_png(name, lhs, row1, row2, fontsize=fontsize)
+    doc.formula_box(path, height=height)
 
 
 def mini_axis(c, x, y, w, h, title='', marks=None, bars=None, red=False):
@@ -208,76 +214,286 @@ def sampling_structure(doc):
     red_line(doc,'FIR 直接型结构与频率采样型结构是同一个 H(z) 的两种实现。',size=9.0)
 
 
+def source_window_definitions():
+    return [
+        ('矩形窗', r'w(n)=R_N(n)'),
+        ('三角窗', r'w(n)=\begin{cases}\frac{2n}{N-1},&0\leq n\leq\frac{N-1}{2}\\2-\frac{2n}{N-1},&\frac{N-1}{2}<n\leq N-1\end{cases}'),
+        ('汉宁窗(升余弦窗)', r'w(n)=\frac{1}{2}\left[1-cos\frac{2\pi n}{N-1}\right]R_N(n)'),
+        ('海明窗(改进的升余弦窗)', r'w(n)=\left[0.54-0.46cos\frac{2\pi n}{N-1}\right]R_N(n)'),
+        ('布莱克曼窗', r'w(n)=\left[0.42-0.5cos\frac{2\pi n}{N-1}+0.08cos\frac{4\pi n}{N-1}\right]R_N(n)'),
+    ]
+
+
+def draw_window_definitions(doc):
+    doc.h2('6.5.2 常用窗函数')
+    red_line(doc, '常见窗函数及其性能指标要牢记；考试可能不提供。', size=10.2)
+    for idx, (name, expr) in enumerate(source_window_definitions()):
+        doc.ensure(66)
+        doc.c.setFont('CNB', 10.3); doc.c.setFillColor(TEXT)
+        doc.c.drawString(MARGIN_X, doc.y, f'（{idx + 1}）{name}')
+        doc.y -= 10
+        if name == '三角窗':
+            draw_piecewise2(doc, 'source_window_triangle', r'w(n)=',
+                            r'\frac{2n}{N-1},\ 0\leq n\leq\frac{N-1}{2}',
+                            r'2-\frac{2n}{N-1},\ \frac{N-1}{2}<n\leq N-1',
+                            height=70, fontsize=15)
+        else:
+            draw_formula_block(doc, expr, f'source_window_{idx}', fontsize=13.5, max_h=46, gap=12)
+
+
+def draw_window_six_diagrams(doc):
+    doc.h2('6.5.2 窗函数截断的时域与频域过程')
+    doc.p('用窗函数将无限长理想冲激响应截成有限长序列。时域是相乘，频域是卷积。')
+    c = doc.c
+    top = doc.y - 8
+    left = MARGIN_X + 22
+    right = MARGIN_X + 300
+    row_gap = 145
+    labels = [('h_d(n)', 'H_d(e^{jω})'), ('R_N(n)', 'W(e^{jω})'), ('h(n)', 'H(e^{jω})')]
+    for row, (lt, rt) in enumerate(labels):
+        cy = top - row * row_gap - 62
+        # Left: source-style finite/infinite sample sequence.
+        x0 = left + 12; w = 190
+        arrow(c, x0, cy, x0 + w, cy, BLACK, 0.9)
+        arrow(c, x0 + w / 2, cy - 35, x0 + w / 2, cy + 48, BLACK, 0.9)
+        c.setFont('CN', 8.2); c.setFillColor(TEXT)
+        c.drawString(x0 + 4, cy + 51, lt)
+        for k in range(-6, 7):
+            xx = x0 + w / 2 + k * 13
+            if row == 0:
+                val = 34 * math.sin(0.58 * (k + 0.001)) / (2.8 * (k + 0.001))
+            elif row == 1:
+                val = 29 if -4 <= k <= 4 else 0
+            else:
+                val = (34 * math.sin(0.58 * (k + 0.001)) / (2.8 * (k + 0.001))) if -4 <= k <= 4 else 0
+            if abs(val) > 0.3:
+                c.setStrokeColor(BLACK); c.line(xx, cy, xx, cy + val)
+                c.setFillColor(BLACK); c.circle(xx, cy + val, 1.6, stroke=0, fill=1)
+        # Right: ideal, window, and resulting response.
+        rx = right + 10; rw = 190
+        arrow(c, rx, cy, rx + rw, cy, BLACK, 0.9)
+        arrow(c, rx + rw / 2, cy - 32, rx + rw / 2, cy + 48, BLACK, 0.9)
+        c.drawString(rx + 4, cy + 51, rt)
+        c.setStrokeColor(RED); c.setLineWidth(1.3)
+        if row == 0:
+            c.line(rx + 14, cy + 31, rx + 76, cy + 31); c.line(rx + 76, cy + 31, rx + 76, cy)
+            c.line(rx + 114, cy, rx + 114, cy + 31); c.line(rx + 114, cy + 31, rx + 176, cy + 31)
+        elif row == 1:
+            pts = [(0,30),(18,26),(37,15),(55,4),(73,-2),(92,3),(111,-2),(130,4),(150,15),(170,26),(188,30)]
+            for (a,b),(d,e) in zip(pts,pts[1:]): c.line(rx+a,cy+b,rx+d,cy+e)
+        else:
+            pts = [(0,30),(28,29),(46,27),(61,20),(74,8),(84,2),(95,5),(106,2),(118,8),(132,20),(147,27),(166,29),(188,30)]
+            for (a,b),(d,e) in zip(pts,pts[1:]): c.line(rx+a,cy+b,rx+d,cy+e)
+    doc.y = top - 3 * row_gap + 8
+
+
+def draw_gibbs_page(doc):
+    doc.h2('截断引起的 Gibbs 现象')
+    doc.p('频谱的主瓣与窗函数卷积后必然产生拓展、变宽和旁瓣，从而造成截断效应，即频谱泄漏。')
+    c = doc.c; x = MARGIN_X + 45; y = doc.y - 230; w = CONTENT_W - 90; h = 160
+    arrow(c, x, y, x + w, y, BLACK, 1.0)
+    arrow(c, x + w * 0.52, y - 18, x + w * 0.52, y + h, BLACK, 1.0)
+    c.setFont('CN', 8.5); c.setFillColor(TEXT)
+    c.drawString(x + w + 4, y - 3, 'ω'); c.drawString(x + w * 0.52 + 5, y + h - 2, '|H(ω)|')
+    pts=[]
+    for i in range(160):
+        t=-4.2+8.4*i/159
+        base=1/(1+math.exp(6.2*t))
+        ripple=0.11*math.sin(17*t)*math.exp(-0.55*abs(t))
+        pts.append((x+w*(i/159), y+22+(base+ripple)*105))
+    c.setStrokeColor(RED); c.setLineWidth(1.35)
+    for p,q in zip(pts,pts[1:]): c.line(p[0],p[1],q[0],q[1])
+    c.setStrokeColor(colors.HexColor('#777777')); c.setDash(3,3)
+    c.line(x+w*.43,y,x+w*.43,y+132); c.line(x+w*.61,y,x+w*.61,y+132)
+    c.setDash()
+    c.setFont('CNB', 9.1); c.setFillColor(RED)
+    c.drawString(x+18,y+140,'实际低通'); c.drawString(x+w*.39,y-14,'主瓣展宽与过渡带'); c.drawString(x+w*.63,y+72,'旁瓣与波纹')
+    doc.y = y - 34
+    red_line(doc, '主瓣宽度决定过渡带宽；旁瓣峰值决定阻带最小衰减。', size=10)
+
+
+def draw_sampling_constraints(doc):
+    doc.h2('频率采样法的线性相位约束条件')
+    doc.p('设计线性相位滤波器时，必须先判断 N 的奇偶、h(n) 的对称性和滤波器类型。')
+    headers=['条件','一类线性相位','二类线性相位']
+    rows=[
+        ['对称性','h(n)=h(N-1-n)','h(n)=-h(N-1-n)'],
+        ['相位','θ_k=-(N-1)πk/N','θ_k=π/2-(N-1)πk/N'],
+        ['N为奇数','H_k=H_{N-k}；H(ω) 关于 0、2π 偶对称','H_k=-H_{N-k}；H(0)=H(π)=0'],
+        ['N为偶数','H_k=-H_{N-k}；H(ω) 关于 π 奇对称','H_k=H_{N-k}；H(π)=0'],
+    ]
+    doc.table(headers, rows, [110,205,205], row_h=42)
+    red_line(doc, '重要：幅度采样 H_k 的正负号和端点零值由对称类型与 N 的奇偶共同决定。', size=9.5)
+
+
+def draw_sampling_process(doc):
+    doc.h2('频率采样法设计过程')
+    steps=[
+        '根据题目给出的采样点数 N 和滤波器类型判断线性相位是哪一类。',
+        '根据对称性写出线性相位 θ_k 和幅度 H_k 的表达式。',
+        '通过题目设计滤波器的截止频率 ω_c，求出截止频率处对应的 k 值。',
+        '在频率采样点处画出频率响应采样后的幅频图像。',
+        '根据频域采样后的幅频图像写出H(k)的表达式。',
+    ]
+    for i, text in enumerate(steps, 1):
+        doc.p(f'（{i}）{text}', size=10.1, leading=17)
+    draw_formula_block(doc, r'H(k)=H_ke^{j\theta_k}', 'sampling_process_Hk', fontsize=18, max_h=42)
+
+
+def fir_chapter_map(doc):
+    doc.h2('本章导图')
+    c=doc.c; top=doc.y-20; cx=MARGIN_X+CONTENT_W/2; cy=top-240
+    c.setFillColor(BLUE_DARK); c.setStrokeColor(BLUE_DARK)
+    c.roundRect(cx-75,cy-28,150,56,7,stroke=1,fill=0)
+    draw_centered_multiline_text(c,cx,cy,'FIR 滤波器结构与\n滤波器设计','CNB',11,leading=17,color=BLUE_DARK)
+    branches=[
+        ('线性相位 FIR', MARGIN_X+85, top-65, ['四类线性相位','零点成组性质','系统函数结构']),
+        ('理想滤波器', MARGIN_X+82, top-370, ['低通/高通','带通/带阻','无限长 h_d(n)']),
+        ('窗函数法', MARGIN_X+CONTENT_W-95, top-65, ['五种常用窗','指标与经验公式','设计步骤与例题']),
+        ('频率采样法', MARGIN_X+CONTENT_W-98, top-370, ['幅度与相位约束','设计过程','N=33 例题']),
+    ]
+    for title,bx,by,items in branches:
+        c.setStrokeColor(colors.HexColor('#666666')); c.setLineWidth(1.0)
+        arrow(c,cx+(35 if bx>cx else -35),cy+(12 if by>cy else -12),bx,by,colors.HexColor('#666666'),1.0)
+        c.setFillColor(colors.white); c.setStrokeColor(BLUE)
+        c.roundRect(bx-58,by-18,116,36,5,stroke=1,fill=1)
+        c.setFont('CNB',9.5); c.setFillColor(BLUE_DARK); c.drawCentredString(bx,by-3,title)
+        yy=by-36
+        c.setFont('CN',8.3); c.setFillColor(TEXT)
+        for item in items:
+            c.drawCentredString(bx,yy,item); yy-=15
+    doc.y=top-500
+
+
+def draw_source_367_374(doc):
+    doc.h2('6.4.3 线性相位 FIR 系统函数零点特点')
+    linear_phase_classification_example(doc)
+    doc.new_page()
+    doc.h3('由 z 变换表达式和线性相位条件分析零点')
+    draw_formula_block(doc,r'H(z)=\sum_{n=0}^{N-1}h(n)z^{-n}', 'source369_Hz', fontsize=16, max_h=38)
+    doc.p('h(n) 为 N 点长因果序列，H(z) 是 N-1 阶多项式，并且全部零点位于 z 平面原点以外的有限位置。')
+    draw_formula_block(doc,r'H(z)=\pm z^{-(N-1)}H(z^{-1})', 'source370_relation', fontsize=17, max_h=40)
+    label_line(doc,'结论 1','线性相位 FIR 滤波器的零点关于单位圆镜像对称。',red=True)
+    label_line(doc,'结论 2','若 h(n) 为实序列，零点还具有共轭对称。',red=True)
+    doc.bullet(['N-1 个零点中，关于单位圆镜像成对出现。','z 平面圆以外的极点只有原点，因此 FIR 系统稳定。'])
+    zero_plane(doc)
+
+
+def draw_source_375_379(doc):
+    doc.new_page(); doc.h2('6.5.1 线性相位 FIR 理想滤波器')
+    doc.h3('1. 理想低通滤波器')
+    draw_piecewise2(doc, 'source375_lp', r'H_d(e^{j\omega})=',
+                    r'e^{-j\omega\tau},\ |\omega|\leq\omega_c',
+                    r'0,\ \omega_c<|\omega|\leq\pi', height=68, fontsize=16)
+    draw_formula_block(doc,r'\tau=\frac{N-1}{2}', 'source375_tau', fontsize=15, max_h=34)
+    draw_formula_block(doc,r'h_d(n)=\frac{\sin[\omega_c(n-\tau)]}{\pi(n-\tau)}', 'source375_lph', fontsize=16, max_h=38)
+    doc.h3('2. 理想高通滤波器')
+    draw_formula_block(doc,r'h_d(n)=\frac{\sin[\pi(n-\tau)]-\sin[\omega_c(n-\tau)]}{\pi(n-\tau)}', 'source376_hph', fontsize=15, max_h=42)
+    red_line(doc,'高通滤波器 = 全通滤波器 - 低通滤波器。',size=9.6)
+    doc.new_page(); doc.h3('3. 理想带通滤波器')
+    draw_formula_block(doc,r'h_d(n)=\frac{\sin[\omega_2(n-\tau)]-\sin[\omega_1(n-\tau)]}{\pi(n-\tau)}', 'source377_bph', fontsize=15, max_h=42)
+    red_line(doc,'带通滤波器 = 低通滤波器(ω_2) - 低通滤波器(ω_1)。',size=9.6)
+    doc.h3('4. 理想带阻滤波器')
+    draw_formula_block(doc,r'h_d(n)=\frac{\sin[\pi(n-\tau)]-\sin[\omega_2(n-\tau)]+\sin[\omega_1(n-\tau)]}{\pi(n-\tau)}', 'source378_bsh', fontsize=14, max_h=42)
+    red_line(doc,'带阻滤波器 = 高通滤波器(ω_2) + 低通滤波器(ω_1)。',size=9.6)
+    ideal_filters(doc)
+    doc.new_page(); doc.h2('6.5.2 利用窗函数法设计 FIR 滤波器')
+    window_flow(doc)
+    draw_formula_block(doc,r'h(n)=h_d(n)w(n),\qquad H(e^{j\omega})=H_d(e^{j\omega})*W(e^{j\omega})', 'source379_window', fontsize=16, max_h=42)
+    doc.bullet([
+        '无限长理想冲激响应 h_d(n) 与有限长窗函数 w(n) 在时域相乘，得到可实现的有限长 h(n)。',
+        '对 h(n) 作 DTFT 后，时域相乘对应频域卷积，因此实际频响等于理想频响与窗函数频谱的卷积。',
+        '窗函数的主瓣宽度影响过渡带宽，旁瓣峰值影响阻带最小衰减，二者共同决定实际滤波器性能。',
+    ], size=9.8, leading=17)
+
+
+def draw_source_380_384(doc):
+    doc.new_page(); draw_window_six_diagrams(doc)
+    doc.new_page(); draw_gibbs_page(doc)
+    doc.new_page(); draw_window_definitions(doc)
+    doc.new_page(); doc.h2('窗函数性能指标与设计步骤')
+    window_table(doc)
+    doc.h3('用窗函数法设计 FIR 滤波器的步骤')
+    doc.bullet(['求数字滤波器指标 ω_p、ω_st、α_p、α_s、Δω。','求 h_d(n)。','根据阻带衰减 α_s 选择窗函数，所选窗的 α_s 要比题目给定数值大。','由过渡带宽确定 N。','求 FIR 滤波器 h(n)。'],size=10,leading=17)
+    doc.p('阻带衰减 α_s 决定窗函数类型；过渡带宽 Δω 决定长度 N。', size=9.8)
+    draw_formula_block(doc,r'\alpha_s\Longrightarrow w(n),\qquad \Delta\omega=\frac{A}{N}\Longrightarrow N=\frac{A}{\Delta\omega}', 'source384_steps', fontsize=14, max_h=46)
+
+
+def draw_source_385_389(doc):
+    doc.new_page(); doc.h2('例：窗函数法设计低通 FIR 数字滤波器')
+    doc.p('指标：抽样频率 f_s=15 kHz；通带截止频率 f_p=1.5 kHz；阻带截止频率 f_{st}=3 kHz；阻带衰减不小于 50 dB。')
+    doc.h3('（1）求数字滤波器指标')
+    draw_formula_block(doc,r'\omega_p=2\pi\frac{f_p}{f_s}=0.2\pi,\quad \omega_{st}=2\pi\frac{f_{st}}{f_s}=0.4\pi', 'source386_freq', fontsize=15, max_h=42)
+    draw_formula_block(doc,r'\omega_c=\frac{\omega_p+\omega_{st}}{2}=0.3\pi,\quad \Delta\omega=\omega_{st}-\omega_p=0.2\pi', 'source386_wc', fontsize=15, max_h=42)
+    doc.h3('（2）根据题目要求写出理想滤波器')
+    draw_piecewise2(doc, 'source387_hd', r'H_d(e^{j\omega})=',
+                    r'e^{-j\omega\tau},\ |\omega|\leq\omega_c',
+                    r'0,\ \omega_c<|\omega|\leq\pi', height=68, fontsize=16)
+    draw_formula_block(doc,r'\tau=\frac{N-1}{2}', 'source387_tau', fontsize=15, max_h=34)
+    draw_formula_block(doc,r'h_d(n)=\frac{\sin[\omega_c(n-\tau)]}{\pi(n-\tau)}', 'source387_hd_n', fontsize=16, max_h=38)
+    red_line(doc,'tips：理想滤波器的四大类必须背住。',size=9.6)
+    doc.new_page(); doc.h3('（3）根据阻带衰减选择窗函数并确定 N')
+    doc.p('阻带衰减为 50 dB。根据指标表，矩形窗与三角窗不满足，选择海明窗。')
+    draw_formula_block(doc,r'w(n)=\left[0.54-0.46\cos\frac{2\pi n}{N-1}\right]R_N(n)', 'source388_hamming', fontsize=15, max_h=42)
+    draw_formula_block(doc,r'N=\frac{A}{\Delta\omega}=\frac{6.6\pi}{0.2\pi}=33,\qquad \tau=\frac{N-1}{2}=16', 'source388_N', fontsize=16, max_h=42)
+    doc.h3('（4）确定 FIR 滤波器的 h(n)')
+    draw_formula_block(doc,r'h(n)=\frac{\sin[0.3\pi(n-16)]}{\pi(n-16)}\left[0.54-0.46\cos\frac{2\pi n}{32}\right]R_{33}(n)', 'source389_hn', fontsize=14, max_h=55)
+    red_line(doc,'设计滤波器时必须牢记每一步，N 满足线性相位中心位置的要求。',size=9.6)
+
+
+def draw_source_390_397(doc):
+    doc.new_page(); doc.h2('6.5.3 利用频率采样法设计 FIR 滤波器')
+    doc.h3('1. 基本思想')
+    doc.p('在 0 到 2π 之间等间隔采样 N 点，得到 H_d(k)，再作 N 点 IDFT 得到 h(n)。')
+    draw_formula_block(doc,r'H(k)=H_d(e^{j\omega})\mid_{\omega=2\pi k/N},\quad k=0,1,\ldots,N-1', 'source390_sample', fontsize=15, max_h=42)
+    draw_formula_block(doc,r'h(n)=\frac{1}{N}\sum_{k=0}^{N-1}H(k)W_N^{-kn},\quad n=0,1,\ldots,N-1', 'source390_idft', fontsize=15, max_h=42)
+    sampling_structure(doc)
+    doc.new_page(); draw_sampling_constraints(doc)
+    doc.new_page(); draw_sampling_process(doc)
+    doc.new_page(); doc.h2('例：频率采样法设计线性相位低通 FIR')
+    doc.p('理想幅频特性为低通，截止频率 ω_c=0.5π，采样点数为奇数 N=33。求各采样点幅值 H_k、相位 θ_k，并写出 H(k)。')
+    doc.p('（1）N=33 是奇数，设计低通滤波器，判定为一类线性相位。')
+    doc.p('（2）根据一类线性相位写出幅度和相位约束。')
+    draw_formula_block(doc,r'H_k=H_{N-k},\qquad \theta_k=-\frac{N-1}{N}\pi k=-\frac{32}{33}\pi k', 'source395_constraint', fontsize=15, max_h=42)
+    doc.p('（3）由截止频率求 k：')
+    draw_formula_block(doc,r'k=\frac{\omega_c}{2\pi}N=\frac{0.5\pi}{2\pi}\cdot 33=8.25', 'source395_k', fontsize=16, max_h=40)
+    doc.p('（4）画出频率响应采样后的幅频图像：')
+    sampled_response(doc)
+    doc.p('（5）写出H(k)的表达式：')
+    draw_piecewise2(doc, 'source397_Hk', r'H_k=',
+                    r'1,\ 0\leq k\leq8,\ 25\leq k\leq32',
+                    r'0,\ 9\leq k\leq24', height=68, fontsize=16)
+    draw_formula_block(doc,r'H(k)=H_ke^{j\theta_k},\qquad \theta_k=-\frac{32}{33}\pi k,\quad 0\leq k\leq32', 'source397_H', fontsize=15, max_h=42)
+
+
+def draw_source_398_399(doc):
+    doc.new_page(); fir_chapter_map(doc)
+    doc.new_page(); doc.h2('课后习题')
+    doc.bullet([
+        '1：简单的对 FIR 滤波器的幅频和相频响应的描述。',
+        '2：频率采样法设计滤波器的知识点，还要考核对两个响应形式的理解，关注 N 的奇偶。',
+        '3：与第一题本质上差不多，需要进一步给出两个响应的具体形式，其实应该算最基础的小问。',
+        '4-5-6：窗函数法设计 FIR 滤波器，注意 N 的限制。',
+        '8：第一小问做个回顾，常规的小综合题。',
+        '13-14-15：频率采样法设计 FIR 滤波器。',
+        '17：同上。',
+        '18：与上一题差不多，只不过频域的离散值要自己求出来，注意 ω 和 k 的互相转化。',
+    ],size=10.2,leading=18)
+
+
 def build():
     register_fonts(); OUT_DIR.mkdir(exist_ok=True)
     doc=Doc(PDF_PATH); doc.section='第六章 FIR滤波器设计'; doc.start()
 
-    doc.h2('6.4.3 线性相位 FIR 系统函数零点特点')
-    doc.p('原课件从冲激响应的对称或反对称条件出发，说明线性相位 FIR 的零点分布具有成组出现的特点。')
-    label_line(doc,'结论 1','h(n) 为 N 点有限长序列，H(z) 是 N-1 阶多项式，零点个数为 N-1 个。',red=True)
-    label_line(doc,'结论 2','线性相位 FIR 的零点关于单位圆镜像对称；若 h(n) 为实序列，还具有共轭对称。',red=True)
-    draw_formula_block(doc,r'H(z)=\pm z^{-(N-1)}H(z^{-1}),\qquad H(z_i^{-1})=0\Rightarrow z_i^{-1}','lp_zero_relation',fontsize=14,max_h=40)
-    doc.bullet(['N-1 个零点中，关于单位圆镜像成对出现；实系数时还会出现共轭零点。','若某个零点在单位圆上，倒数镜像仍在同一点，只需要再考虑共轭关系。'])
-    zero_plane(doc)
-    linear_phase_classification_example(doc)
-
-    doc.h2('6.5 线性相位 FIR 理想滤波器')
-    doc.p('设计 FIR 滤波器时，先给定理想幅频响应和线性相位，再由反变换得到无限长冲激响应。实际实现必须截断为有限长。')
-    ideal_filters(doc)
-    draw_formula_block(doc,r'H_d(e^{j\omega})=|H_d(e^{j\omega})|e^{-j\omega\tau},\qquad \tau=\frac{N-1}{2}','ideal_phase',fontsize=15,max_h=38)
-    draw_formula_block(doc,r'h_d(n)=\frac{1}{2\pi}\int_{-\pi}^{\pi}H_d(e^{j\omega})e^{j\omega n}\,d\omega','ideal_inv',fontsize=15,max_h=38)
-    ideal_impulse_responses(doc)
-    red_line(doc,'四类理想滤波器能否实现，要同时看 N 的奇偶和 h(n) 的对称类型。',size=9.2)
-
-    doc.h2('6.5.2 利用窗函数法设计 FIR 滤波器')
-    window_flow(doc)
-    doc.p('用窗函数把无限长的 h_d(n) 截成有限长，时域是相乘，频域就是卷积。因此窗函数会决定过渡带宽和阻带波纹。')
-    draw_formula_block(doc,r'h(n)=h_d(n)w(n),\qquad H(e^{j\omega})=H_d(e^{j\omega})*W(e^{j\omega})','window_main_formula',fontsize=15,max_h=38)
-    window_effect(doc)
-    doc.h3('常用窗函数及指标')
-    red_line(doc,'常年记！！！考试可能不提供。',size=9.3)
-    window_table(doc)
-    doc.h3('窗函数法设计步骤')
-    doc.bullet(['由技术指标确定通带、阻带边界频率以及过渡带宽 Δω。','根据阻带衰减 α_s 选择窗函数类型；再由窗函数的 Δω 公式估算阶数 N。','理想滤波器的截止频率通常取过渡带中点。','写出 h_d(n)，再乘窗函数得到 h(n)。'])
-    draw_formula_block(doc,r'\alpha_s\ \Longrightarrow\ w(n),\qquad N\approx \frac{A}{\Delta\omega}','window_step',fontsize=15,max_h=38)
-
-    doc.h3('例：窗函数法设计低通 FIR 数字滤波器')
-    doc.p('指标：抽样频率 fs=15 kHz；通带截止 fp=1.5 kHz；阻带截止 fst=3 kHz；阻带衰减不小于 50 dB。')
-    draw_formula_block(doc,r'\omega_p=2\pi\frac{f_p}{f_s}=0.2\pi,\qquad \omega_{st}=2\pi\frac{f_{st}}{f_s}=0.4\pi','win_ex_freq',fontsize=15,max_h=38)
-    draw_formula_block(doc,r'\omega_c=\frac{\omega_p+\omega_{st}}{2}=0.3\pi,\qquad \Delta\omega=0.2\pi','win_ex_wc',fontsize=15,max_h=38)
-    doc.p('阻带衰减 50 dB，可选海明窗；由 6.6π/N≈0.2π 得 N≈33，取 N=33，群延迟 α=(N-1)/2=16。')
-    draw_formula_block(doc,r'h(n)=h_d(n)w(n)=\frac{\sin[0.3\pi(n-16)]}{\pi(n-16)}\left[0.54-0.46\cos\frac{2\pi n}{32}\right]R_{33}(n)','win_ex_hn',fontsize=13,max_h=52)
-    red_line(doc,'设计时最容易漏的是取截止频率为过渡带中点，以及确认 N 为奇数时线性相位中心在整数点。',size=9.2)
-
-    doc.h2('6.5.3 利用频率采样法设计 FIR 滤波器')
-    doc.p('频率采样法把期望频响 H_d(e^{jω}) 在 N 个等间隔频率点上采样，得到 H(k)，再作 N 点 IDFT 得到 h(n)。')
-    draw_formula_block(doc,r'H(k)=H_d(e^{j\omega})\mid_{\omega=2\pi k/N},\qquad h(n)=\frac{1}{N}\sum_{k=0}^{N-1}H(k)W_N^{-kn}','freq_sample_basic',fontsize=14,max_h=45)
-    sampling_structure(doc)
-    doc.h3('线性相位约束条件')
-    doc.bullet(['对称 h(n)=h(N-1-n)：幅度采样满足 H_k=H_{N-k}，相位 θ_k=-[(N-1)/N]πk。','反对称 h(n)=-h(N-1-n)：幅度采样满足 H_k=-H_{N-k}，相位仍按线性相位关系确定。','设计流程：先判滤波器类型与 h(n) 对称性，再写出幅度 H_k 和相位 θ_k，最后由 IDFT 求 h(n)。'])
-    red_line(doc,'设计线性相位滤波器时，一定要先判断 N 的奇偶、h(n) 的对称性和滤波器类型。',size=9.2)
-
-    doc.h3('例：频率采样法设计线性相位低通 FIR')
-    doc.p('已知 ω_c=0.5π，采样点数为奇数 N=33，试求各采样点幅值 H_k 与相位 θ_k。')
-    sampled_response(doc)
-    draw_formula_block(doc,r'H_k=1,\quad 0\leq k\leq 8,\ 25\leq k\leq 32;\qquad H_k=0,\quad 9\leq k\leq 24','freq_ex_hk',fontsize=13,max_h=42)
-    draw_formula_block(doc,r'\theta_k=-\frac{N-1}{N}\pi k=-\frac{32}{33}\pi k,\qquad 0\leq k\leq 32','freq_ex_theta',fontsize=13,max_h=34)
-    doc.p('因为 N=33 为奇数，低通滤波器选择第一类线性相位 FIR，幅度采样关于 k=0 共轭对称。')
-
-    doc.h2('本章导图与课后题')
-    doc.p('本章围绕 FIR 滤波器设计展开：先掌握线性相位条件与四类结构，再掌握两种主要设计方法。')
-    doc.bullet(['单纯的 FIR 频域设计必须和相频响应一起看，不能只记幅度。','窗函数法的核心是由指标选窗函数和 N；频率采样法的核心是写对 H(k) 的幅度与相位。','若第一遍掌握不牢，优先整理两个响应的具体形式：理想响应 H_d(e^{jω}) 与实际有限长 h(n)。'])
-    draw_note(doc,'课后题', [
-        '1：简单 FIR 滤波器幅频响应和相频响应的描述。',
-        '2：频率采样法设计滤波器的知识点，并结合一类线性相位与 N 的奇偶判断。',
-        '3：与第 1 题本质相同，进一步求两个响应的具体形式。',
-        '4-5：窗函数法设计 FIR 滤波器，注意 N 的限制。',
-        '8：常规综合题，先回顾前置知识。',
-        '13-14、15、17：频率采样法设计 FIR 滤波器。',
-        '18：与上一题同类，但频率采样值需自行求出，注意 ω 与 k 的互相转化。'])
+    draw_source_367_374(doc)
+    draw_source_375_379(doc)
+    draw_source_380_384(doc)
+    draw_source_385_389(doc)
+    draw_source_390_397(doc)
+    draw_source_398_399(doc)
 
     doc.save()
-    NOTE_PATH.write_text('第十二批覆盖原 PPT 367-399 页。图形均为重画：保留线性相位零点、理想滤波器、窗函数法、频率采样法、例题、红字重点和课后题；最终合并前仍需逐页对照原 PDF。\n',encoding='utf-8')
+    NOTE_PATH.write_text('第十二批覆盖原 PPT 367-399 页，已按源页内容组展开为完整 A4 讲义：保留线性相位零点、四类理想滤波器、五种窗函数定义、指标表、窗函数法例题、频率采样约束与例题、章节导图和完整课后题。\n',encoding='utf-8')
     print(PDF_PATH)
 
 if __name__=='__main__':
