@@ -76,8 +76,10 @@ def test_source_page_16_example_plot_uses_source_axis_geometry():
 
     assert "x_tick_labels={-1, 0, 1}" in source
     assert "x_tick_positions={-1, 0, 1}" in source
-    assert "axis_v_min=-4.5" in source
-    assert "axis_v_max=5.2" in source
+    assert "axis_v_min=-3.2" in source
+    assert "axis_v_max=6.4" in source
+    assert "doc.y - 18" in source
+    assert "150" in source
     assert "title_position='axis_top'" in source
 
 

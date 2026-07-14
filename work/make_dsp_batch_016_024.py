@@ -221,19 +221,22 @@ def draw_system_block(doc, input_label, block_label, output_label):
 
 
 def draw_example2_plot(doc):
-    doc.ensure(122)
+    doc.ensure(168)
     draw_discrete_axes_plot(
         doc.c,
         MARGIN_X + 150,
-        doc.y,
+        doc.y - 18,
         300,
-        112,
+        150,
         {-1: 1, 0: 4, 1: -2},
         n_min=-2,
         n_max=2,
         title="x(1-2n)",
+        axis_v_min=-3.2,
+        axis_v_max=6.4,
+        value_label_offsets={-1: (3, 0)},
     )
-    doc.y -= 124
+    doc.y -= 168
 
 
 def small_axis_geometry():

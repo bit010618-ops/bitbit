@@ -57,7 +57,7 @@ class BatchOneFigureCoverageTests(unittest.TestCase):
         self.assertNotIn("doc.ensure(295)", renderer_source)
         self.assertIn("doc.ensure(row_h)", renderer_source)
 
-    def test_example_plot_does_not_create_a_stranded_last_page(self):
+    def test_example_plot_reserves_room_for_the_source_proportioned_axis(self):
         source = SCRIPT.read_text(encoding="utf-8-sig")
         tree = ast.parse(source)
         renderer = next(
@@ -65,7 +65,9 @@ class BatchOneFigureCoverageTests(unittest.TestCase):
             if isinstance(node, ast.FunctionDef) and node.name == "draw_example2_plot"
         )
         renderer_source = ast.get_source_segment(source, renderer)
-        self.assertIn("doc.ensure(82)", renderer_source)
+        self.assertIn("doc.ensure(168)", renderer_source)
+        self.assertIn("doc.y - 18", renderer_source)
+        self.assertIn("150", renderer_source)
         self.assertNotIn("doc.exercise_space(18)", source)
         self.assertIn("draw_formula_plain(doc, f_ex2_given, max_h=62, gap=6)", source)
         self.assertIn("draw_formula_plain(doc, f_ex2_value2, max_h=22, gap=5)", source)

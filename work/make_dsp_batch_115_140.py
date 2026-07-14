@@ -477,8 +477,8 @@ def build_pdf():
     ]
     h_z_fact = f("h_z_fact", r"H(z)=A\frac{\prod_{r=1}^{N}(1-z_rz^{-1})}{\prod_{k=1}^{M}(1-p_kz^{-1})}", 17)
     h_e_fact = f("h_e_fact", r"H(e^{j\omega})=Ae^{j(M-N)\omega}\frac{\prod_{r=1}^{N}(e^{j\omega}-z_r)}{\prod_{k=1}^{M}(e^{j\omega}-p_k)}", 15)
-    geom_mag = f("geom_mag", r"|H(e^{j\omega})|=A\frac{\prod_{r=1}^{N}A_r}{\prod_{k=1}^{M}B_k}", 15)
-    geom_phase = f("geom_phase", r"\theta(\omega)=\sum_{r=1}^{N}\alpha_r-\sum_{k=1}^{M}\beta_k", 15)
+    geom_mag = f("geom_mag", r"|H(e^{j\omega})|=A\frac{\prod_{r=1}^{N}A_r}{\prod_{k=1}^{M}B_k}", 24)
+    geom_phase = f("geom_phase", r"\theta(\omega)=\sum_{r=1}^{N}\alpha_r-\sum_{k=1}^{M}\beta_k", 19)
     first_order = f("first_order", r"y(n)=b\,y(n-1)+x(n),\quad 0<b<1", 14)
     first_h = f("first_h", r"H(z)=\frac{z}{z-b}", 15)
     comb_h = f("comb_h", r"H(z)=1-z^{-N}=\frac{z^N-1}{z^N}", 15)
@@ -532,7 +532,9 @@ def build_pdf():
     doc.h2("几何法求频率响应")
     draw_formula_rows(doc, [h_z_fact, h_e_fact], max_h=45, left=True, indent=18)
     doc.p("取单位圆上一点，零点到该点的向量长度记为 A_r，极点到该点的向量长度记为 B_k。")
-    draw_formula_rows(doc, [geom_mag, geom_phase], max_h=29)
+    doc.ensure(90)
+    draw_formula(doc, geom_mag, max_h=44, gap=5)
+    draw_formula(doc, geom_phase, max_h=34, gap=5)
     para_red(doc, [("零点靠近单位圆会形成幅度谷；极点靠近单位圆会形成幅度峰。零点或极点在 z=0 时模长为 1，只影响相位。", "red")])
     draw_unit_circle(doc, zeros=[(math.pi, "-1")], poles=[(0, 0.55, "b")], caption="单位圆上任取一点观察零极点向量")
 

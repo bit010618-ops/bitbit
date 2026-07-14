@@ -545,6 +545,7 @@ def signal_classification_axis_geometry():
     return {
         "sample_scale": 28.0,
         "vertical_arrow_headroom": 12.0,
+        "vertical_negative_tail": 24.0,
         "highest_labeled_tick": 2,
     }
 
@@ -586,7 +587,7 @@ def draw_signal_classification_examples(doc):
         + geometry["vertical_arrow_headroom"]
     )
     _axis_arrow(c, left, base, right, base)
-    _axis_arrow(c, vx, y2 - 93, vx, vertical_top)
+    _axis_arrow(c, vx, base - geometry["vertical_negative_tail"], vx, vertical_top)
     c.setFont("CN", 7.3)
     c.drawString(vx + 7, y2 - 5, "x(n)")
     label_geometry = discrete_axis_label_geometry()
@@ -818,6 +819,7 @@ def draw_discrete_axes_plot(
     axis_v_min=None,
     axis_v_max=None,
     title_position="below",
+    value_label_offsets=None,
 ):
     """Draw a discrete-time stem plot in the original handout style."""
     if not values:
@@ -894,11 +896,16 @@ def draw_discrete_axes_plot(
                 label = "1" if v > 0 else "-1"
             else:
                 label = f"{v:g}" if isinstance(v, float) else str(v)
+            label_dx, label_dy = (value_label_offsets or {}).get(n, (0, 0))
             if n == 0 and v > 0:
                 offset = label_geometry["positive_zero_sample_value"]
-                c.drawRightString(px + offset["x_offset"], py + offset["y_offset"], label)
+                c.drawRightString(
+                    px + offset["x_offset"] + label_dx,
+                    py + offset["y_offset"] + label_dy,
+                    label,
+                )
             else:
-                c.drawCentredString(px, py + (7 if v >= 0 else -14), label)
+                c.drawCentredString(px + label_dx, py + (7 if v >= 0 else -14) + label_dy, label)
 
     c.setFont("CN", 7.5)
     c.drawString(right + 3, y0 + 4, "n")
@@ -925,25 +932,26 @@ def draw_discrete_axes_plot(
 
 
 def draw_example2_plot(doc):
-    doc.ensure(82)
+    doc.ensure(168)
     c = doc.c
     draw_discrete_axes_plot(
         c,
         MARGIN_X + 150,
-        doc.y,
+        doc.y - 18,
         300,
-        74,
+        150,
         {-1: 1, 0: 4, 1: -2},
         n_min=-2,
         n_max=2,
         title=formula_png("sample_ex2_plot_label", r"x(1-2n)", 11),
         x_tick_labels={-1, 0, 1},
         x_tick_positions={-1, 0, 1},
-        axis_v_min=-4.5,
-        axis_v_max=5.2,
+        axis_v_min=-3.2,
+        axis_v_max=6.4,
         title_position="axis_top",
+        value_label_offsets={-1: (3, 0)},
     )
-    doc.y -= 82
+    doc.y -= 168
 
 
 def draw_stem(c, x, y, w, h, values, n_min, n_max, title="", value_labels=True):
