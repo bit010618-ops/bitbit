@@ -1,4 +1,5 @@
 ﻿from pathlib import Path
+import math
 import sys
 from reportlab.lib import colors
 
@@ -33,6 +34,285 @@ def fir_source_topology():
             'output_gain': '1/N',
         },
     }
+
+
+def linear_phase_fir_source_table():
+    """Source-locked FIR design choices from PPT pages 365-366."""
+    return {
+        'type_i': {
+            'n_parity': 'odd', 'symmetry': 'even',
+            'filters': ('LP', 'HP', 'BP', 'BS'), 'forced_zeros': (),
+            'coefficient_domain': 'other_n', 'plot_annotation': '',
+        },
+        'type_ii': {
+            'n_parity': 'even', 'symmetry': 'even',
+            'filters': ('LP', 'BP'), 'forced_zeros': ('pi',),
+            'plot_annotation': 'H(pi)=0',
+        },
+        'type_iii': {
+            'n_parity': 'odd', 'symmetry': 'odd',
+            'filters': ('BP',), 'forced_zeros': ('0', 'pi'),
+            'plot_annotation': 'H(0)=H(pi)=0',
+        },
+        'type_iv': {
+            'n_parity': 'even', 'symmetry': 'odd',
+            'filters': ('HP', 'BP'), 'forced_zeros': ('0',),
+            'plot_annotation': 'H(0)=0',
+        },
+    }
+
+
+def linear_phase_critical_pages_contract():
+    """Elements that must remain visible on each of the two critical pages."""
+    return {
+        'page_count': 2,
+        'shared_blocks': (
+            'importance_banner',
+            'symmetry_definition',
+            'phase_equation',
+            'phase_plot',
+            'odd_n_checklist',
+            'odd_n_impulse_plot',
+            'odd_n_amplitude_plot',
+            'odd_n_coefficient_formula',
+            'odd_n_symmetry_conclusion',
+            'even_n_checklist',
+            'even_n_impulse_plot',
+            'even_n_amplitude_plot',
+            'even_n_coefficient_formula',
+            'even_n_symmetry_conclusion',
+        ),
+        'pages': ('type_i_and_ii', 'type_iii_and_iv'),
+    }
+
+
+def _draw_checklist(c, x, y, allowed, name):
+    labels = ('LP', 'HP', 'BP', 'BS')
+    cell_w, cell_h = 34, 22
+    c.setLineWidth(0.75)
+    for index, label in enumerate(labels):
+        xx = x + index * cell_w
+        c.setStrokeColor(colors.HexColor('#7D3340'))
+        c.rect(xx, y, cell_w, cell_h, stroke=1, fill=0)
+        c.setFillColor(TEXT)
+        c.setFont('CNB', 9.3)
+        c.drawCentredString(xx + cell_w / 2, y + 7, label)
+        symbol_x = xx + cell_w - 7
+        symbol_y = y + cell_h / 2
+        c.setStrokeColor(RED)
+        c.setLineWidth(2.2)
+        if label in allowed:
+            c.line(symbol_x - 5, symbol_y, symbol_x - 1, symbol_y - 5)
+            c.line(symbol_x - 1, symbol_y - 5, symbol_x + 6, symbol_y + 7)
+        else:
+            c.line(symbol_x - 4, symbol_y - 5, symbol_x + 5, symbol_y + 5)
+            c.line(symbol_x - 4, symbol_y + 5, symbol_x + 5, symbol_y - 5)
+
+
+def _draw_impulse_panel(c, x, y, w, h, values, center, name, frame):
+    c.setStrokeColor(frame)
+    c.setLineWidth(1.25)
+    c.rect(x, y, w, h, stroke=1, fill=0)
+    x0, axis_y = x + 17, y + h * 0.43
+    arrow(c, x0, axis_y, x + w - 10, axis_y, BLUE, 0.85, head=4)
+    arrow(c, x0, y + 9, x0, y + h - 9, BLUE, 0.85, head=4)
+    c.setFillColor(TEXT)
+    c.setFont('CNB', 8)
+    c.drawString(x0 + 3, y + h - 13, 'h(n)')
+    c.drawRightString(x + w - 4, axis_y - 13, 'n')
+    usable = w - 40
+    step = usable / (len(values) - 1)
+    scale = h * 0.28 / max(abs(value) for value in values if value != 0)
+    for index, value in enumerate(values):
+        xx = x0 + index * step
+        yy = axis_y + value * scale
+        c.setStrokeColor(RED)
+        c.setLineWidth(1.0)
+        c.line(xx, axis_y, xx, yy)
+        c.setFillColor(RED)
+        c.circle(xx, yy, 2.2, stroke=0, fill=1)
+        c.setFillColor(BLUE_DARK)
+        c.setFont('CN', 5.8)
+        c.drawCentredString(xx, axis_y - 9, str(index))
+    center_x = x0 + center * step
+    c.setStrokeColor(colors.HexColor('#333333'))
+    c.setDash(3, 2)
+    c.line(center_x, y + 7, center_x, y + h - 7)
+    c.setDash()
+
+
+def _draw_amplitude_panel(c, x, y, w, h, kind, name, frame):
+    c.setStrokeColor(frame)
+    c.setLineWidth(1.25)
+    c.rect(x, y, w, h, stroke=1, fill=0)
+    x0, axis_y = x + 18, y + h * 0.46
+    arrow(c, x0, axis_y, x + w - 10, axis_y, colors.black, 0.85, head=4)
+    arrow(c, x0, y + 10, x0, y + h - 9, colors.black, 0.85, head=4)
+    c.setFillColor(TEXT)
+    c.setFont('CNB', 8)
+    c.drawString(x0 + 3, y + h - 13, 'H(ω)')
+    c.drawRightString(x + w - 3, axis_y - 12, 'ω')
+    c.setFont('CN', 6.2)
+    c.drawString(x0 + 1, axis_y - 10, '0')
+    c.drawCentredString(x0 + (w - 32) / 2, axis_y - 10, 'π')
+    c.drawRightString(x + w - 14, axis_y - 10, '2π')
+    c.setStrokeColor(RED)
+    c.setLineWidth(1.35)
+    points = []
+    for index in range(121):
+        t = 2 * math.pi * index / 120
+        if kind == 'type_i':
+            value = 0.45 * math.cos(t) + 0.18 * math.cos(3 * t) + 0.12
+        elif kind == 'type_ii':
+            value = (0.5 * math.cos(t / 2) + 0.16 * math.cos(5 * t / 2))
+        elif kind == 'type_iii':
+            value = 0.62 * math.sin(t)
+        else:
+            value = 0.54 * math.sin(t / 2) + 0.12 * math.sin(5 * t / 2)
+        px = x0 + (w - 32) * index / 120
+        py = axis_y + value * h * 0.42
+        points.append((px, py))
+    path = c.beginPath()
+    path.moveTo(*points[0])
+    for point in points[1:]:
+        path.lineTo(*point)
+    c.drawPath(path, stroke=1, fill=0)
+    forced = {'type_ii': (math.pi,), 'type_iii': (0, math.pi), 'type_iv': (0,)}[kind] if kind != 'type_i' else ()
+    c.setStrokeColor(colors.HexColor('#333333'))
+    c.setDash(3, 2)
+    for omega in forced:
+        xx = x0 + (w - 32) * omega / (2 * math.pi)
+        c.line(xx, y + 7, xx, y + h - 7)
+    c.setDash()
+    annotation = linear_phase_fir_source_table()[kind]['plot_annotation']
+    if annotation:
+        c.setFillColor(TEXT)
+        c.setFont('CNB', 7.2)
+        c.drawRightString(x + w - 7, y + h - 14, annotation.replace('pi', 'π'))
+
+
+def _draw_phase_panel(c, x, y, w, h, antisymmetric, name):
+    c.setStrokeColor(BLUE)
+    c.setLineWidth(1.25)
+    c.rect(x, y, w, h, stroke=1, fill=0)
+    x0, axis_y = x + 28, y + h * 0.68
+    arrow(c, x + 8, axis_y, x + w - 10, axis_y, colors.black, 0.85, head=4)
+    arrow(c, x0, y + 10, x0, y + h - 9, colors.black, 0.85, head=4)
+    c.setFillColor(TEXT)
+    c.setFont('CNB', 8.5)
+    c.drawString(x0 + 3, y + h - 15, 'θ(ω)')
+    c.drawRightString(x + w - 3, axis_y - 12, 'ω(rad)')
+    c.setFont('CN', 7)
+    c.drawString(x0 - 8, axis_y + 5, '0')
+    c.drawCentredString(x0 + (w - 48) / 2, axis_y + 5, 'π')
+    c.drawRightString(x + w - 29, axis_y + 5, '2π')
+    start_y = axis_y + (18 if antisymmetric else 0)
+    end_y = y + 30
+    c.setStrokeColor(RED)
+    c.setLineWidth(1.5)
+    c.line(x0, start_y, x + w - 36, end_y)
+    c.setStrokeColor(BLUE_DARK)
+    c.setDash(3, 2)
+    c.line(x + w - 36, end_y, x + w - 36, axis_y)
+    c.line(x0, end_y, x + w - 36, end_y)
+    c.setDash()
+    draw_math_at(c, r'\frac{\pi}{2}' if antisymmetric else r'0', x + 4, start_y + 2, 28, 15, 8.8, name=f'{name}_start')
+    end_expr = r'-\pi\left(N-\frac{3}{2}\right)' if antisymmetric else r'-\pi(N-1)'
+    draw_math_at(c, end_expr, x0 + 5, end_y - 10, 92, 18, 8.2, name=f'{name}_end')
+
+
+def draw_linear_phase_critical_page(doc, antisymmetric=False):
+    """Redraw one full source page from PPT 365/366 without omitting blocks."""
+    doc.new_page()
+    c = doc.c
+    page_tag = 'odd_symmetry' if antisymmetric else 'even_symmetry'
+    c.setFillColor(RED)
+    c.setFont('CNB', 17)
+    c.drawCentredString(MARGIN_X + CONTENT_W / 2, doc.y - 8,
+                        '本节最重要的两张表！！！（记住这两张表，用于设计 FIR）')
+    divider_x = MARGIN_X + 190
+    c.setStrokeColor(colors.HexColor('#36A544'))
+    c.setLineWidth(1.8)
+    c.line(divider_x, 72, divider_x, doc.y - 34)
+    left_x = MARGIN_X + 8
+    c.setFillColor(TEXT)
+    c.setFont('CNB', 16)
+    c.drawCentredString(left_x + 82, doc.y - 78, '二类线性相位' if antisymmetric else '一类线性相位')
+    draw_math_at(c, r'h(n)=-h(N-1-n)' if antisymmetric else r'h(n)=h(N-1-n)',
+                 left_x + 4, doc.y - 158, 166, 34, 17, name=f'{page_tag}_symmetry')
+    arrow(c, left_x + 82, doc.y - 111, left_x + 82, doc.y - 132, colors.HexColor('#8CB5E8'), 1.2, head=5)
+    arrow(c, left_x + 82, doc.y - 183, left_x + 82, doc.y - 207, colors.HexColor('#8CB5E8'), 1.2, head=5)
+    phase_expr = (r'\theta(\omega)=\pm\frac{\pi}{2}-\frac{N-1}{2}\omega'
+                  if antisymmetric else r'\theta(\omega)=-\frac{N-1}{2}\omega')
+    draw_math_at(c, phase_expr, left_x, doc.y - 247, 175, 40, 16, name=f'{page_tag}_phase_eq')
+    _draw_phase_panel(c, left_x + 2, 115, 170, 145, antisymmetric, f'{page_tag}_phase')
+
+    right_x = divider_x + 18
+    panel_w = 165
+    formula_x = right_x + panel_w + 16
+    table = linear_phase_fir_source_table()
+    upper_type = 'type_iii' if antisymmetric else 'type_i'
+    lower_type = 'type_iv' if antisymmetric else 'type_ii'
+    upper_y, lower_y = 487, 198
+    frame_upper = colors.HexColor('#C739B7')
+    frame_lower = colors.HexColor('#168CD2')
+
+    for block_y, type_key, parity, frame in (
+        (upper_y, upper_type, 'N 为奇数', frame_upper),
+        (lower_y, lower_type, 'N 为偶数', frame_lower),
+    ):
+        c.setFillColor(TEXT)
+        c.setFont('CNB', 14)
+        c.drawString(right_x, block_y + 224, parity)
+        _draw_checklist(c, formula_x - 5, block_y + 219,
+                        table[type_key]['filters'], f'{page_tag}_{type_key}_checklist')
+        if type_key == 'type_i':
+            values = (.6, .3, .7, -.4, .3, .8, .3, -.4, .7, .3, .6); center = 5
+        elif type_key == 'type_ii':
+            values = (.6, .3, .7, -.4, .3, .3, -.4, .7, .3, .6); center = 4.5
+        elif type_key == 'type_iii':
+            values = (.6, .3, .7, -.4, .3, 0, -.3, .4, -.7, -.3, -.6); center = 5
+        else:
+            values = (.6, .3, .7, -.4, .3, -.3, .4, -.7, -.3, -.6); center = 4.5
+        _draw_impulse_panel(c, right_x, block_y + 128, panel_w, 72,
+                            values, center, f'{page_tag}_{type_key}_impulse', frame)
+        _draw_amplitude_panel(c, right_x, block_y + 23, panel_w, 92,
+                              type_key, f'{page_tag}_{type_key}_amplitude', frame)
+
+        if type_key == 'type_i':
+            coeff = r'a(0)=h\left(\frac{N-1}{2}\right),\quad a(n)=2h\left(\frac{N-1}{2}-n\right)'
+            transform = r'H(\omega)=\sum_{n=0}^{\frac{N-1}{2}}a(n)\cos(\omega n)'
+            conclusion = 'H(ω) 对 ω=0、π、2π 呈偶对称'
+        elif type_key == 'type_ii':
+            coeff = r'b(n)=2h\left(\frac{N}{2}-n\right),\quad n\in\left[1,\frac{N}{2}\right]'
+            transform = r'H(\omega)=\sum_{n=1}^{\frac{N}{2}}b(n)\cos\left[\omega\left(n-\frac{1}{2}\right)\right]'
+            conclusion = 'H(ω) 对 ω=π 呈奇对称'
+        elif type_key == 'type_iii':
+            coeff = r'c(n)=2h\left(\frac{N-1}{2}-n\right),\quad n\in\left[1,\frac{N-1}{2}\right]'
+            transform = r'H(\omega)=\sum_{n=1}^{\frac{N-1}{2}}c(n)\sin(\omega n)'
+            conclusion = 'H(ω) 对 ω=0、π、2π 呈奇对称'
+        else:
+            coeff = r'd(n)=2h\left(\frac{N}{2}-n\right),\quad n\in\left[1,\frac{N}{2}\right]'
+            transform = r'H(\omega)=\sum_{n=1}^{\frac{N}{2}}d(n)\sin\left[\omega\left(n-\frac{1}{2}\right)\right]'
+            conclusion = 'H(ω) 对 ω=π 呈偶对称'
+        draw_math_at(c, coeff, formula_x, block_y + 166, 142, 42, 9.5,
+                     name=f'{page_tag}_{type_key}_coeff')
+        if type_key == 'type_i':
+            c.setFillColor(TEXT)
+            c.setFont('CN', 7.2)
+            c.drawRightString(formula_x + 142, block_y + 146, '（其余 n）')
+        c.setStrokeColor(colors.HexColor('#2A92C8'))
+        c.setLineWidth(1.1)
+        c.rect(formula_x, block_y + 72, 142, 56, stroke=1, fill=0)
+        draw_math_at(c, transform, formula_x + 4, block_y + 100, 134, 42, 9.4,
+                     name=f'{page_tag}_{type_key}_transform')
+        c.setFillColor(colors.HexColor('#C23A40'))
+        c.setFont('CNB', 9.3)
+        c.drawString(formula_x, block_y + 47, conclusion)
+    c.setStrokeColor(colors.HexColor('#36A544'))
+    c.setLineWidth(1.7)
+    c.line(divider_x, 472, MARGIN_X + CONTENT_W, 472)
+    doc.y = 60
 
 
 def fir_tap_diagram(doc, title='FIR 直接型结构', taps=None):
@@ -216,6 +496,18 @@ def comb_response_geometry():
     }
 
 
+def comb_response_points(width, height, lobes=8, samples_per_lobe=24):
+    points = []
+    for lobe in range(lobes):
+        start = 0 if lobe == 0 else 1
+        for sample in range(start, samples_per_lobe + 1):
+            phase = sample / samples_per_lobe
+            x = width * (lobe + phase) / lobes
+            y = 0 if sample in (0, samples_per_lobe) else height * math.sin(math.pi * phase)
+            points.append((x, y))
+    return points
+
+
 def comb_response_figure(doc):
     """Source page 344: unit-circle zeros and the comb magnitude response."""
     h=190
@@ -238,10 +530,7 @@ def comb_response_figure(doc):
     import math
     geometry = comb_response_geometry()
     curve_base = y0 + geometry['curve_baseline_offset']
-    pts=[]
-    for i in range(181):
-        t=2*math.pi*i/180
-        pts.append((x0+w*i/180,curve_base+68*abs(math.sin(4*t))))
+    pts=[(x0+px, curve_base+py) for px,py in comb_response_points(w,68)]
     p=c.beginPath(); p.moveTo(*pts[0])
     for pt in pts[1:]: p.lineTo(*pt)
     c.drawPath(p,stroke=1,fill=0)
@@ -379,7 +668,7 @@ def linear_phase_table(doc):
         ['类别','N','h(n) 对称性','H(ω) 对称性','可实现滤波器'],
         ['一类','奇数','偶对称','关于 0, π, 2π 偶对称','LP、HP、BP、BS'],
         ['二类','偶数','偶对称','关于 π 奇对称','LP、BP'],
-        ['三类','奇数','奇对称','关于 0, π, 2π 奇对称','BP、BS'],
+        ['三类','奇数','奇对称','关于 0, π, 2π 奇对称','BP'],
         ['四类','偶数','奇对称','关于 π 偶对称','HP、BP'],
     ]
     row_h=31; h=row_h*len(rows)+8
@@ -439,7 +728,7 @@ def linear_phase_four_cases(doc):
     import math
     cases=[('一类：N 奇数，偶对称','LP / HP / BP / BS',False,False,r'H(\omega)=h(M)+2\sum_{n=0}^{M-1}h(n)\cos[\omega(M-n)]'),
            ('二类：N 偶数，偶对称','LP / BP，ω=π 必为零',False,True,r'H(\omega)=2\sum_{n=0}^{M}h(n)\cos[\omega(M+\frac{1}{2}-n)]'),
-           ('三类：N 奇数，奇对称','BP / BS，ω=0、π 必为零',True,True,r'H(\omega)=2j\sum_{n=0}^{M-1}h(n)\sin[\omega(M-n)]'),
+           ('三类：N 奇数，奇对称','BP，ω=0、π 必为零',True,True,r'H(\omega)=2j\sum_{n=0}^{M-1}h(n)\sin[\omega(M-n)]'),
            ('四类：N 偶数，奇对称','HP / BP，ω=0 必为零',True,False,r'H(\omega)=2j\sum_{n=0}^{M}h(n)\sin[\omega(M+\frac{1}{2}-n)]')]
     for idx,(title,note,zero0,zeropi,formula) in enumerate(cases):
         col=idx%2; row=idx//2
@@ -505,6 +794,8 @@ def build():
     linear_phase_network(doc,'odd')
     linear_phase_network(doc,'even')
     linear_phase_reduction_example(doc)
+    draw_linear_phase_critical_page(doc, antisymmetric=False)
+    draw_linear_phase_critical_page(doc, antisymmetric=True)
     doc.h3('线性相位 FIR 的四类情况')
     linear_phase_table(doc)
     draw_note(doc,'814 重点提示',['线性相位 FIR 的四类表是设计题高频考点：要同时记住 N 奇偶、h(n) 对称性、H(ω) 对称性以及可实现的滤波器类型。','一类线性相位适用范围最广；二类在 ω=π 处受限；三类在 ω=0 和 π 处受限；四类在 ω=0 处受限。'])
@@ -519,12 +810,12 @@ def build():
     draw_note(doc,'四类 FIR 选型与零点约束',[
         '一类：N 为奇数、h(n) 偶对称，ω=0 与 ω=π 均不被强制为零，可实现 LP、HP、BP、BS。',
         '二类：N 为偶数、h(n) 偶对称，ω=π 必为零，可实现 LP、BP，不适合 HP、BS。',
-        '三类：N 为奇数、h(n) 奇对称，ω=0 与 ω=π 必为零，可实现 BP；满足相应零点条件时可作 BS。',
+        '三类：N 为奇数、h(n) 奇对称，ω=0 与 ω=π 必为零，只能实现 BP。',
         '四类：N 为偶数、h(n) 奇对称，ω=0 必为零，可实现 HP、BP。'
     ])
 
     doc.save()
-    NOTE_PATH.write_text('# 第十一批校对记录\n\n- 范围：原 PPT 333-366 页。\n- 已覆盖 FIR 特点、系统函数和差分方程、直接型/级联型结构、频率采样结构、修正方法、线性相位定义、对称条件和四类表。\n- 图形均为讲义内手绘复刻，不使用整页源图裁切；复杂频率响应小图用表格和公式方式保留结论。\n- 待最终回查：与源 PPT 365-366 的四类图表逐项核对符号。\n',encoding='utf-8')
+    NOTE_PATH.write_text('# 第十一批校对记录\n\n- 范围：原 PPT 333-366 页。\n- 已覆盖 FIR 特点、系统函数和差分方程、直接型/级联型结构、频率采样结构、修正方法、线性相位定义、对称条件和四类表。\n- 图形均为讲义内手绘复刻，不使用整页源图裁切。\n- 原 PPT 365-366 两张核心设计总表已分别保留为完整 A4 页面，包含勾选表、冲激响应、振幅响应、相位图、系数公式与红色结论。\n- 第三类线性相位 FIR 按原课件更正为只能实现 BP。\n',encoding='utf-8')
     print(PDF_PATH)
 
 if __name__=='__main__':

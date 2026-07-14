@@ -67,9 +67,15 @@ def system_chain(doc,title,labels,colors_fill=None):
     doc.y=top-h
 
 
+def spectrum_axis_geometry():
+    return {"vertical_arrow_headroom": 12}
+
+
 def spectrum_axis(c,x,y,w,h,label='',peaks=None,color=RED):
+    geometry = spectrum_axis_geometry()
     c.setStrokeColor(BLACK); c.setFillColor(BLACK); c.setLineWidth(0.9)
-    arrow(c,x,y,x+w,y,BLACK,0.9); arrow(c,x+w/2,y-8,x+w/2,y+h,BLACK,0.9)
+    arrow(c,x,y,x+w,y,BLACK,0.9)
+    arrow(c,x+w/2,y-8,x+w/2,y+h+geometry["vertical_arrow_headroom"],BLACK,0.9)
     c.setFont('CN',7.2); c.drawString(x+w+3,y-3,'ω')
     if label: c.drawCentredString(x+w/2,y-28,label)
     for pos,txt in [(0,'-π'),(.25,'-π/2'),(.5,'0'),(.75,'π/2'),(1,'π')]:
@@ -153,12 +159,12 @@ def interpolation_full_derivation(doc):
     doc.p('频率变量被放大 L 倍，因此在 [-π,π] 内出现 L 个周期性镜像。理想内插低通滤波器保留基带并去除其余镜像。')
     draw_formula_block(
         doc,
-        r'H_i(e^{j\omega})=L,\quad 0\leq |\omega|\leq \pi/L',
+        r'H_i(e^{j\omega})=L,\quad 0\leq |\omega|\leq \frac{\pi}{L}',
         'interp_ideal_filter_pass', fontsize=15, max_h=34
     )
     draw_formula_block(
         doc,
-        r'H_i(e^{j\omega})=0,\quad \pi/L<|\omega|\leq\pi',
+        r'H_i(e^{j\omega})=0,\quad \frac{\pi}{L}<|\omega|\leq\pi',
         'interp_ideal_filter_stop', fontsize=15, max_h=34
     )
     red_line(doc,'内插滤波器的通带增益为 L，用于补偿插零造成的幅度缩小。')
@@ -167,13 +173,13 @@ def interpolation_full_derivation(doc):
 def filter_cascade(doc,kind='dec'):
     if kind=='dec':
         system_chain(doc,'抽取滤波器（抗混叠滤波器）与抽取器级联',['h_a(n)\n抗混叠','↓M\n抽取'],[CYAN,YELLOW])
-        draw_formula_block(doc,r'H_a(e^{j\omega})=1,\quad 0\leq |\omega|\leq \pi/M;\qquad H_a(e^{j\omega})=0,\quad \pi/M\leq |\omega|\leq \pi','anti_alias',fontsize=12,max_h=46)
+        draw_formula_block(doc,r'H_a(e^{j\omega})=1,\quad 0\leq |\omega|\leq \frac{\pi}{M};\qquad H_a(e^{j\omega})=0,\quad \frac{\pi}{M}\leq |\omega|\leq \pi','anti_alias',fontsize=12,max_h=46)
         draw_formula_block(doc,r'x_d(n)=w(nM)=\sum_{k=-\infty}^{\infty}h_a(k)x(nM-k)','dec_filter_eq',fontsize=13,max_h=40)
-        red_line(doc,'作用：消除频谱混叠；截止频率通常取 π/M。')
+        red_line(doc,'作用：消除频谱混叠；截止频率取前述抗混叠截止频率。')
     else:
         system_chain(doc,'内插滤波器（抗镜像滤波器）与内插器级联',['↑L\n内插','h_i(n)\n抗镜像'],[YELLOW,CYAN])
-        draw_formula_block(doc,r'H_i(e^{j\omega})=L,\quad 0\leq |\omega|\leq \pi/L;\qquad H_i(e^{j\omega})=0,\quad \pi/L\leq |\omega|\leq \pi','anti_image',fontsize=12,max_h=46)
-        draw_formula_block(doc,r'h_i(n)=L\frac{\sin(\pi n/L)}{\pi n}','interp_filter_eq',fontsize=15,max_h=36)
+        draw_formula_block(doc,r'H_i(e^{j\omega})=L,\quad 0\leq |\omega|\leq \frac{\pi}{L};\qquad H_i(e^{j\omega})=0,\quad \frac{\pi}{L}\leq |\omega|\leq \pi','anti_image',fontsize=12,max_h=46)
+        draw_formula_block(doc,r'h_i(n)=L\frac{\sin\left(\frac{\pi n}{L}\right)}{\pi n}','interp_filter_eq',fontsize=15,max_h=36)
         red_line(doc,'内插滤波器要补偿插零造成的幅度变化，所以通带增益为 L。')
 
 
@@ -189,7 +195,7 @@ def lm_conversion(doc):
     arrow(c,x+2*105+60,y,x+2*105+105,y,BLUE,1.1)
     draw_math_at(c,r'x_d(n)',x+2*105+112,y+7,48,16,11,name='lm_y')
     doc.y=top-116
-    draw_formula_block(doc,r'H(e^{j\omega})=L,\quad |\omega|\leq \omega_c;\qquad H(e^{j\omega})=0,\quad \omega_c<|\omega|\leq \pi,\qquad \omega_c=\min(\pi/L,\pi/M)','lm_filter',fontsize=12,max_h=50)
+    draw_formula_block(doc,r'H(e^{j\omega})=L,\quad |\omega|\leq \omega_c;\qquad H(e^{j\omega})=0,\quad \omega_c<|\omega|\leq \pi,\qquad \omega_c=\min\left(\frac{\pi}{L},\frac{\pi}{M}\right)','lm_filter',fontsize=12,max_h=50)
     doc.y=top-h
 
 
@@ -197,7 +203,7 @@ def multistage(doc):
     h=175; doc.ensure(h+8); c=doc.c; top=doc.y
     c.setFont('CNB',10); c.setFillColor(BLUE_DARK); c.drawString(MARGIN_X,top-6,'多级采样率变换')
     doc.y = top - 24
-    draw_formula_block(doc,r'\frac{F_2}{F_1}=\frac{L}{M}=\prod_i\frac{L_i}{M_i},\qquad \omega_c=\min(\pi/L,\pi/M)','multi_ratio',fontsize=14,max_h=45)
+    draw_formula_block(doc,r'\frac{F_2}{F_1}=\frac{L}{M}=\prod_i\frac{L_i}{M_i},\qquad \omega_c=\min\left(\frac{\pi}{L},\frac{\pi}{M}\right)','multi_ratio',fontsize=14,max_h=45)
     c.setFont('CN',9); c.setFillColor(TEXT)
     c.drawString(MARGIN_X,doc.y,'当 L 或 M 很大时，单级滤波器代价高；分解为多级后，每级过渡带可放宽，计算量明显降低。')
     doc.y -= 18
@@ -211,7 +217,7 @@ def fractional_conversion_details(doc):
     doc.p('L/M 倍采样率转换必须按“先内插、再滤波、最后抽取”的顺序连接。中间低通滤波器同时承担抗镜像和抗混叠作用。')
     draw_formula_block(
         doc,
-        r'\omega_c=\min(\pi/L,\pi/M)',
+        r'\omega_c=\min\left(\frac{\pi}{L},\frac{\pi}{M}\right)',
         'fractional_cutoff', fontsize=18, max_h=38
     )
     doc.h3('32 kHz 转换为 48 kHz')
@@ -220,14 +226,19 @@ def fractional_conversion_details(doc):
         r'\frac{48}{32}=\frac{3}{2}\quad\Rightarrow\quad L=3,\ M=2',
         'fractional_32_48', fontsize=18, max_h=40
     )
-    doc.p('先作 3 倍内插，再通过截止频率为 min(π/3,π/2)=π/3 的低通滤波器，最后作 2 倍抽取。')
+    doc.p('先作 3 倍内插，再通过截止频率为下式的低通滤波器，最后作 2 倍抽取。')
+    draw_formula_block(
+        doc,
+        r'\omega_c=\min\left(\frac{\pi}{3},\frac{\pi}{2}\right)=\frac{\pi}{3}',
+        'fractional_32_48_cutoff', fontsize=14, max_h=32
+    )
     doc.h3('44.1 kHz 转换为 48 kHz')
     draw_formula_block(
         doc,
         r'\frac{48000}{44100}=\frac{160}{147}=\frac{2^5\cdot5}{3\cdot7^2}',
         'fractional_441_48', fontsize=18, max_h=42
     )
-    doc.p('当 L 和 M 较大时，将 160/147 分解成若干小整数级联，可放宽各级过渡带并降低总计算量。')
+    doc.p('当 L 和 M 较大时，将该采样率比分解成若干小整数级联，可放宽各级过渡带并降低总计算量。')
     red_line(doc,'多级分解时，各级因子的乘积必须分别等于总内插因子 L 和总抽取因子 M。')
 
 

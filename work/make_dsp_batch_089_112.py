@@ -110,6 +110,13 @@ def draw_chapter_contents(doc):
     doc.y -= 126
 
 
+def impulse_spectrum_axis_geometry():
+    return {
+        "axis_height": 56.0,
+        "sample_height": 42.0,
+    }
+
+
 def draw_impulse_spectrum(doc, points, title_path=None, max_x_label=None):
     doc.ensure(105)
     c = doc.c
@@ -123,6 +130,23 @@ def draw_impulse_spectrum(doc, points, title_path=None, max_x_label=None):
     c.line(left, y, right, y)
     c.line(right, y, right - 7, y + 4)
     c.line(right, y, right - 7, y - 4)
+    geometry = impulse_spectrum_axis_geometry()
+    axis_top = y + geometry["axis_height"]
+    c.line(left, y - 18, left, axis_top)
+    c.line(left, axis_top, left - 4, axis_top - 8)
+    c.line(left, axis_top, left + 4, axis_top - 8)
+    axis_title = formula_png("b4_impulse_axis_title", r"X(e^{j\omega})", 10)
+    axis_image = Image.open(axis_title)
+    axis_scale = min(70 / axis_image.width, 13 / axis_image.height)
+    axis_w, axis_h = axis_image.width * axis_scale, axis_image.height * axis_scale
+    c.drawImage(
+        ImageReader(str(axis_title)),
+        left + 5,
+        y + 45,
+        axis_w,
+        axis_h,
+        mask="auto",
+    )
     c.setFont("CN", 8.5)
     c.drawString(right + 4, y - 3, "ω")
     if title_path:
@@ -132,7 +156,7 @@ def draw_impulse_spectrum(doc, points, title_path=None, max_x_label=None):
         c.drawImage(ImageReader(str(title_path)), x + (w - dw) / 2, doc.y - 8, dw, dh, mask="auto")
     for pos, label_path, height_label in points:
         px = left + pos * w
-        top = y + 42
+        top = y + geometry["sample_height"]
         c.line(px, y, px, top)
         c.circle(px, top, 3.1, stroke=1, fill=1)
         im = Image.open(label_path)

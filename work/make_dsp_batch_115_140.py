@@ -151,7 +151,7 @@ def draw_unit_circle(doc, zeros=None, poles=None, caption="", w=165, h=120):
     c.setFont("CN", 8.2)
     c.drawString(cx + r + 38, cy - 4, "Re[z]")
     c.drawString(cx + 4, cy + r + 24, "j Im[z]")
-    c.drawCentredString(cx + r + 7, cy - 12, "1")
+    c.drawCentredString(cx + r + 3, cy - 12, "1")
     c.drawCentredString(cx - r - 7, cy - 12, "-1")
     for ang, label in zeros:
         px = cx + r * math.cos(ang)
@@ -161,7 +161,8 @@ def draw_unit_circle(doc, zeros=None, poles=None, caption="", w=165, h=120):
         c.line(px - 4, py + 4, px + 4, py - 4)
         if label:
             c.setFillColor(colors.black)
-            c.drawString(px + 5, py + 4, label)
+            label_y = py - 10 if label == "-ω0" else py + 4
+            c.drawString(px + 5, label_y, label)
     for ang, rad, label in poles:
         px = cx + r * rad * math.cos(ang)
         py = cy + r * rad * math.sin(ang)
@@ -197,8 +198,7 @@ def draw_unit_and_response(doc, mode):
     px = cx + r * math.cos(z_ang)
     py = cy + r * math.sin(z_ang)
     c.setStrokeColor(colors.red)
-    c.line(px - 4, py - 4, px + 4, py + 4)
-    c.line(px - 4, py + 4, px + 4, py - 4)
+    c.circle(px, py, 4, stroke=1, fill=0)
     c.setStrokeColor(colors.red)
     c.line(cx - 4, cy - 4, cx + 4, cy + 4)
     c.line(cx - 4, cy + 4, cx + 4, cy - 4)
@@ -214,11 +214,51 @@ def draw_unit_and_response(doc, mode):
     c.line(x1, by + 78, x1 + 4, by + 70)
     c.setFillColor(colors.black)
     c.setFont("CN", 8)
-    c.drawString(x1 + 214, by - 4, "ω")
-    c.drawString(x1 + 8, by + 76, "|H(e^{jω})|")
+    c.drawString(x1 + 224, by - 4, "ω")
+    c.drawString(x1 + 224, by - 14, "(rad)")
+    c.drawString(x1 + 224, by - 25, "f (Hz)")
+    mid_x = x1 + 100
     c.drawCentredString(x1, by - 12, "0")
-    c.drawCentredString(x1 + 105, by - 12, "π")
+    c.drawCentredString(mid_x, by - 12, "π")
     c.drawCentredString(x1 + 200, by - 12, "2π")
+    half_fs_path = formula_png("b5_half_sampling_frequency", r"\frac{f_s}{2}", 16)
+    fs_path = formula_png("b5_sampling_frequency", r"f_s", 16)
+    for label_path, center_x in (
+        (half_fs_path, mid_x),
+        (fs_path, x1 + 200),
+    ):
+        label_image = Image.open(label_path)
+        label_scale = min(44 / label_image.width, 20 / label_image.height)
+        label_width = label_image.width * label_scale
+        label_height = label_image.height * label_scale
+        c.drawImage(
+            ImageReader(str(label_path)),
+            center_x - label_width / 2,
+            by - 36,
+            label_width,
+            label_height,
+            mask="auto",
+        )
+    c.drawRightString(x1 - 5, by + 57, "1")
+    title_path = formula_png("b5_response_axis_title", r"|H(e^{j\omega})|", 10)
+    title_image = Image.open(title_path)
+    title_scale = min(72 / title_image.width, 14 / title_image.height)
+    c.drawImage(
+        ImageReader(str(title_path)),
+        x1 + 8,
+        by + 67,
+        title_image.width * title_scale,
+        title_image.height * title_scale,
+        mask="auto",
+    )
+    c.setStrokeColor(colors.red)
+    c.setDash(2, 2)
+    if mode == "lp_zero":
+        c.line(x1 + 200, by, x1 + 200, by + 60)
+        c.line(mid_x, by, mid_x, by - 8)
+    else:
+        c.line(mid_x, by, mid_x, by + 60)
+    c.setDash()
     c.setStrokeColor(colors.blue)
     pts = []
     for i in range(0, 160):
@@ -228,7 +268,7 @@ def draw_unit_and_response(doc, mode):
             val = abs(math.cos(math.pi * t))
         else:
             val = abs(math.sin(math.pi * t))
-        yy = by + 10 + 55 * val
+        yy = by + 60 * val
         pts.append((xx, yy))
     for a, b in zip(pts, pts[1:]):
         c.line(a[0], a[1], b[0], b[1])
@@ -278,7 +318,7 @@ def draw_comb_diagrams(doc):
         t = i / 239
         val = abs(math.sin(8 * math.pi * t))
         xx = x1 + 225 * t
-        yy = by + 8 + 58 * val
+        yy = by + 58 * val
         if last:
             c.line(last[0], last[1], xx, yy)
         last = (xx, yy)
@@ -462,7 +502,9 @@ def build_pdf():
     notch_w = f("notch_w", r"\omega_0=2\pi\frac{50}{1000}=0.1\pi\;(\mathrm{rad})", 14)
     notch_relation = f("notch_relation", r"\frac{k}{N}=\frac{\omega}{2\pi}=\frac{f}{f_s}=\frac{\Omega}{\Omega_s}", 14, "#D71920")
     notch_h = f("notch_h", r"H(z)=\frac{1}{3.9}\frac{(z-e^{j\omega_0})(z-e^{-j\omega_0})}{z^2}", 14)
-    ap_general = f("ap_general", r"H_{ap}(z)=A\frac{\sum_{k=0}^{N}d_kz^{-N+k}}{\sum_{k=0}^{N}d_kz^{-k}},\quad d_0=1,\quad d_k\in\mathbb{R}", 12)
+    ap_def = f("ap_def", r"|H(e^{j\omega})|=1,\quad 0\leq\omega\leq2\pi", 14)
+    ap_general_main = f("ap_general_main", r"H_{ap}(z)=A\frac{\sum_{k=0}^{N}d_kz^{-N+k}}{\sum_{k=0}^{N}d_kz^{-k}}", 26)
+    ap_general_conditions = f("ap_general_conditions", r"d_0=1,\qquad d_k\in\mathbb{R}", 12)
     ap_fact = f("ap_fact", r"H_{ap}(z)=A\frac{z^{-N}D(z^{-1})}{D(z)}=A\prod_{i=1}^{N}\frac{z^{-1}-p_i^*}{1-p_iz^{-1}}", 13)
     ap_mag = f("ap_mag", r"|H_{ap}(e^{j\omega})|=\left|A\frac{(e^{j\omega})^{-N}D(e^{-j\omega})}{D(e^{j\omega})}\right|=A", 12)
     min_fac = f("min_fac", r"H(z)=H_{\min}(z)H_{ap}(z)", 15)
@@ -532,9 +574,11 @@ def build_pdf():
     doc.h2("2.6.1 简单一阶滤波器设计")
     para_red(doc, [("设计原则：", "blue"), (" 要拒绝某个频率，就在单位圆对应频率处放零点；要突出某个频率，就在单位圆内对应频率处放极点。", "normal")])
     draw_red_text(doc, "实际体现的是零极点对幅频响应的影响。")
+    doc.ensure(180)
     doc.p("由一个零点调节的低通滤波器：在 w=π 处设置零点，滤除高频分量。")
     draw_unit_and_response(doc, "lp_zero")
     draw_formula(doc, lp_zero_h, max_h=29)
+    doc.ensure(180)
     doc.p("由一个零点调节的高通滤波器：在 w=0 处设置零点，滤除低频分量。")
     draw_unit_and_response(doc, "hp_zero")
     draw_formula(doc, hp_zero_h, max_h=29)
@@ -550,8 +594,12 @@ def build_pdf():
 
     doc.h2("2.6.3 全通滤波器")
     doc.p("全通滤波器的幅度特性在整个频带上均为常数或 1，信号通过后幅度不变，仅相位发生变化。")
-    draw_formula_rows(doc, [f("ap_def", r"|H(e^{j\omega})|=1,\quad 0\leq\omega\leq2\pi", 14), ap_general], max_h=29)
-    draw_formula_rows(doc, [ap_fact, ap_mag], max_h=32)
+    draw_formula(doc, ap_def, max_h=31)
+    doc.p("全通滤波器的系统函数的一般形式为：")
+    draw_formula(doc, ap_general_main, max_h=72)
+    draw_formula(doc, ap_general_conditions, max_h=20)
+    draw_formula(doc, ap_fact, max_h=40)
+    draw_formula(doc, ap_mag, max_h=34)
     draw_red_text(doc, "实系数全通滤波器的零极点具有共轭倒易关系；常用于相位校正，又称相位均衡器。")
     draw_red_text(doc, "稳定实系数全通滤波器的重要特性：相位在 [0,π] 内单调减小，群延迟为正。")
 

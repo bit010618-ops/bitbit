@@ -150,6 +150,102 @@ def draw_time_frequency_cases(doc):
         "(c) 时域非周期离散（频域周期连续）",
         "(d) 时域周期离散（频域周期离散）",
     ]
+    def draw_axes(px, py, pw, ph, x_label):
+        origin_x = px + pw * 0.5
+        c.setStrokeColor(colors.black)
+        c.setFillColor(colors.black)
+        c.setLineWidth(0.65)
+        c.line(px, py, px + pw, py)
+        c.line(px + pw, py, px + pw - 5, py + 2.5)
+        c.line(px + pw, py, px + pw - 5, py - 2.5)
+        c.line(origin_x, py - 3, origin_x, py + ph)
+        c.setFont("CN", 6.8)
+        c.drawString(px + pw + 2, py - 3, x_label)
+        c.drawCentredString(origin_x, py - 10, "0")
+        return origin_x
+
+    def draw_math_label(key, expr, center_x, y, max_w=34, max_h=9):
+        path = formula_png(f"b6_p145_{key}", expr, 10)
+        im = Image.open(path)
+        scale = min(max_w / im.width, max_h / im.height)
+        dw, dh = im.width * scale, im.height * scale
+        c.drawImage(ImageReader(str(path)), center_x - dw / 2, y, dw, dh, mask="auto")
+
+    def draw_periodic_triangle_wave(px, py, pw, ph):
+        origin_x = px + pw * 0.5
+        period = pw * 0.34
+        amp = ph * 0.62
+        c.setLineWidth(0.8)
+        for cycle in (-1, 0, 1):
+            center = origin_x + cycle * period
+            c.line(center - period / 2, py, center, py + amp)
+            c.line(center, py + amp, center + period / 2, py)
+        draw_math_label("period_T1", r"T_1", origin_x + period / 2, py - 15)
+
+    def draw_continuous_triangle(px, py, pw, ph):
+        origin_x = px + pw * 0.5
+        half_width = pw * 0.22
+        amp = ph * 0.68
+        c.setLineWidth(0.8)
+        c.line(origin_x - half_width, py, origin_x, py + amp)
+        c.line(origin_x, py + amp, origin_x + half_width, py)
+
+    def draw_one_sided_stem_sequence(px, py, pw, ph):
+        origin_x = px + pw * 0.34
+        c.setLineWidth(0.65)
+        for j in range(0, 9):
+            xx = origin_x + j * pw * 0.065
+            amp = ph * (0.68 if j == 0 else max(0.08, 0.68 - j * 0.072))
+            c.line(xx, py, xx, py + amp)
+            c.circle(xx, py + amp, 1.15, stroke=1, fill=1)
+        draw_math_label("sample_Ts", r"T_s", origin_x + pw * 0.065, py - 15)
+
+    def draw_periodic_sampled_triangle(px, py, pw, ph):
+        origin_x = px + pw * 0.5
+        period_steps = 6
+        step = pw * 0.055
+        for j in range(-9, 10):
+            local = abs(((j + period_steps // 2) % period_steps) - period_steps // 2)
+            amp = ph * max(0.08, 0.68 * (1 - local / (period_steps / 2)))
+            xx = origin_x + j * step
+            c.line(xx, py, xx, py + amp)
+            c.circle(xx, py + amp, 1.05, stroke=1, fill=1)
+        draw_math_label("periodic_Ts", r"T_s", origin_x + step, py - 15)
+        draw_math_label("periodic_T1", r"T_1", origin_x + period_steps * step / 2, py - 15)
+
+    def sinc_abs(u):
+        return 1.0 if abs(u) < 1e-8 else abs(math.sin(math.pi * u) / (math.pi * u))
+
+    def draw_sinc_curve(px, py, pw, ph, center_offset=0, width_scale=1.0):
+        center = px + pw * 0.5 + center_offset
+        last = None
+        for i in range(121):
+            xx = px + pw * i / 120
+            u = (xx - center) / (pw * 0.115 * width_scale)
+            yy = py + ph * 0.72 * sinc_abs(u)
+            if last is not None:
+                c.line(last[0], last[1], xx, yy)
+            last = (xx, yy)
+
+    def draw_sampled_sinc(px, py, pw, ph, periodic=False):
+        origin_x = px + pw * 0.5
+        step = pw * (0.085 if periodic else 0.09)
+        for j in range(-6, 7):
+            if periodic:
+                local = ((j + 3) % 6) - 3
+                amp = sinc_abs(local * 0.62)
+            else:
+                amp = sinc_abs(j * 0.58)
+            xx = origin_x + j * step
+            yy = py + ph * 0.72 * amp
+            c.line(xx, py, xx, yy)
+            c.circle(xx, yy, 1.2, stroke=1, fill=1)
+
+    def draw_periodic_sinc_replicas(px, py, pw, ph):
+        period = pw * 0.7
+        for offset in (-period, 0, period):
+            draw_sinc_curve(px, py, pw, ph, center_offset=offset, width_scale=0.92)
+
     for index, title in enumerate(titles):
         row, col = divmod(index, 2)
         x = MARGIN_X + col * (card_w + card_gap)
@@ -163,100 +259,132 @@ def draw_time_frequency_cases(doc):
         left_x, right_x = x + 8, x + card_w / 2 + 5
         base_y = y + 24
         plot_w = card_w / 2 - 18
-        _axis(c, left_x, base_y, plot_w, 46, "t" if index < 2 else "n")
-        _axis(c, right_x, base_y, plot_w, 46, "f" if index < 2 else "ω")
-        c.setFont("CN", 7)
-        c.drawString(left_x + 4, y + card_h - 28, "x(t)" if index < 2 else "x(nT_s)")
-        c.drawString(right_x + 4, y + card_h - 28, "|X|" if index < 2 else "|X(e^{jω})|")
+        time_label = r"x(t)" if index < 2 else r"x(nT_s)"
+        freq_label = r"|X(k/T_1)|" if index == 0 else (r"|X(f)|" if index == 1 else r"|X(e^{j\omega})|")
+        left_origin = draw_axes(left_x, base_y, plot_w, 46, "t" if index < 2 else "n")
+        right_origin = draw_axes(right_x, base_y, plot_w, 46, "f")
+        draw_math_label(f"time_axis_title_{index}", time_label, left_origin + 17, base_y + 42, max_w=48, max_h=10)
+        draw_math_label(f"freq_axis_title_{index}", freq_label, right_origin + 23, base_y + 42, max_w=66, max_h=10)
 
-        if index in (0, 3):
-            for shift in (-34, 0, 34):
-                cx = left_x + plot_w * 0.45 + shift
-                if index == 0:
-                    c.line(cx - 17, base_y, cx, base_y + 28)
-                    c.line(cx, base_y + 28, cx + 17, base_y)
-                else:
-                    for j in range(-3, 4):
-                        px = cx + j * 5
-                        amp = max(3, 26 - abs(j) * 7)
-                        c.line(px, base_y, px, base_y + amp)
+        if index == 0:
+            draw_periodic_triangle_wave(left_x, base_y, plot_w, 46)
+            draw_sampled_sinc(right_x, base_y, plot_w, 46)
+            draw_math_label("spacing_inv_T1", r"\frac{1}{T_1}", right_x + plot_w * 0.59, base_y - 15)
+        elif index == 1:
+            draw_continuous_triangle(left_x, base_y, plot_w, 46)
+            draw_sinc_curve(right_x, base_y, plot_w, 46)
+        elif index == 2:
+            draw_one_sided_stem_sequence(left_x, base_y, plot_w, 46)
+            draw_periodic_sinc_replicas(right_x, base_y, plot_w, 46)
+            draw_math_label("spectrum_fs", r"f_s", right_x + plot_w * 0.82, base_y - 15)
         else:
-            cx = left_x + plot_w * 0.45
-            if index == 1:
-                c.line(cx - 22, base_y, cx, base_y + 30)
-                c.line(cx, base_y + 30, cx + 22, base_y)
-            else:
-                for j in range(-5, 6):
-                    px = cx + j * 6
-                    amp = max(2, 28 - abs(j) * 5)
-                    c.line(px, base_y, px, base_y + amp)
-
-        if index in (0, 3):
-            for j in range(-4, 5):
-                px = right_x + plot_w * 0.45 + j * 9
-                amp = 34 / (1 + abs(j))
-                c.line(px, base_y, px, base_y + amp)
-                c.circle(px, base_y + amp, 1.2, stroke=1, fill=1)
-        else:
-            periods = (-plot_w * 0.42, plot_w * 0.45) if index == 2 else (0,)
-            for offset in periods:
-                last = None
-                for step in range(70):
-                    u = (step - 35) / 11
-                    val = abs(math.sin(math.pi * u) / (math.pi * u)) if abs(u) > 1e-6 else 1
-                    px = right_x + plot_w * 0.45 + offset + step - 35
-                    py = base_y + 4 + 35 * val
-                    if last:
-                        c.line(last[0], last[1], px, py)
-                    last = (px, py)
+            draw_periodic_sampled_triangle(left_x, base_y, plot_w, 46)
+            draw_sampled_sinc(right_x, base_y, plot_w, 46, periodic=True)
+            draw_math_label("periodic_spectrum_fs", r"f_s", right_x + plot_w * 0.82, base_y - 15)
     doc.y = top - total_h - 10
 
 
 def draw_dfs_relation_map(doc):
     """Source page 148: DTFT/DFS relation with time/frequency periodicity."""
-    h = 178
+    h = 205
     doc.ensure(h + 8)
     c = doc.c
     top = doc.y
     left_x = MARGIN_X + 42
     right_x = MARGIN_X + CONTENT_W - 245
     mid_x = MARGIN_X + CONTENT_W / 2
-    row_y = (top - 52, top - 137)
+    row_y = (top - 62, top - 158)
 
-    c.setFont("CNB", 8.4)
+    c.setFont("CNB", 9.4)
     c.setFillColor(colors.HexColor("#7A245C"))
-    c.drawString(left_x - 34, row_y[0] + 44, "时域离散")
-    c.drawString(left_x - 34, row_y[1] + 44, "时域周期")
-    c.drawString(right_x - 15, row_y[0] + 44, "频域周期")
-    c.drawString(right_x - 15, row_y[1] + 44, "频域离散")
+    c.drawString(left_x - 34, row_y[0] + 52, "时域离散")
+    c.drawString(left_x - 34, row_y[1] + 52, "时域周期")
+    c.drawString(right_x - 15, row_y[0] + 52, "频域周期")
+    c.drawString(right_x - 15, row_y[1] + 52, "频域离散")
 
-    for idx, y in enumerate(row_y):
-        _axis(c, left_x, y, 145, 42, "n")
-        count = 9 if idx == 0 else 15
-        for j in range(count):
-            px = left_x + 58 + (j - (4 if idx == 0 else 7)) * 9
-            amp = max(4, 29 - j * 3) if idx == 0 else 9 + 17 * abs(math.sin(j * math.pi / 7))
-            c.setStrokeColor(colors.HexColor("#00A3B4"))
-            c.line(px, y, px, y + amp)
-            c.circle(px, y + amp, 1.2, stroke=1, fill=1)
+    sample_values = (1.0, 0.78, 0.62, 0.5, 0.4, 0.32, 0.25, 0.2)
+    period = 72
+    sample_step = period / len(sample_values)
 
-        _axis(c, right_x, y, 165, 42, "ω" if idx == 0 else "k")
-        if idx == 0:
-            last = None
-            for step in range(160):
-                val = 9 + 22 * (0.55 + 0.45 * math.cos((step - 80) * math.pi / 48)) ** 2
-                px, py = right_x + step, y + val
-                c.setStrokeColor(colors.blue)
-                if last:
-                    c.line(last[0], last[1], px, py)
-                last = (px, py)
-        else:
-            for j in range(15):
-                px = right_x + 15 + j * 10
-                amp = 10 + 20 * (0.55 + 0.45 * math.cos((j - 7) * math.pi / 7)) ** 2
-                c.setStrokeColor(colors.magenta)
-                c.line(px, y, px, y + amp)
-                c.circle(px, y + amp, 1.2, stroke=1, fill=1)
+    def math_label(key, expression, center_x, y, max_w=38, max_h=9):
+        path = formula_png(f"b6_p148_{key}", expression, 10)
+        im = Image.open(path)
+        scale = min(max_w / im.width, max_h / im.height)
+        dw, dh = im.width * scale, im.height * scale
+        c.drawImage(ImageReader(str(path)), center_x - dw / 2, y, dw, dh, mask="auto")
+
+    def draw_stem(px, baseline, amp, color):
+        c.setStrokeColor(color)
+        c.setFillColor(color)
+        c.line(px, baseline, px, baseline + amp)
+        c.circle(px, baseline + amp, 1.2, stroke=1, fill=1)
+
+    def draw_one_period_sequence(baseline):
+        origin_x = left_x + 145 * 0.45
+        for j, value in enumerate(sample_values):
+            draw_stem(origin_x + j * sample_step, baseline, 36 * value, colors.HexColor("#00A3B4"))
+        c.setFillColor(TEXT)
+        c.setFont("CN", 6.8)
+        c.drawCentredString(origin_x, baseline - 10, "0")
+        c.drawCentredString(origin_x + 7 * sample_step, baseline - 10, "N-1")
+        c.drawCentredString(origin_x + period, baseline - 20, "N")
+
+    def draw_periodic_extension_sequence(baseline):
+        origin_x = left_x + 145 * 0.45
+        for cycle in (-1, 0, 1):
+            start_x = origin_x + cycle * period
+            for j, value in enumerate(sample_values):
+                draw_stem(start_x + j * sample_step, baseline, 36 * value, colors.HexColor("#00A3B4"))
+        c.setFillColor(TEXT)
+        c.setFont("CN", 6.8)
+        c.drawCentredString(origin_x, baseline - 10, "0")
+        c.drawCentredString(origin_x + 7 * sample_step, baseline - 10, "N-1")
+        math_label("time_period_T0", r"T_0", origin_x + period / 2, baseline + 33)
+        math_label("time_sample_Ts", r"T_s", origin_x + sample_step / 2, baseline - 18)
+
+    def periodic_magnitude(x_value, origin_x):
+        phase = (x_value - origin_x) / period
+        return 8 + 29 * math.cos(math.pi * phase) ** 2
+
+    def draw_periodic_frequency_curve(baseline):
+        origin_x = right_x + 165 * 0.45
+        c.setStrokeColor(colors.blue)
+        c.setLineWidth(0.8)
+        last = None
+        for step in range(166):
+            px = right_x + step
+            py = baseline + periodic_magnitude(px, origin_x)
+            if last is not None:
+                c.line(last[0], last[1], px, py)
+            last = (px, py)
+        c.setDash(2, 2)
+        c.line(origin_x + period, baseline, origin_x + period, baseline + 34)
+        c.setDash()
+        math_label("freq_period_2pifs", r"2\pi f_s", origin_x + period, baseline - 17, max_w=44)
+
+    def draw_periodic_frequency_samples(baseline):
+        origin_x = right_x + 165 * 0.45
+        frequency_step = period / 8
+        for j in range(-7, 9):
+            px = origin_x + j * frequency_step
+            amp = periodic_magnitude(px, origin_x)
+            draw_stem(px, baseline, amp, colors.magenta)
+        c.setFillColor(TEXT)
+        c.setFont("CN", 6.8)
+        c.drawCentredString(origin_x, baseline - 10, "0")
+        c.drawCentredString(origin_x + 7 * frequency_step, baseline - 10, "N-1")
+        c.drawCentredString(origin_x + period, baseline - 20, "N")
+        math_label("freq_sample_spacing", r"\frac{1}{f_s}", origin_x + frequency_step / 2, baseline - 18)
+
+    _axis(c, left_x, row_y[0], 145, 50, "n")
+    draw_one_period_sequence(row_y[0])
+    _axis(c, right_x, row_y[0], 165, 50, "ω")
+    draw_periodic_frequency_curve(row_y[0])
+
+    _axis(c, left_x, row_y[1], 145, 50, "n")
+    draw_periodic_extension_sequence(row_y[1])
+    _axis(c, right_x, row_y[1], 165, 50, "k")
+    draw_periodic_frequency_samples(row_y[1])
 
     c.setStrokeColor(colors.red)
     c.setFillColor(colors.red)
@@ -267,17 +395,33 @@ def draw_dfs_relation_map(doc):
         c.line(mid_x + 42, y - 8, mid_x - 42, y - 8)
         c.line(mid_x - 42, y - 8, mid_x - 34, y - 4)
         c.line(mid_x - 42, y - 8, mid_x - 34, y - 12)
-        c.setFont("CNB", 8.2)
+        c.setFont("CNB", 9.2)
         c.drawCentredString(mid_x, y + 14, upper)
         c.drawCentredString(mid_x, y - 20, lower)
 
     c.setStrokeColor(colors.HexColor("#D2A000"))
     c.setFillColor(colors.HexColor("#FFF6C8"))
-    c.rect(right_x + 108, row_y[1] + 35, 95, 36, stroke=1, fill=1)
+    note_x = right_x + 166
+    note_y = row_y[1] + 8
+    note_w = 84
+    note_h = 42
+    c.rect(note_x, note_y, note_w, note_h, stroke=1, fill=1)
     c.setFillColor(TEXT)
-    c.setFont("CN", 7.5)
-    c.drawCentredString(right_x + 155, row_y[1] + 57, "一周期采样 N 点")
-    c.drawCentredString(right_x + 155, row_y[1] + 44, "ω/2π = k/N")
+    c.setFont("CNB", 8.2)
+    c.drawCentredString(note_x + note_w / 2, note_y + 29, "一周期采样 N 点")
+    relation_path = formula_png("b6_p148_sampling_relation", r"\frac{\omega}{2\pi}=\frac{k}{N}", 13, color="#D71920")
+    relation_image = Image.open(relation_path)
+    relation_scale = min(72 / relation_image.width, 14 / relation_image.height)
+    relation_w = relation_image.width * relation_scale
+    relation_h = relation_image.height * relation_scale
+    c.drawImage(
+        ImageReader(str(relation_path)),
+        note_x + note_w / 2 - relation_w / 2,
+        note_y + 8,
+        relation_w,
+        relation_h,
+        mask="auto",
+    )
     doc.y = top - h - 8
 
 

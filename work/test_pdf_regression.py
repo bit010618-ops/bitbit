@@ -1,6 +1,7 @@
 """Regression checks for the assembled DSP handout PDF."""
 
 from pathlib import Path
+import re
 import unittest
 
 import pdfplumber
@@ -8,7 +9,7 @@ from pypdf import PdfReader
 
 
 ROOT = Path(__file__).resolve().parents[1]
-FINAL_PDF = ROOT / 'outputs' / '华理814DSP讲义_完整重排版_合并校对稿.pdf'
+FINAL_PDF = ROOT / 'outputs' / '华理814DSP讲义_完整彩色A4版.pdf'
 
 
 def page_content_bytes(page):
@@ -17,6 +18,20 @@ def page_content_bytes(page):
         return 0
     streams = contents if isinstance(contents, list) else [contents]
     return sum(len(stream.get_data()) for stream in streams)
+
+
+def page_chapter_number(page):
+    text = page.extract_text() or ''
+    match = re.search(r'(?m)^(\d+)\.\s', text)
+    return int(match.group(1)) if match else None
+
+
+def is_allowed_chapter_end(page_number, pages):
+    if page_number >= len(pages):
+        return False
+    current = page_chapter_number(pages[page_number - 1])
+    following = page_chapter_number(pages[page_number])
+    return current is not None and following is not None and current != following
 
 
 class HandoutRegressionTests(unittest.TestCase):
@@ -31,6 +46,7 @@ class HandoutRegressionTests(unittest.TestCase):
             if (
                 len((page.extract_text() or '').strip()) < 100
                 and page_content_bytes(page) < 5000
+                and not is_allowed_chapter_end(number, reader.pages)
             )
         ]
         self.assertEqual(near_blank, [], f'Near-blank pages found: {near_blank}')

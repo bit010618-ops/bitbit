@@ -25,6 +25,8 @@ from make_dsp_batch_016_024 import BatchDoc, draw_formula
 
 PDF_PATH = OUT_DIR / "DSP讲义重制_第三批_原PPT46-88页_z变换DTFT_性质补全版.pdf"
 NOTE_PATH = OUT_DIR / "DSP讲义重制_第三批_原PPT46-88页_z变换DTFT_性质补全版_校对记录.md"
+SOURCE_AXIS_BLUE = colors.HexColor("#0046D8")
+SOURCE_SAMPLE_RED = colors.HexColor("#E60012")
 
 
 def draw_formula_left(doc, image_path, max_w=None, max_h=30, gap=10, indent=0):
@@ -200,54 +202,82 @@ def draw_dtft_mapping(doc):
 
 
 def draw_dtft_conj_example_plots(doc):
-    doc.ensure(120)
+    panel_gap = 82
+    doc.ensure(panel_gap * 3 + 8)
     c = doc.c
     y = doc.y
     panels = [
-        (MARGIN_X + 28, "b087_title_he", r"h_e(n)", {-1: 0.5, 0: 1, 1: 0.5}, [(-1, 0.5, "half"), (0, 1, "one"), (1, 0.5, "half")]),
-        (MARGIN_X + 195, "b087_title_ho", r"h_o(n)", {-1: -0.5, 1: 0.5}, [(-1, -0.5, "mhalf"), (1, 0.5, "half")]),
-        (MARGIN_X + 362, "b087_title_h", r"h(n)", {0: 1, 1: 1}, [(0, 1, "one"), (1, 1, "one")]),
+        ("e", {-1: 0.5, 0: 1, 1: 0.5}),
+        ("o", {-1: -0.5, 0: 0, 1: 0.5}),
+        (None, {0: 1, 1: 1}),
     ]
-    label_paths = {
-        "one": formula_png("b087_label_one", r"1", 10),
-        "half": formula_png("b087_label_half", r"\frac{1}{2}", 10),
-        "mhalf": formula_png("b087_label_mhalf", r"-\frac{1}{2}", 10),
-    }
 
-    def point_xy(x, top_y, w, h, values, n, value):
-        n_min, n_max = -2, 2
-        v_min = min(0, min(values.values()))
-        v_max = max(1, max(values.values()))
-        pad_l, pad_r, pad_t, pad_b = 16, 15, 18, 24
-        left, right = x + pad_l, x + w - pad_r
-        top, bottom = top_y - pad_t, top_y - h + pad_b
-        n_pad = max(0.9, (n_max - n_min) * 0.1)
-        v_bottom_pad = max(0.25, (v_max - v_min) * 0.12)
-        v_top_pad = max(0.95, (v_max - v_min) * 0.5)
-        axis_n_min = n_min - n_pad
-        axis_n_max = n_max + n_pad
-        axis_v_min = v_min - v_bottom_pad
-        axis_v_max = v_max + v_top_pad
-        px = left + (n - axis_n_min) / (axis_n_max - axis_n_min or 1) * (right - left)
-        py = bottom + (value - axis_v_min) / (axis_v_max - axis_v_min or 1) * (top - bottom)
-        return px, py
+    def arrow(x1, y1, x2, y2):
+        c.line(x1, y1, x2, y2)
+        if x1 == x2:
+            c.line(x2, y2, x2 - 3.5, y2 - 6)
+            c.line(x2, y2, x2 + 3.5, y2 - 6)
+        else:
+            c.line(x2, y2, x2 - 6, y2 + 3.5)
+            c.line(x2, y2, x2 - 6, y2 - 3.5)
 
-    for x, title_name, title_tex, values, labels in panels:
-        draw_discrete_axes_plot(c, x, y, 142, 92, values, n_min=-2, n_max=2, title=formula_png(title_name, title_tex, 11), value_labels=False)
-        for n, value, label_key in labels:
-            px, py = point_xy(x, y, 142, 92, values, n, value)
-            lab = Image.open(label_paths[label_key])
-            scale = min(24 / lab.width, 12 / lab.height)
-            dw, dh = lab.width * scale, lab.height * scale
-            c.drawImage(
-                ImageReader(str(label_paths[label_key])),
-                px + (4 if value >= 0 else -24),
-                py + (4 if value >= 0 else -3),
-                dw,
-                dh,
-                mask="auto",
-            )
-    doc.y -= 118
+    def fraction_label(px, py, negative=False):
+        c.setFillColor(SOURCE_SAMPLE_RED)
+        c.setStrokeColor(SOURCE_SAMPLE_RED)
+        c.setFont("CNB", 6.8)
+        if negative:
+            c.drawString(px - 7, py - 3, "-")
+        c.drawCentredString(px, py + 4, "1")
+        c.line(px - 4, py + 1, px + 4, py + 1)
+        c.drawCentredString(px, py - 6, "2")
+
+    x = MARGIN_X + 255
+    width = 205
+    x0 = x + 88
+    x_step = 34
+    for index, (subscript, values) in enumerate(panels):
+        top_y = y - index * panel_gap
+        y0 = top_y - 48
+        c.setStrokeColor(SOURCE_AXIS_BLUE)
+        c.setFillColor(SOURCE_AXIS_BLUE)
+        c.setLineWidth(1.1)
+        arrow(x + 8, y0, x + width - 8, y0)
+        arrow(x0, y0 - 20, x0, top_y - 6)
+        c.setFont("CNB", 8.5)
+        for n in range(-2, 3):
+            px = x0 + n * x_step
+            c.line(px, y0 - 2.5, px, y0 + 2.5)
+            if n == 0:
+                c.drawString(px + 5, y0 - 14, "0")
+            else:
+                c.drawCentredString(px, y0 - 14, str(n))
+        c.drawString(x + width - 3, y0 - 4, "n")
+        c.setFont("Times-Italic", 14)
+        c.drawString(x0 + 8, top_y - 11, "h")
+        title_x = x0 + 17
+        if subscript:
+            c.setFont("Times-Italic", 8)
+            c.drawString(title_x, top_y - 15, subscript)
+            title_x += 7
+        c.setFont("Times-Italic", 14)
+        c.drawString(title_x, top_y - 11, "(n)")
+
+        c.setStrokeColor(SOURCE_SAMPLE_RED)
+        c.setFillColor(SOURCE_SAMPLE_RED)
+        c.setLineWidth(1.2)
+        for n, value in sorted(values.items()):
+            px = x0 + n * x_step
+            py = y0 + value * 28
+            c.line(px, y0, px, py)
+            c.circle(px, py, 2.5, stroke=1, fill=1)
+            if value == 1:
+                c.setFont("CNB", 7.5)
+                c.drawString(px + 6, py + 2, "1")
+            elif value == 0.5:
+                fraction_label(px + 8, py + 5)
+            elif value == -0.5:
+                fraction_label(px, py - 7, negative=True)
+    doc.y -= panel_gap * 3
 
 
 def build_pdf():

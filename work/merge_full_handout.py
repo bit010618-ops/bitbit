@@ -54,7 +54,6 @@ def make_cover() -> object:
     width, height = A4
     c = canvas.Canvas(packet, pagesize=A4)
     ink = colors.HexColor("#20252B")
-    muted = colors.HexColor("#666B70")
     rule = colors.HexColor("#A7AAAD")
     c.setFillColor(colors.white)
     c.rect(0, 0, width, height, stroke=0, fill=1)
@@ -68,9 +67,6 @@ def make_cover() -> object:
     c.drawCentredString(width / 2, height - 292, "数字信号处理")
     c.setStrokeColor(rule)
     c.line(150, height - 320, width - 150, height - 320)
-    c.setFillColor(muted)
-    c.setFont("CN", 10.5)
-    c.drawCentredString(width / 2, 112, "完整彩色 A4 讲义")
     c.save()
     packet.seek(0)
     return PdfReader(packet).pages[0]

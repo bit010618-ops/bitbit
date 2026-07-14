@@ -32,6 +32,9 @@ class MergeCoverAndTocStyleTests(unittest.TestCase):
         self.assertNotIn("grayscale", lowered)
         self.assertNotIn("黑白版", self.source)
 
+    def test_cover_omits_redundant_complete_color_a4_caption(self):
+        self.assertNotIn("完整彩色 A4 讲义", self.source)
+
 
 if __name__ == "__main__":
     unittest.main()

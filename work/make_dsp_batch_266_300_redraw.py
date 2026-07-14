@@ -516,69 +516,107 @@ def draw_parallel_iir(doc):
     doc.y -= h
 
 
+def direct_ii_general_geometry():
+    return {
+        'canvas_height': 472,
+        'panel_width': 176,
+        'row_gap': 50,
+        'right_panel_offset': 255,
+        'arrow_overhang': 26,
+        'output_label_width': 42,
+        'source_side_labels': ('x(n-1)', 'x(n-2)', 'y(n-1)', 'y(n-2)', 'w_1', 'w_2'),
+    }
+
+
 def draw_direct_ii_general(doc):
-    """Recreate the three source networks on PPT 276 without collapsing paths."""
-    topology = direct_structure_source_topology()['direct_ii_general']
-    h = 344
+    """Recreate the three source networks on PPT 276 at readable A4 scale."""
+    geometry = direct_ii_general_geometry()
+    h = geometry['canvas_height']
+    panel_w = geometry['panel_width']
+    row_gap = geometry['row_gap']
     doc.ensure(h + 12)
     c = doc.c
     top = doc.y
     c.setStrokeColor(TEXT)
     c.setFillColor(TEXT)
-    c.setFont('CN', 10.5); c.setFillColor(TEXT)
-    c.drawString(MARGIN_X, top - 16, '设 M=N=2，直接 I 型的前向、反馈两条延时链可交换后合并为直接 II 型。')
+    c.setFont('CN', 10.5)
+    c.drawString(MARGIN_X, top - 16, '设 M=N=2，先交换直接 I 型前向、反馈两部分，再合并公共延时链得到直接 II 型。')
 
-    def chain(x, y, merged=False):
-        # All paths deliberately remain horizontal or vertical, as in the source.
-        left, right = x, x + 105
-        middle = x + 52
-        arrow(c, x - 24, y, x, y, TEXT, 1.0)
-        arrow(c, right, y, right + 24, y, TEXT, 1.0)
-        dot(c, x, y, 2.4, TEXT); dot(c, right, y, 2.4, TEXT)
+    def dashed_rect(x, y, w, hh):
+        c.setDash(4, 3)
+        c.rect(x, y - hh, w, hh, stroke=1, fill=0)
+        c.setDash()
+
+    def draw_panel(x, y, merged, tag, side_labels=False):
+        left_rail = x + 34
+        middle = x + panel_w / 2
+        right_rail = x + panel_w - 34
+        bottom = y - 2 * row_gap
+        arrow(c, x - 26, y, x + panel_w + 26, y, TEXT, 1.0)
+        dot(c, left_rail, y, 2.4, TEXT)
+        dot(c, right_rail, y, 2.4, TEXT)
+
         if merged:
-            c.setDash(4, 3); c.rect(x - 8, y - 98, 68, 116, stroke=1, fill=0); c.rect(x + 46, y - 98, 68, 116, stroke=1, fill=0); c.setDash()
-            for i, (a, b) in enumerate(zip(topology['coefficients'][:2], topology['coefficients'][3:])):
-                yy = y - 36 * (i + 1)
-                arrow(c, middle, yy + 18, middle, yy - 10, TEXT, 0.9)
-                draw_math_at(c, r'z^{-1}', middle - 15, yy + 2, 30, 14, 9.5, name=f'd2g_z_{x}_{i}')
-                arrow(c, middle, yy, x + 10, yy, TEXT, 0.9)
-                arrow(c, middle, yy, right - 10, yy, TEXT, 0.9)
-                draw_math_at(c, a, x + 20, yy + 10, 28, 14, 10, name=f'd2g_a_{x}_{i}')
-                draw_math_at(c, b, right - 37, yy + 10, 28, 14, 10, name=f'd2g_b_{x}_{i}')
-            draw_math_at(c, r'b_0', right - 16, y + 14, 28, 14, 10, name=f'd2g_b0_{x}')
+            dashed_rect(x + 14, y + 17, panel_w / 2 - 14, 2 * row_gap + 34)
+            dashed_rect(middle, y + 17, panel_w / 2 - 14, 2 * row_gap + 34)
+            c.line(middle, y, middle, bottom)
+            draw_math_at(c, r'w_1', middle - 39, y + 13, 34, 15, 10.5, name=f'{tag}_w1')
+            draw_math_at(c, r'w_2', middle + 5, y + 13, 34, 15, 10.5, name=f'{tag}_w2')
+            draw_math_at(c, r'b_0', right_rail - 15, y + 13, 32, 15, 10.5, name=f'{tag}_b0')
+            for index, (a, b) in enumerate(((r'a_1', r'b_1'), (r'a_2', r'b_2')), 1):
+                yy = y - index * row_gap
+                arrow(c, middle, yy + row_gap - 8, middle, yy + 5, TEXT, 0.9)
+                draw_math_at(c, r'z^{-1}', middle + 5, yy + row_gap / 2 - 2, 35, 15, 10, name=f'{tag}_z{index}')
+                arrow(c, middle, yy, left_rail, yy, TEXT, 0.9)
+                arrow(c, middle, yy, right_rail, yy, TEXT, 0.9)
+                dot(c, left_rail, yy, 2.2, TEXT); dot(c, right_rail, yy, 2.2, TEXT)
+                draw_math_at(c, a, left_rail + 10, yy + 12, 32, 15, 10.5, name=f'{tag}_a{index}')
+                draw_math_at(c, b, right_rail - 43, yy + 12, 32, 15, 10.5, name=f'{tag}_b{index}')
         else:
-            c.setDash(4, 3); c.rect(x - 8, y - 98, 43, 116, stroke=1, fill=0); c.rect(x + 70, y - 98, 43, 116, stroke=1, fill=0); c.setDash()
-            for i, (a, b) in enumerate(zip(topology['coefficients'][:2], topology['coefficients'][3:])):
-                yy = y - 36 * (i + 1)
-                arrow(c, x + 15, yy + 18, x + 15, yy - 10, TEXT, 0.9)
-                arrow(c, right - 15, yy + 18, right - 15, yy - 10, TEXT, 0.9)
-                draw_math_at(c, r'z^{-1}', x + 19, yy + 2, 30, 14, 9.5, name=f'd1g_zl_{x}_{i}')
-                draw_math_at(c, r'z^{-1}', right - 39, yy + 2, 30, 14, 9.5, name=f'd1g_zr_{x}_{i}')
-                arrow(c, x + 15, yy, middle, yy, TEXT, 0.9)
-                arrow(c, right - 15, yy, middle, yy, TEXT, 0.9)
-                draw_math_at(c, b, x + 34, yy + 10, 28, 14, 10, name=f'd1g_b_{x}_{i}')
-                draw_math_at(c, a, middle + 7, yy + 10, 28, 14, 10, name=f'd1g_a_{x}_{i}')
-            draw_math_at(c, r'b_0', middle - 12, y + 14, 28, 14, 10, name=f'd1g_b0_{x}')
+            dashed_rect(x + 8, y + 17, 66, 2 * row_gap + 34)
+            dashed_rect(x + panel_w - 74, y + 17, 66, 2 * row_gap + 34)
+            c.line(left_rail, y, left_rail, bottom)
+            c.line(right_rail, y, right_rail, bottom)
+            draw_math_at(c, r'b_0', middle - 16, y + 13, 32, 15, 10.5, name=f'{tag}_b0')
+            for index, (b, a) in enumerate(((r'b_1', r'a_1'), (r'b_2', r'a_2')), 1):
+                yy = y - index * row_gap
+                arrow(c, left_rail, yy + row_gap - 8, left_rail, yy + 5, TEXT, 0.9)
+                arrow(c, right_rail, yy + row_gap - 8, right_rail, yy + 5, TEXT, 0.9)
+                draw_math_at(c, r'z^{-1}', left_rail + 5, yy + row_gap / 2 - 2, 35, 15, 10, name=f'{tag}_zl{index}')
+                draw_math_at(c, r'z^{-1}', right_rail - 40, yy + row_gap / 2 - 2, 35, 15, 10, name=f'{tag}_zr{index}')
+                arrow(c, left_rail, yy, middle, yy, TEXT, 0.9)
+                arrow(c, right_rail, yy, middle, yy, TEXT, 0.9)
+                dot(c, left_rail, yy, 2.2, TEXT); dot(c, right_rail, yy, 2.2, TEXT)
+                draw_math_at(c, b, left_rail + 17, yy + 12, 32, 15, 10.5, name=f'{tag}_b{index}')
+                draw_math_at(c, a, middle + 16, yy + 12, 32, 15, 10.5, name=f'{tag}_a{index}')
+                if side_labels:
+                    draw_math_at(c, rf'x(n-{index})', x - 56, yy + 8, 54, 15, 9.8, name=f'{tag}_xside{index}')
+                    draw_math_at(c, rf'y(n-{index})', x + panel_w + 2, yy + 8, 54, 15, 9.8, name=f'{tag}_yside{index}')
 
-    upper_y = top - 72
-    c.setFillColor(BLUE_DARK); c.setFont('CNB', 10)
-    c.drawCentredString(MARGIN_X + 150, top - 38, '直接 I 型')
-    c.drawCentredString(MARGIN_X + 400, top - 38, '直接 II 型')
-    c.setFillColor(TEXT)
-    chain(MARGIN_X + 102, upper_y, merged=False)
-    chain(MARGIN_X + 356, upper_y, merged=True)
-    draw_math_at(c, r'x(n)', MARGIN_X + 65, upper_y + 13, 40, 15, 10.5, name='d2g_x_left')
-    draw_math_at(c, r'y(n)', MARGIN_X + 212, upper_y + 13, 40, 15, 10.5, name='d2g_y_left')
-    draw_math_at(c, r'x(n)', MARGIN_X + 319, upper_y + 13, 40, 15, 10.5, name='d2g_x_right')
-    draw_math_at(c, r'y(n)', MARGIN_X + 466, upper_y + 13, 40, 15, 10.5, name='d2g_y_right')
+        return x - 26, x + panel_w + 26
 
-    lower_y = top - 242
-    c.setFont('CNB', 10); c.setFillColor(BLUE_DARK)
-    c.drawCentredString(MARGIN_X + CONTENT_W / 2, top - 196, '合并后的直接 II 型网络')
+    upper_y = top - 78
+    left_x = MARGIN_X + 58
+    right_x = MARGIN_X + geometry['right_panel_offset']
+    c.setFillColor(BLUE_DARK); c.setFont('CNB', 10.5)
+    c.drawCentredString(left_x + panel_w / 2, top - 42, '直接 I 型')
+    c.drawCentredString(right_x + panel_w / 2, top - 42, '交换后的两部分网络')
     c.setFillColor(TEXT)
-    chain(MARGIN_X + 245, lower_y, merged=True)
-    draw_math_at(c, r'x(n)', MARGIN_X + 204, lower_y + 13, 40, 15, 10.5, name='d2g_x_lower')
-    draw_math_at(c, r'y(n)', MARGIN_X + 360, lower_y + 13, 40, 15, 10.5, name='d2g_y_lower')
+    left_start, left_end = draw_panel(left_x, upper_y, False, 'd2g_left', side_labels=True)
+    right_start, right_end = draw_panel(right_x, upper_y, True, 'd2g_right')
+    draw_math_at(c, r'x(n)', left_start - 38, upper_y + 11, 38, 16, 10.5, name='d2g_x_left')
+    draw_math_at(c, r'y(n)', left_end + 2, upper_y + 11, 38, 16, 10.5, name='d2g_y_left')
+    draw_math_at(c, r'x(n)', right_start - 38, upper_y + 11, 38, 16, 10.5, name='d2g_x_right')
+    draw_math_at(c, r'y(n)', right_end + 2, upper_y + 11, 38, 16, 10.5, name='d2g_y_right')
+
+    lower_y = top - 320
+    lower_x = MARGIN_X + (CONTENT_W - panel_w) / 2
+    c.setFont('CNB', 10.5); c.setFillColor(BLUE_DARK)
+    c.drawCentredString(MARGIN_X + CONTENT_W / 2, top - 274, '合并后的直接 II 型网络')
+    c.setFillColor(TEXT)
+    lower_start, lower_end = draw_panel(lower_x, lower_y, True, 'd2g_lower')
+    draw_math_at(c, r'x(n)', lower_start - 38, lower_y + 11, 38, 16, 10.5, name='d2g_x_lower')
+    draw_math_at(c, r'y(n)', lower_end + 2, lower_y + 11, 38, 16, 10.5, name='d2g_y_lower')
     doc.y = top - h
 
 
@@ -696,45 +734,101 @@ def draw_digital_filter_type_plots(doc):
     doc.y = top - h
 
 
+def butterworth_indicator_source_geometry():
+    return {
+        'x_range': (0.0, 3.0),
+        'x_ticks': (0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0),
+        'y_ticks': (0.0, 0.2, 0.4, 0.6, 0.8, 1.0),
+        'cutoffs': {
+            'passband': 0.8,
+            'three_db': 0.95,
+            'stopband': 1.5,
+        },
+        'levels': {
+            'passband': 0.891,
+            'three_db': 0.707,
+            'stopband': 0.01,
+        },
+        'cutoff_colors': {
+            'passband': '#E60012',
+            'three_db': '#0000FF',
+            'stopband': '#7B3F98',
+        },
+    }
+
+
 def draw_butterworth_response(doc):
     h = 235
     doc.ensure(h + 12)
     c = doc.c
+    geometry = butterworth_indicator_source_geometry()
+    x_min, x_max = geometry['x_range']
     x = MARGIN_X + 70
     y = doc.y - 170
     w = 360
     hh = 155
     c.setStrokeColor(GRID); c.setLineWidth(0.6)
-    for i in range(7):
-        xx = x + i * w / 6
+    for tick in geometry['x_ticks']:
+        xx = x + (tick - x_min) / (x_max - x_min) * w
         c.line(xx, y, xx, y + hh)
-    for j in range(6):
-        yy = y + j * hh / 5
+    for tick in geometry['y_ticks']:
+        yy = y + tick * hh
         c.line(x, yy, x + w, yy)
     c.setStrokeColor(BLACK); c.rect(x, y, w, hh, stroke=1, fill=0)
-    # response curve approximate
+    c.setFillColor(BLACK); c.setFont('CN', 7.5)
+    for tick in geometry['x_ticks']:
+        xx = x + (tick - x_min) / (x_max - x_min) * w
+        label = str(int(tick)) if tick.is_integer() else str(tick)
+        c.drawCentredString(xx, y - 9, label)
+    for tick in geometry['y_ticks'][1:]:
+        yy = y + tick * hh
+        label = str(int(tick)) if tick.is_integer() else str(tick)
+        c.drawRightString(x - 5, yy - 2.5, label)
+
+    # Sixth-order Butterworth response used by the source indicator plot.
     c.setStrokeColor(RED); c.setLineWidth(1.7)
     prev = None
     for i in range(120):
-        t = i / 119 * 3.0
-        amp = 1 / math.sqrt(1 + (t / 0.95) ** 12)
-        px = x + t / 3.0 * w
+        t = x_min + i / 119 * (x_max - x_min)
+        amp = 1 / math.sqrt(1 + (t / geometry['cutoffs']['three_db']) ** 12)
+        px = x + (t - x_min) / (x_max - x_min) * w
         py = y + amp * hh
         if prev: c.line(prev[0], prev[1], px, py)
         prev = (px, py)
-    # dashed guides
+
+    guide_specs = (
+        ('passband', '0.891'),
+        ('three_db', '0.707'),
+        ('stopband', '0.01'),
+    )
     c.setDash(4, 3); c.setLineWidth(1.1)
-    for val, col, lab, db in [(0.891, RED, '0.891', '1dB'), (0.707, colors.blue, '0.707', '3dB'), (0.01, colors.HexColor('#7B3F98'), '0.01', '40dB')]:
+    for key, lab in guide_specs:
+        col = colors.HexColor(geometry['cutoff_colors'][key])
+        val = geometry['levels'][key]
+        cutoff = geometry['cutoffs'][key]
         yy = y + val * hh
-        c.setStrokeColor(col); c.line(x - 40, yy, x + w * (0.48 if val > .5 else 0.72), yy)
+        cutoff_x = x + (cutoff - x_min) / (x_max - x_min) * w
+        c.setStrokeColor(col); c.line(x - 40, yy, cutoff_x, yy)
         c.setFillColor(colors.white); c.setStrokeColor(col); c.rect(x - 55, yy - 8, 38, 16, stroke=1, fill=1)
         c.setFillColor(BLACK); c.setFont('CN', 8); c.drawCentredString(x - 36, yy - 3, lab)
     c.setDash()
-    # vertical cutoff markers
-    for frac, col, lab in [(0.42, RED, r'\Omega_p'), (0.50, colors.blue, r'\Omega_c'), (0.72, colors.HexColor('#7B3F98'), r'\Omega_s')]:
-        xx = x + frac * w
-        c.setStrokeColor(col); c.setDash(4,3); c.line(xx, y, xx, y + hh * 0.9); c.setDash()
-        draw_math_at(c, lab, xx - 12, y - 12, 45, 16, 11, color='#111111', name=f'bw_{lab}')
+
+    cutoff_specs = (
+        ('passband', r'\Omega_p', -28),
+        ('three_db', r'\Omega_c', -18),
+        ('stopband', r'\Omega_s', -18),
+    )
+    for key, lab, label_y_offset in cutoff_specs:
+        color_hex = geometry['cutoff_colors'][key]
+        col = colors.HexColor(color_hex)
+        cutoff = geometry['cutoffs'][key]
+        level = geometry['levels'][key]
+        xx = x + (cutoff - x_min) / (x_max - x_min) * w
+        c.setStrokeColor(col); c.setDash(4, 3)
+        c.line(xx, y, xx, y + max(level, 0.2) * hh)
+        c.setDash()
+        draw_math_at(c, lab, xx - 18, y + label_y_offset, 36, 15, 10.5,
+                     color=color_hex, name=f'bw_{key}')
     c.setFillColor(RED); c.setFont('CNB', 16); c.drawString(x + 155, y + 116, '衰减')
     c.setFillColor(colors.white); c.setStrokeColor(colors.HexColor('#7B3F98')); c.rect(x + 190, y + 108, 38, 20, stroke=1, fill=1)
     c.setFillColor(colors.HexColor('#7B3F98')); c.setFont('CNB', 12); c.drawCentredString(x + 209, y + 113, '1dB')
@@ -744,7 +838,7 @@ def draw_butterworth_response(doc):
     c.setFillColor(colors.white); c.setStrokeColor(colors.HexColor('#7B3F98')); c.rect(x + 275, y + 16, 44, 20, stroke=1, fill=1)
     c.setFillColor(colors.HexColor('#7B3F98')); c.setFont('CNB', 12); c.drawCentredString(x + 297, y + 21, '40dB')
     draw_math_at(c, r'|H_a(j\Omega)|', x - 50, y + hh + 8, 80, 20, 12, name='bw_y_label')
-    draw_math_at(c, r'\Omega(\mathrm{rad/s})', x + w - 10, y - 13, 90, 18, 11, name='bw_x_label')
+    draw_math_at(c, r'\Omega(\mathrm{rad/s})', x + w + 8, y - 3, 72, 18, 11, name='bw_x_label')
     doc.y -= h
 
 
@@ -827,6 +921,21 @@ def draw_simple_coeff_grid(doc, title, left_title, right_title, left_vals, right
     doc.y = top - h
 
 
+def direct_iir_example_arrow_geometry():
+    return {
+        'direct_i': {
+            'feedforward_delay_down': 3,
+            'feedback_delay_down': 3,
+            'accumulator_up': 3,
+        },
+        'direct_ii': {
+            'shared_delay_down': 3,
+            'feedback_return_up': 3,
+            'feedforward_return_up': 3,
+        },
+    }
+
+
 def draw_direct_ii_examples(doc):
     topology = direct_structure_source_topology()['direct_ii']
     doc.p('直接 II 型例题中，先把 H(z) 写成分母首项为 1 的负幂形式，再把直接 I 型的两条延时链合并。源图中反馈系数的符号需要特别注意。')
@@ -852,18 +961,30 @@ def draw_direct_ii_examples(doc):
         dot(c,x+24,y,2.7,RED); dot(c,x+138,y,2.7,RED)
         draw_math_at(c,r'8',x+45,y+13,16,14,11,name=f'd2_b0_{direct_two}')
         left=x+44; right=x+130; middle=x+87
+
+        def vertical_stage_arrows(rail_x, direction):
+            levels = [y - 30 * index for index in range(4)]
+            for index in range(3):
+                upper, lower = levels[index], levels[index + 1]
+                if direction == 'down':
+                    arrow(c, rail_x, upper, rail_x, lower, RED, 1.0)
+                else:
+                    arrow(c, rail_x, lower, rail_x, upper, RED, 1.0)
+
         if direct_two:
             # Direct II shares the delay chain: forward taps to the right, feedback taps to the left.
-            arrow(c,middle,y,middle,y-92,RED,1.1)
+            vertical_stage_arrows(middle, 'down')
             for i, (bl, al) in enumerate(coefficient_pairs):
                 yy=y-30*(i+1); dot(c,middle,yy,2.5,RED)
                 draw_math_at(c,r'z^{-1}',middle-16,yy+12,30,13,10,name=f'd2_z_{i}')
                 arrow(c,middle,yy,middle+48,yy,RED,1.0); draw_math_at(c,bl,middle+22,yy+11,25,14,10,name=f'd2_b_{i}')
                 arrow(c,middle,yy,middle-48,yy,RED,1.0); draw_math_at(c,al,middle-47,yy+11,30,14,9,name=f'd2_a_{i}')
-            arrow(c,left,y-92,left,y,RED,1.0); arrow(c,right,y-92,right,y,RED,1.0)
+            vertical_stage_arrows(left, 'up')
+            vertical_stage_arrows(right, 'up')
         else:
             # Direct I keeps its forward and feedback delay chains separate, as in the source figure.
-            arrow(c,left,y,left,y-92,RED,1.1); arrow(c,right,y,right,y-92,RED,1.1)
+            vertical_stage_arrows(left, 'down')
+            vertical_stage_arrows(right, 'down')
             for i, (bl, al) in enumerate(coefficient_pairs):
                 yy=y-30*(i+1)
                 draw_math_at(c,r'z^{-1}',left-22,yy+12,30,13,10,name=f'd1_zl_{i}')
@@ -871,7 +992,7 @@ def draw_direct_ii_examples(doc):
                 arrow(c,left,yy,middle,yy,RED,1.0); arrow(c,right,yy,middle,yy,RED,1.0)
                 draw_math_at(c,bl,left+26,yy+11,25,14,10,name=f'd1_b_{i}')
                 draw_math_at(c,al,middle+20,yy+11,30,14,9,name=f'd1_a_{i}')
-            arrow(c,middle,y-92,middle,y,RED,1.0)
+            vertical_stage_arrows(middle, 'up')
     network(MARGIN_X+68,False)
     network(MARGIN_X+318,True)
     c.setFillColor(BLUE); c.setFont('CNB',9.5)
@@ -1154,6 +1275,7 @@ def build():
         '极点对系数变化过于灵敏，容易出现不稳定或产生较大误差。',
     ])
 
+    doc.new_page()
     doc.h2('5.2.3 直接 II 型 IIR 滤波器')
     doc.p('直接 II 型通过中间变量把直接 I 型前后两个延时链合并，所需延时单元最少，因此也称典范型。')
     draw_direct_ii_general(doc)

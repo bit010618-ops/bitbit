@@ -236,13 +236,37 @@ def draw_example2_plot(doc):
     doc.y -= 124
 
 
-def draw_small_axis(c, x, y, w, h, values, label_right=None):
-    stem_values = {idx: value for idx, value in enumerate(values)}
-    draw_discrete_axes_plot(c, x, y, w, h, stem_values, n_min=-1, n_max=len(values), title=None)
+def small_axis_geometry():
+    return {"vertical_arrow_headroom": 12.0}
+
+
+def draw_small_axis(c, x, y, w, h, values, label_right=None, direction=1):
+    left = x + 8
+    right = x + w - 8
+    x0 = x + 12 if direction > 0 else right - 24
+    y0 = y - h + 16
+    top = y - 8
+    c.setStrokeColor(colors.black)
+    c.setFillColor(colors.black)
+    c.setLineWidth(0.8)
+    arrow(c, x0 if direction > 0 else left, y0, right, y0)
+    arrow(c, x0, y0, x0, top)
+    max_value = max(values) if values else 1
+    amplitude = top - y0 - small_axis_geometry()["vertical_arrow_headroom"]
+    available = right - x0 - 18 if direction > 0 else x0 - left - 10
+    step = available / max(1, len(values) - 1)
+    sample_top = y0
+    for idx, value in enumerate(values):
+        px = x0 + direction * idx * step
+        py = y0 + value / max_value * amplitude
+        c.line(px, y0, px, py)
+        c.circle(px, py, 2.2, stroke=1, fill=1)
+        if idx == 0:
+            sample_top = py
     if label_right:
         c.setFont("CN", 8.2)
         c.setFillColor(colors.black)
-        c.drawString(x + w - 15, y - 18, label_right)
+        c.drawString(x0 + 8, sample_top - 3, label_right)
 
 
 def draw_ex4_plots(doc):
@@ -250,7 +274,7 @@ def draw_ex4_plots(doc):
     c = doc.c
     y = doc.y
     draw_small_axis(c, MARGIN_X + 168, y, 130, 74, [1, 0.72, 0.52, 0.38])
-    draw_small_axis(c, MARGIN_X + 330, y, 150, 74, [1, 1, 1, 1], "1")
+    draw_small_axis(c, MARGIN_X + 330, y, 150, 74, [1, 1, 1, 1], "1", direction=-1)
     doc.y -= 94
 
 

@@ -147,7 +147,24 @@ def draw_pipeline(doc, labels):
     c.setFillColor(TEXT)
 
 
-def draw_stem_plot(doc, title, samples, n_min, n_max, y_max=None, width=250, height=130, x_label="n"):
+def stem_plot_axis_geometry():
+    return {"vertical_arrow_headroom": 12.0}
+
+
+def draw_stem_plot(
+    doc,
+    title,
+    samples,
+    n_min,
+    n_max,
+    y_max=None,
+    width=250,
+    height=130,
+    x_label="n",
+    x_tick_labels=None,
+    sample_value_labels=None,
+    title_position="below",
+):
     y_max = y_max or max(abs(v) for v in samples.values())
     doc.ensure(height + 28)
     c = doc.c
@@ -163,33 +180,70 @@ def draw_stem_plot(doc, title, samples, n_min, n_max, y_max=None, width=250, hei
     c.line(left, mid, right, mid)
     c.line(right, mid, right - 6, mid + 4)
     c.line(right, mid, right - 6, mid - 4)
-    c.line(left + (0 - n_min) / (n_max - n_min) * (right - left), bottom, left + (0 - n_min) / (n_max - n_min) * (right - left), top)
+    zero_x = left + (0 - n_min) / (n_max - n_min) * (right - left)
+    c.line(zero_x, bottom, zero_x, top)
+    c.line(zero_x, top, zero_x - 3, top - 6)
+    c.line(zero_x, top, zero_x + 3, top - 6)
     c.setFont("CN", 7.6)
     c.drawString(right + 4, mid - 2, x_label)
     label_geometry = discrete_axis_label_geometry()
     for n in range(n_min, n_max + 1):
         x = left + (n - n_min) / (n_max - n_min) * (right - left)
         c.line(x, mid - 3, x, mid + 3)
-        if n in samples or n in (-1, 0, 1, n_max):
+        should_label = n == 0 or (x_tick_labels is not None and n in x_tick_labels) or (
+            x_tick_labels is None and (n in samples or n in (-1, 1, n_max))
+        )
+        if should_label:
             if n == 0:
                 offset = label_geometry["origin_tick"]
                 c.drawRightString(x + offset["x_offset"], mid + offset["y_offset"], "0")
+            elif x_tick_labels is not None and n in x_tick_labels:
+                tick_path = formula_png(f"b185_x_tick_{n - n_min}", x_tick_labels[n], 11)
+                tick_w, tick_h = img_size(tick_path)
+                tick_scale = min(45 / tick_w, 14 / tick_h)
+                draw_w, draw_h = tick_w * tick_scale, tick_h * tick_scale
+                c.drawImage(
+                    ImageReader(str(tick_path)),
+                    x - draw_w / 2,
+                    mid - 20,
+                    draw_w,
+                    draw_h,
+                    mask="auto",
+                )
             else:
                 offset = label_geometry["regular_tick"]
                 c.drawCentredString(x + offset["x_offset"], mid + offset["y_offset"], str(n))
-    scale = (top - mid - 8) / max(y_max, 1)
+    scale = (
+        top - mid - stem_plot_axis_geometry()["vertical_arrow_headroom"]
+    ) / max(y_max, 1)
     for n, val in samples.items():
         x = left + (n - n_min) / (n_max - n_min) * (right - left)
         y = mid + val * scale
         c.line(x, mid, x, y)
         c.circle(x, y, 3.0, stroke=1, fill=1)
-        c.drawCentredString(x, y + 7 if val >= 0 else y - 14, f"{val:g}")
+        if sample_value_labels is not None and n in sample_value_labels:
+            value_path = formula_png(f"b185_sample_value_{n - n_min}", sample_value_labels[n], 11)
+            value_w, value_h = img_size(value_path)
+            value_scale = min(28 / value_w, 14 / value_h)
+            draw_w, draw_h = value_w * value_scale, value_h * value_scale
+            c.drawImage(
+                ImageReader(str(value_path)),
+                x - draw_w / 2,
+                y + 6,
+                draw_w,
+                draw_h,
+                mask="auto",
+            )
+        else:
+            c.drawCentredString(x, y + 7 if val >= 0 else y - 14, f"{val:g}")
     if "\\" in title or "^" in title:
         title_img = formula_png("b185_stem_title", title, 12)
         iw, ih = img_size(title_img)
         scale = min(120 / iw, 18 / ih)
         dw, dh = iw * scale, ih * scale
-        c.drawImage(ImageReader(str(title_img)), (left + right - dw) / 2, y0 - 2, dw, dh, mask="auto")
+        title_x = zero_x + 24 - dw / 2 if title_position == "axis_top" else (left + right - dw) / 2
+        title_y = top - 4 if title_position == "axis_top" else y0 - 2
+        c.drawImage(ImageReader(str(title_img)), title_x, title_y, dw, dh, mask="auto")
     else:
         c.setFont("CNB", 8.6)
         c.drawCentredString((left + right) / 2, y0 + 2, title)
@@ -487,7 +541,20 @@ def build():
             ("幅度", f("win3", r"|W(e^{j\omega})|=\left|\frac{\sin(\omega N/2)}{\sin(\omega/2)}\right|", 13.5), 32),
         ],
     )
-    draw_stem_plot(doc, r"X(e^{j\omega})", {-1: 3.14, 1: 3.14}, -2, 2, y_max=3.5, width=310, height=130, x_label="ω")
+    draw_stem_plot(
+        doc,
+        r"X(e^{j\omega})",
+        {-1: 3.14, 1: 3.14},
+        -2,
+        2,
+        y_max=3.5,
+        width=310,
+        height=130,
+        x_label="ω",
+        x_tick_labels={-1: r"-\omega_0", 1: r"\omega_0"},
+        sample_value_labels={-1: r"\pi", 1: r"\pi"},
+        title_position="axis_top",
+    )
     draw_blue_note(
         doc,
         "截断后的两方面影响",

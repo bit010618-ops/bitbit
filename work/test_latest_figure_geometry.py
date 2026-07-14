@@ -18,6 +18,11 @@ def test_comb_response_zeros_touch_horizontal_axis():
     geometry = module.comb_response_geometry()
     assert geometry['curve_baseline_offset'] == 0
     assert geometry['zero_y'] == geometry['axis_y']
+    points = module.comb_response_points(width=205, height=68, lobes=8)
+    for index in range(9):
+        expected_x = 205 * index / 8
+        matching = [y for x, y in points if abs(x - expected_x) < 1e-9]
+        assert matching == [0]
 
 
 def test_feedback_arrows_land_once_on_distinct_summer_points():

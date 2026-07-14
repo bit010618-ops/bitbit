@@ -541,6 +541,14 @@ def draw_flow(doc):
     doc.y -= 62
 
 
+def signal_classification_axis_geometry():
+    return {
+        "sample_scale": 28.0,
+        "vertical_arrow_headroom": 12.0,
+        "highest_labeled_tick": 2,
+    }
+
+
 def draw_signal_classification_examples(doc):
     """Source page 3: analog curve above a discrete-time stem plot."""
     doc.ensure(205)
@@ -569,8 +577,16 @@ def draw_signal_classification_examples(doc):
     left, right = x + 12, x + w - 8
     base = y2 - 47
     vx = x + w * 0.46
+    sample_values = {-2: 0, -1: 0.8, 0: 0.5, 1: 1.5, 2: 0}
+    geometry = signal_classification_axis_geometry()
+    vertical_top = (
+        base
+        + max(max(sample_values.values()), geometry["highest_labeled_tick"])
+        * geometry["sample_scale"]
+        + geometry["vertical_arrow_headroom"]
+    )
     _axis_arrow(c, left, base, right, base)
-    _axis_arrow(c, vx, y2 - 93, vx, y2 - 2)
+    _axis_arrow(c, vx, y2 - 93, vx, vertical_top)
     c.setFont("CN", 7.3)
     c.drawString(vx + 7, y2 - 5, "x(n)")
     label_geometry = discrete_axis_label_geometry()
@@ -583,13 +599,15 @@ def draw_signal_classification_examples(doc):
         else:
             offset = label_geometry["regular_tick"]
             c.drawCentredString(px + offset["x_offset"], base + offset["y_offset"], str(n))
-    for n, value in {-2: 0, -1: 1, 0: 0, 1: 1.6, 2: 0}.items():
+    for n, value in sample_values.items():
         px = vx + n * 36
-        py = base + value * 28
+        py = base + value * geometry["sample_scale"]
         c.line(px, base, px, py)
         c.circle(px, py, 2.3, stroke=1, fill=1)
-    c.drawString(vx - 11, base + 25, "1")
-    c.drawString(vx - 11, base + 53, "2")
+    for tick_value in (1, 2):
+        tick_y = base + tick_value * geometry["sample_scale"]
+        c.line(vx, tick_y, vx + 6, tick_y)
+        c.drawRightString(vx - 5, tick_y - 2.5, str(tick_value))
     c.drawString(right + 2, base - 10, "n")
     doc.y -= 200
 
@@ -686,19 +704,31 @@ def draw_oscillation_nine(doc):
 def draw_scale_transform_triplet(doc):
     """Source page 14: x(n), x(n/2), and x(2n) with source-relative geometry."""
     doc.ensure(142)
-    source = {-2: 3, -1: 2, 0: 4, 1: 2, 2: 2, 3: 3, 4: 1}
-    expanded = {n: (source[n // 2] if n % 2 == 0 and n // 2 in source else 0) for n in range(-4, 9)}
+    source = {-3: 3, -2: 2, -1: 4, 0: 2, 1: 2, 2: 3, 3: 1}
+    expanded = {n: (source[n // 2] if n % 2 == 0 and n // 2 in source else 0) for n in range(-6, 7)}
     compressed = {-1: source[-2], 0: source[0], 1: source[2]}
     items = [
-        (source, -3, 5, formula_png("scale_xn", r"x(n)", 11)),
-        (expanded, -5, 9, formula_png("scale_xhalf", r"x(n/2)", 11)),
+        (source, -4, 4, formula_png("scale_xn", r"x(n)", 11)),
+        (expanded, -7, 7, formula_png("scale_xhalf", r"x(n/2)", 11)),
         (compressed, -2, 2, formula_png("scale_x2n", r"x(2n)", 11)),
     ]
     x0 = MARGIN_X + 2
     widths = [150, 188, 150]
     cursor = x0
     for (values, n_min, n_max, title), width in zip(items, widths):
-        draw_discrete_axes_plot(doc.c, cursor, doc.y, width, 112, values, n_min=n_min, n_max=n_max, title=title)
+        draw_discrete_axes_plot(
+            doc.c,
+            cursor,
+            doc.y,
+            width,
+            112,
+            values,
+            n_min=n_min,
+            n_max=n_max,
+            title=title,
+            x_tick_labels={-1, 0, 1},
+            x_tick_positions={-1, 0, 1},
+        )
         cursor += width + 6
     doc.y -= 138
 
@@ -750,7 +780,45 @@ def discrete_axis_label_geometry():
     }
 
 
-def draw_discrete_axes_plot(c, x, y, w, h, values, n_min=None, n_max=None, title=None, value_labels=True):
+def discrete_axis_geometry():
+    """Physical clearances shared by every discrete-time stem axis."""
+    return {
+        "minimum_vertical_arrow_clearance": 12.0,
+    }
+
+
+def fit_axis_range_for_clearance(
+    value_min,
+    value_max,
+    sample_max,
+    plot_span,
+    minimum_clearance,
+):
+    """Expand the upper value range until the rendered gap is large enough."""
+    if plot_span <= minimum_clearance or value_max <= value_min:
+        return value_min, value_max
+    usable_fraction = (plot_span - minimum_clearance) / plot_span
+    required_max = value_min + (sample_max - value_min) / usable_fraction
+    return value_min, max(value_max, required_max)
+
+
+def draw_discrete_axes_plot(
+    c,
+    x,
+    y,
+    w,
+    h,
+    values,
+    n_min=None,
+    n_max=None,
+    title=None,
+    value_labels=True,
+    x_tick_labels=None,
+    x_tick_positions=None,
+    axis_v_min=None,
+    axis_v_max=None,
+    title_position="below",
+):
     """Draw a discrete-time stem plot in the original handout style."""
     if not values:
         return
@@ -777,8 +845,16 @@ def draw_discrete_axes_plot(c, x, y, w, h, values, n_min=None, n_max=None, title
     v_top_pad = max(1.35, (v_max - v_min) * 0.82)
     axis_n_min = n_min - n_pad
     axis_n_max = n_max + n_pad
-    axis_v_min = v_min - v_bottom_pad
-    axis_v_max = v_max + v_top_pad
+    axis_v_min = v_min - v_bottom_pad if axis_v_min is None else axis_v_min
+    axis_v_max = v_max + v_top_pad if axis_v_max is None else axis_v_max
+    geometry = discrete_axis_geometry()
+    axis_v_min, axis_v_max = fit_axis_range_for_clearance(
+        value_min=axis_v_min,
+        value_max=axis_v_max,
+        sample_max=max(values.values()),
+        plot_span=y_span,
+        minimum_clearance=geometry["minimum_vertical_arrow_clearance"],
+    )
 
     x0 = left + (0 - axis_n_min) / (axis_n_max - axis_n_min or 1) * x_span
     y0 = bottom + (0 - axis_v_min) / (axis_v_max - axis_v_min or 1) * y_span
@@ -790,11 +866,13 @@ def draw_discrete_axes_plot(c, x, y, w, h, values, n_min=None, n_max=None, title
     _axis_arrow(c, x0, bottom, x0, top)
 
     c.setFont("CN", 7.6)
-    tick_labels = _nice_tick_labels(n_min, n_max)
+    tick_labels = _nice_tick_labels(n_min, n_max) if x_tick_labels is None else set(x_tick_labels)
+    tick_positions = set(range(n_min, n_max + 1)) if x_tick_positions is None else set(x_tick_positions)
     label_geometry = discrete_axis_label_geometry()
     for n in range(n_min, n_max + 1):
         px = left + (n - axis_n_min) / (axis_n_max - axis_n_min or 1) * x_span
-        c.line(px, y0 - 2.2, px, y0 + 2.2)
+        if n in tick_positions:
+            c.line(px, y0 - 2.2, px, y0 + 2.2)
         if n in tick_labels:
             if n == 0:
                 offset = label_geometry["origin_tick"]
@@ -830,11 +908,20 @@ def draw_discrete_axes_plot(c, x, y, w, h, values, n_min=None, n_max=None, title
             iw, ih = im.size
             scale = min(82 / iw, 15 / ih)
             dw, dh = iw * scale, ih * scale
-            c.drawImage(ImageReader(str(title)), x + (w - dw) / 2, y - h - 7, dw, dh, mask="auto")
+            if title_position == "axis_top":
+                title_x = x0 + 10
+                title_y = top - dh + 2
+            else:
+                title_x = x + (w - dw) / 2
+                title_y = y - h - 7
+            c.drawImage(ImageReader(str(title)), title_x, title_y, dw, dh, mask="auto")
         else:
             c.setFillColor(colors.black)
             c.setFont("CN", 9.0)
-            c.drawCentredString(x + w / 2, y - h - 8, title)
+            if title_position == "axis_top":
+                c.drawString(x0 + 10, top - 8, title)
+            else:
+                c.drawCentredString(x + w / 2, y - h - 8, title)
 
 
 def draw_example2_plot(doc):
@@ -849,7 +936,12 @@ def draw_example2_plot(doc):
         {-1: 1, 0: 4, 1: -2},
         n_min=-2,
         n_max=2,
-        title="x(1-2n)",
+        title=formula_png("sample_ex2_plot_label", r"x(1-2n)", 11),
+        x_tick_labels={-1, 0, 1},
+        x_tick_positions={-1, 0, 1},
+        axis_v_min=-4.5,
+        axis_v_max=5.2,
+        title_position="axis_top",
     )
     doc.y -= 82
 
