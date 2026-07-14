@@ -31,6 +31,36 @@ def red_line(doc, text, size=9.5, leading=15):
     doc.y-=3
 
 
+def red_filter_relation(doc, result, left, operator, right, name):
+    """Draw Chinese explanation text with real math-rendered omega subscripts."""
+    doc.ensure(20)
+    c = doc.c
+    c.setFont('CNB', 9.6)
+    c.setFillColor(RED)
+    x = MARGIN_X
+    y = doc.y
+
+    prefix = f'{result} = {left}('
+    c.drawString(x, y, prefix)
+    x += c.stringWidth(prefix, 'CNB', 9.6)
+    width, _ = draw_math_at(
+        c, r'\omega_2', x, y + 3, max_w=24, max_h=13,
+        fontsize=12, color='#E00000', name=f'{name}_omega2',
+    )
+    x += width
+
+    middle = f') {operator} {right}('
+    c.drawString(x, y, middle)
+    x += c.stringWidth(middle, 'CNB', 9.6)
+    width, _ = draw_math_at(
+        c, r'\omega_1', x, y + 3, max_w=24, max_h=13,
+        fontsize=12, color='#E00000', name=f'{name}_omega1',
+    )
+    x += width
+    c.drawString(x, y, ')。')
+    doc.y -= 18
+
+
 def label_line(doc, label, text, red=False):
     doc.ensure(18)
     c=doc.c
@@ -368,7 +398,6 @@ def fir_chapter_map(doc):
 def draw_source_367_374(doc):
     doc.h2('6.4.3 线性相位 FIR 系统函数零点特点')
     linear_phase_classification_example(doc)
-    doc.new_page()
     doc.h3('由 z 变换表达式和线性相位条件分析零点')
     draw_formula_block(doc,r'H(z)=\sum_{n=0}^{N-1}h(n)z^{-n}', 'source369_Hz', fontsize=16, max_h=38)
     doc.p('h(n) 为 N 点长因果序列，H(z) 是 N-1 阶多项式，并且全部零点位于 z 平面原点以外的有限位置。')
@@ -390,14 +419,14 @@ def draw_source_375_379(doc):
     doc.h3('2. 理想高通滤波器')
     draw_formula_block(doc,r'h_d(n)=\frac{\sin[\pi(n-\tau)]-\sin[\omega_c(n-\tau)]}{\pi(n-\tau)}', 'source376_hph', fontsize=15, max_h=42)
     red_line(doc,'高通滤波器 = 全通滤波器 - 低通滤波器。',size=9.6)
-    doc.new_page(); doc.h3('3. 理想带通滤波器')
+    doc.h3('3. 理想带通滤波器')
     draw_formula_block(doc,r'h_d(n)=\frac{\sin[\omega_2(n-\tau)]-\sin[\omega_1(n-\tau)]}{\pi(n-\tau)}', 'source377_bph', fontsize=15, max_h=42)
-    red_line(doc,'带通滤波器 = 低通滤波器(ω_2) - 低通滤波器(ω_1)。',size=9.6)
+    red_filter_relation(doc, '带通滤波器', '低通滤波器', '-', '低通滤波器', 'source377_relation')
     doc.h3('4. 理想带阻滤波器')
     draw_formula_block(doc,r'h_d(n)=\frac{\sin[\pi(n-\tau)]-\sin[\omega_2(n-\tau)]+\sin[\omega_1(n-\tau)]}{\pi(n-\tau)}', 'source378_bsh', fontsize=14, max_h=42)
-    red_line(doc,'带阻滤波器 = 高通滤波器(ω_2) + 低通滤波器(ω_1)。',size=9.6)
+    red_filter_relation(doc, '带阻滤波器', '高通滤波器', '+', '低通滤波器', 'source378_relation')
     ideal_filters(doc)
-    doc.new_page(); doc.h2('6.5.2 利用窗函数法设计 FIR 滤波器')
+    doc.h2('6.5.2 利用窗函数法设计 FIR 滤波器')
     window_flow(doc)
     draw_formula_block(doc,r'h(n)=h_d(n)w(n),\qquad H(e^{j\omega})=H_d(e^{j\omega})*W(e^{j\omega})', 'source379_window', fontsize=16, max_h=42)
     doc.bullet([

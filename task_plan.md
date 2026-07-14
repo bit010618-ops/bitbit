@@ -30,6 +30,7 @@
 | `pdftoppm` command not found | 系统未配置 Poppler PATH | 使用内置 Python 图像渲染库进行 PDF 页面回归检查 |
 | `fitz` module not found | 内置 Python 未安装 PyMuPDF | 查找内置 Poppler；若无则使用现有渲染工具链 |
 | 内置 `pdftoppm.cmd` 首次调用失败 | 命令封装或路径参数待确认 | 先单独验证封装脚本与可执行文件路径，再执行批量渲染 |
+| 2026-07-14 再次调用 `pdftoppm.cmd` 未产出页面 | PATH 包装器仍指向无效路径 | 固定使用 `dependencies/native/poppler/Library/bin/pdftoppm.exe` |
 | 并行读取技能说明触发 `CreateProcessWithLogonW failed: 1056` | Windows 沙箱并发创建登录进程冲突 | 改为单进程顺序读取，避免重复触发 |
 | `git diff --stat` 失败 | 当前工作目录不是有效 Git 仓库 | 使用计划文件、脚本时间戳、批次 PDF 和渲染图记录变更 |
 | `rg work\\make_dsp_*.py` 在 Windows 报路径语法错误 | `rg` 不接受该位置的 PowerShell 通配路径 | 改用 `rg -g 'make_dsp_*.py' ... work` |
