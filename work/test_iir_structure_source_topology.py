@@ -85,6 +85,15 @@ def test_direct_ii_general_preserves_source_frame_and_side_label_policy():
     assert geometry['merged_outer_rails'] is True
 
 
+def test_analog_filter_type_plots_keep_source_passband_annotations():
+    topology = load_module().filter_design_source_topology()
+
+    assert topology['analog_ideal_responses']['annotations'] == {
+        'lowpass': ('Omega > Omega_c', '全部为阻带', 'infinity'),
+        'highpass': ('Omega > Omega_c', '全部为通带', 'infinity'),
+    }
+
+
 def test_numeric_direct_i_and_ii_have_one_arrow_per_vertical_stage():
     arrows = load_module().direct_iir_example_arrow_geometry()
 

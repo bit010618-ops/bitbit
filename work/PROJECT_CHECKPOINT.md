@@ -1,6 +1,6 @@
 # DSP Handout Project Checkpoint
 
-Last updated: 2026-07-15 13:25 +08:00
+Last updated: 2026-07-15 13:50 +08:00
 Branch: `main`
 Remote: `origin` -> `https://github.com/bit010618-ops/bitbit.git`
 Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
@@ -28,7 +28,9 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 - Verified parallel-IIR render: `tmp/pdfs/iir_preview/parallel-source-locked-08.png`, compared against `tmp/pdfs/audit_source/iir-19.png`.
 - The direct-II derivation page now matches original PPT page 276: the upper direct-I panel retains two separate delay-chain frames and side variables; the exchanged upper-right panel uses two independent dashed networks rather than a prematurely merged delay chain; the lower network alone shares the central delay chain and has no synthetic dashed frame.
 - Verified direct-II render: `tmp/pdfs/iir_preview/direct-ii-source-locked-04.png`, compared against `tmp/pdfs/audit_source/iir-11.png` and `tmp/pdfs/iir_preview/source-direct-ii-upper-right-crop.png`.
-- Targeted verification: `18 passed` in `work/test_iir_structure_source_topology.py`.
+- The analog ideal low/high/band-pass/band-stop plots now retain all source annotations from PPT page 289. The previously omitted low-pass `全部为阻带` and high-pass `全部为通带` callouts, red direction arrows, and infinity marks have been restored without axis or label collisions.
+- Verified analog-filter render: `tmp/pdfs/iir_preview/analog-filter-source-candidate-10.png`, compared against `tmp/pdfs/audit_source/iir-25.png`.
+- Targeted verification: `19 passed` in `work/test_iir_structure_source_topology.py`.
 
 ## Current WIP Defects - Not Fixed Yet
 
@@ -47,16 +49,18 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 - Verified parallel-IIR preview: `tmp/pdfs/iir_preview/parallel-source-locked-08.png`
 - Direct-II source: `tmp/pdfs/audit_source/iir-11.png`
 - Verified direct-II preview: `tmp/pdfs/iir_preview/direct-ii-source-locked-04.png`
+- Analog ideal-response source: `tmp/pdfs/audit_source/iir-25.png`
+- Verified analog-response preview: `tmp/pdfs/iir_preview/analog-filter-source-candidate-10.png`
 
 ## Current Tests
 
 - Target file: `work/test_iir_structure_source_topology.py`
 - Existing topology tests include source coefficient preservation, H2 `-5`, delay-label policy, H2 right-branch length, and source-title suppression.
-- Current targeted result: `18 passed`.
+- Current targeted result: `19 passed`.
 
 ## Exact Next Step
 
-1. Open `work/figure_audit_matrix.md` and select the next unverified diagram family after the verified parallel-IIR overview.
+1. Continue with `draw_digital_filter_type_plots`, comparing current batch-9 page 11 against original PPT page 290 / `tmp/pdfs/audit_source/iir-26.png`.
 2. Compare that diagram against its original PDF/PPT page before editing.
 3. Add a failing structural test for any confirmed mismatch, then make the smallest source-faithful generator change.
 4. Render and visually inspect the affected page before updating this checkpoint again.

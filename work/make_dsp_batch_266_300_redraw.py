@@ -939,6 +939,7 @@ def draw_filter_type_plots(doc):
     h = 336
     doc.ensure(h + 10)
     c=doc.c; top=doc.y; x=MARGIN_X+105; w=365; center=x+w/2
+    annotations = filter_design_source_topology()['analog_ideal_responses']['annotations']
     specs=[('模拟低通滤波器','低通'),('模拟高通滤波器','高通'),('模拟带通滤波器','带通'),('模拟带阻滤波器','带阻')]
     for i,(label,kind) in enumerate(specs):
         y=top-44-i*72
@@ -966,11 +967,27 @@ def draw_filter_type_plots(doc):
             labels=[(r'-\Omega_{c2}',x+w*.18),(r'-\Omega_{c1}',x+w*.32),(r'\Omega_{c1}',x+w*.60),(r'\Omega_{c2}',x+w*.74)]
         for a,b in zip(pts,pts[1:]): c.line(a[0],a[1],b[0],b[1])
         for li,(expr,lx) in enumerate(labels): draw_math_at(c,expr,lx-21,y-11,48,14,9,name=f'ideal_{kind}_{li}')
+        if kind in ('低通', '高通'):
+            annotation_key = 'lowpass' if kind == '低通' else 'highpass'
+            _, chinese_text, _ = annotations[annotation_key]
+            draw_math_at(c, r'\Omega>\Omega_c', x + w * .54, y + 29, 72, 15, 9.2,
+                         name=f'ideal_{kind}_annotation')
+            c.setFont('CNB', 8.6); c.setFillColor(TEXT)
+            c.drawString(x + w * .72, y + 31, chinese_text)
+            arrow(c, x + w * .69, y + 20, x + w * .91, y + 20, RED, .9, 4)
+            draw_math_at(c, r'\infty', x + w * .91, y + 15, 24, 17, 11,
+                         name=f'ideal_{kind}_infinity')
     doc.y -= h
 
 
 def filter_design_source_topology():
     return {
+        'analog_ideal_responses': {
+            'annotations': {
+                'lowpass': ('Omega > Omega_c', '全部为阻带', 'infinity'),
+                'highpass': ('Omega > Omega_c', '全部为通带', 'infinity'),
+            },
+        },
         'bridge': {
             'rows': ('continuous', 'discrete'),
             'continuous_transforms': ('LT', 'LT', 'LT'),
