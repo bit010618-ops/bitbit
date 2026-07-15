@@ -123,6 +123,37 @@ def test_butterworth_indicator_keeps_source_badges_and_caption():
     assert geometry['caption'] == 'Omega_c称为3dB截止频率：'
 
 
+def test_butterworth_pole_table_keeps_all_source_rows_and_headers():
+    table = load_module().butterworth_pole_table_source_data()
+
+    assert table['headers'] == ['N', 'P_{0,N-1}', 'P_{1,N-1}', 'P_{2,N-1}', 'P_{3,N-1}', 'P_{4,N-1}']
+    assert table['corner_labels'] == ('极点位置', '阶数N')
+    assert table['rows'] == [
+        ['1', '-1.0000', '', '', '', ''],
+        ['2', '-0.7071\\pm j0.7071', '', '', '', ''],
+        ['3', '-0.5000\\pm j0.8660', '-1.0000', '', '', ''],
+        ['4', '-0.3827\\pm j0.9239', '-0.9239\\pm j0.3827', '', '', ''],
+        ['5', '-0.3090\\pm j0.9511', '-0.8090\\pm j0.5878', '-1.0000', '', ''],
+        ['6', '-0.2588\\pm j0.9659', '-0.7071\\pm j0.7071', '-0.9659\\pm j0.2588', '', ''],
+        ['7', '-0.2225\\pm j0.9749', '-0.6235\\pm j0.7818', '-0.9010\\pm j0.4339', '-1.0000', ''],
+        ['8', '-0.1951\\pm j0.9808', '-0.5556\\pm j0.8315', '-0.8315\\pm j0.5556', '-0.9808\\pm j0.1951', ''],
+        ['9', '-0.1736\\pm j0.9848', '-0.5000\\pm j0.8660', '-0.7660\\pm j0.6428', '-0.9397\\pm j0.3420', '-1.0000'],
+    ]
+
+
+def test_butterworth_pole_table_uses_matplotlib_compatible_formula_colors():
+    assert load_module().butterworth_pole_table_formula_colors() == (
+        '#FFFFFF',
+        '#8B0037',
+    )
+
+
+def test_butterworth_factor_table_keeps_heading_with_table():
+    source = inspect.getsource(load_module().draw_butter_tables_full)
+    heading = "doc.h3('巴特沃斯归一化多项式 B(p) 因式分解表')"
+    assert source.index('doc.ensure(h + 42)') < source.index(heading)
+
+
 def test_numeric_direct_i_and_ii_have_one_arrow_per_vertical_stage():
     arrows = load_module().direct_iir_example_arrow_geometry()
 

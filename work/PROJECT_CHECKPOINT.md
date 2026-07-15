@@ -1,6 +1,6 @@
 # DSP Handout Project Checkpoint
 
-Last updated: 2026-07-15 14:45 +08:00
+Last updated: 2026-07-15 15:22 +08:00
 Branch: `main`
 Remote: `origin` -> `https://github.com/bit010618-ops/bitbit.git`
 Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
@@ -34,7 +34,10 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 - Verified digital-filter render: `tmp/pdfs/iir_preview/digital-filter-source-candidate-11.png`, compared against `tmp/pdfs/audit_source/iir-26.png`.
 - The Butterworth design-indicator graph now restores the source dark-filled `1dB`, `3dB`, and `40dB` badges with white text and the complete `Omega_c称为3dB截止频率` definition.
 - Verified Butterworth render: `tmp/pdfs/iir_preview/butterworth-source-candidate-11.png`, compared against `tmp/pdfs/audit_source/iir-28.png`.
-- Targeted verification: `21 passed` in `work/test_iir_structure_source_topology.py`.
+- The Butterworth table group now includes the original normalized pole-position table while preserving the existing factorization table and the original expanded-coefficient table.
+- The pole table retains all 1-9 order rows, five pole columns, the diagonal corner header, source colors, and rendered mathematical notation; the factorization heading remains with its table.
+- Verified table renders: `tmp/pdfs/iir_preview/butter-pole-table-final-12.png` and `tmp/pdfs/iir_preview/butter-pole-table-final-13.png`, compared against `tmp/pdfs/audit_source/iir-33.png` and `tmp/pdfs/audit_source/iir-34.png`.
+- Targeted verification: `24 passed` in `work/test_iir_structure_source_topology.py`.
 
 ## Current WIP Defects - Not Fixed Yet
 
@@ -59,16 +62,19 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 - Verified digital-response preview: `tmp/pdfs/iir_preview/digital-filter-source-candidate-11.png`
 - Butterworth indicator source: `tmp/pdfs/audit_source/iir-28.png`
 - Verified Butterworth preview: `tmp/pdfs/iir_preview/butterworth-source-candidate-11.png`
+- Butterworth pole-table source: `tmp/pdfs/audit_source/iir-33.png`
+- Butterworth coefficient-table source: `tmp/pdfs/audit_source/iir-34.png`
+- Verified Butterworth table previews: `tmp/pdfs/iir_preview/butter-pole-table-final-12.png`, `tmp/pdfs/iir_preview/butter-pole-table-final-13.png`
 
 ## Current Tests
 
 - Target file: `work/test_iir_structure_source_topology.py`
 - Existing topology tests include source coefficient preservation, H2 `-5`, delay-label policy, H2 right-branch length, and source-title suppression.
-- Current targeted result: `21 passed`.
+- Current targeted result: `24 passed`.
 
 ## Exact Next Step
 
-1. Continue with the next unverified matrix item, `draw_butter_table`, comparing the current batch page against its original PPT page.
+1. Continue with the next unverified matrix item, `draw_simple_coeff_grid`, comparing the current batch page against its original PPT page.
 2. Compare that diagram against its original PDF/PPT page before editing.
 3. Add a failing structural test for any confirmed mismatch, then make the smallest source-faithful generator change.
 4. Render and visually inspect the affected page before updating this checkpoint again.

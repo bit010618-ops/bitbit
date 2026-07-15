@@ -1257,6 +1257,88 @@ def draw_butter_table(doc):
     c.line(x + w1, y, x + w1, y - row_h * (len(rows) + 1))
     doc.y = y - row_h * (len(rows) + 1) - 14
 
+
+def butterworth_pole_table_source_data():
+    return {
+        'headers': ['N', 'P_{0,N-1}', 'P_{1,N-1}', 'P_{2,N-1}', 'P_{3,N-1}', 'P_{4,N-1}'],
+        'corner_labels': ('极点位置', '阶数N'),
+        'rows': [
+            ['1', '-1.0000', '', '', '', ''],
+            ['2', '-0.7071\\pm j0.7071', '', '', '', ''],
+            ['3', '-0.5000\\pm j0.8660', '-1.0000', '', '', ''],
+            ['4', '-0.3827\\pm j0.9239', '-0.9239\\pm j0.3827', '', '', ''],
+            ['5', '-0.3090\\pm j0.9511', '-0.8090\\pm j0.5878', '-1.0000', '', ''],
+            ['6', '-0.2588\\pm j0.9659', '-0.7071\\pm j0.7071', '-0.9659\\pm j0.2588', '', ''],
+            ['7', '-0.2225\\pm j0.9749', '-0.6235\\pm j0.7818', '-0.9010\\pm j0.4339', '-1.0000', ''],
+            ['8', '-0.1951\\pm j0.9808', '-0.5556\\pm j0.8315', '-0.8315\\pm j0.5556', '-0.9808\\pm j0.1951', ''],
+            ['9', '-0.1736\\pm j0.9848', '-0.5000\\pm j0.8660', '-0.7660\\pm j0.6428', '-0.9397\\pm j0.3420', '-1.0000'],
+        ],
+    }
+
+
+def butterworth_pole_table_formula_colors():
+    return '#FFFFFF', '#8B0037'
+
+
+def draw_butterworth_pole_table(doc):
+    table = butterworth_pole_table_source_data()
+    header_formula_color, body_formula_color = butterworth_pole_table_formula_colors()
+    doc.h3('巴特沃斯归一化极点位置表')
+    row_h = 27
+    header_h = 40
+    h = header_h + row_h * len(table['rows']) + 8
+    doc.ensure(h + 12)
+    c = doc.c
+    top = doc.y
+    x = MARGIN_X
+    first_w = 72
+    other_w = (CONTENT_W - first_w) / 5
+    widths = [first_w] + [other_w] * 5
+    burgundy = colors.HexColor('#8B0037')
+    pale_a = colors.HexColor('#E6DCDF')
+    pale_b = colors.HexColor('#D8CBCD')
+
+    c.setFillColor(burgundy)
+    c.rect(x, top - header_h, CONTENT_W, header_h, stroke=0, fill=1)
+    c.setStrokeColor(colors.white)
+    c.setLineWidth(0.8)
+    c.line(x, top, x + first_w, top - header_h)
+    c.setFillColor(colors.white)
+    c.setFont('CNB', 8.5)
+    c.drawRightString(x + first_w - 5, top - 11, table['corner_labels'][0])
+    c.drawString(x + 5, top - header_h + 7, table['corner_labels'][1])
+    xx = x + first_w
+    for i, header in enumerate(table['headers'][1:]):
+        c.setStrokeColor(colors.white)
+        c.line(xx, top, xx, top - header_h)
+        draw_math_at(c, header, xx + 3, top - header_h / 2 + 1,
+                     other_w - 6, 23, 10.5, color=header_formula_color,
+                     name=f'butter_pole_header_{i}')
+        xx += other_w
+
+    for r, row in enumerate(table['rows']):
+        y = top - header_h - (r + 1) * row_h
+        c.setFillColor(pale_a if r % 2 == 0 else pale_b)
+        c.rect(x, y, CONTENT_W, row_h, stroke=0, fill=1)
+        c.setStrokeColor(colors.white)
+        xx = x
+        for width in widths[:-1]:
+            xx += width
+            c.line(xx, y, xx, y + row_h)
+        c.setFillColor(burgundy)
+        c.setFont('CNB', 8.5)
+        c.drawCentredString(x + first_w / 2, y + 9, row[0])
+        xx = x + first_w
+        for col, value in enumerate(row[1:]):
+            if value:
+                draw_math_at(c, value, xx + 2, y + row_h / 2 + 1,
+                             other_w - 4, 17, 7.8, color=body_formula_color,
+                             name=f'butter_pole_{r}_{col}')
+            xx += other_w
+    c.setStrokeColor(colors.white)
+    c.rect(x, top - h + 8, CONTENT_W, h - 8, stroke=1, fill=0)
+    doc.y = top - h - 8
+
 def draw_simple_coeff_grid(doc, title, left_title, right_title, left_vals, right_vals):
     h = 172
     doc.ensure(h + 14)
@@ -1656,10 +1738,11 @@ def draw_butter_tables_full(doc):
         ('8', r'(p^{2}+0.3902p+1)(p^{2}+1.1111p+1)(p^{2}+1.6629p+1)(p^{2}+1.9616p+1)'),
         ('9', r'(p+1)(p^{2}+0.3473p+1)(p^{2}+p+1)(p^{2}+1.5321p+1)(p^{2}+1.8794p+1)'),
     ]
-    doc.h3('巴特沃斯归一化多项式 B(p) 因式分解表')
+    draw_butterworth_pole_table(doc)
     row_h = 34
     h = row_h * (len(rows) + 1) + 8
-    doc.ensure(h + 12)
+    doc.ensure(h + 42)
+    doc.h3('巴特沃斯归一化多项式 B(p) 因式分解表')
     c = doc.c
     top = doc.y
     x = MARGIN_X

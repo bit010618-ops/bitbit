@@ -72,7 +72,7 @@
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_cascade_example` | 804 |  |  | pending | 待逐图对照 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_parallel_example` | 854 |  |  | pending | 待逐图对照 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_analog_digital_bridge` | 896 |  |  | pending | 待逐图对照 |
-| 9 | make_dsp_batch_266_300_redraw.py | `draw_butter_tables_full` | 959 |  |  | pending | 待逐图对照 |
+| 9 | make_dsp_batch_266_300_redraw.py | `draw_butter_tables_full` | 959 | 297-298 | batch 12-13 | verified | 新增原图巴特沃斯归一化极点位置表，完整保留我方因式分解表与原展开系数表；9 阶数据、对角表头、颜色和公式均通过逐页复验，且因式分解表标题与表格同页；`24 passed`；预览 `tmp/pdfs/iir_preview/butter-pole-table-final-12.png`、`butter-pole-table-final-13.png`。 |
 | 10 | make_dsp_batch_301_332_redraw.py | `draw_curve_pair` | 20 |  |  | pending | 待逐图对照 |
 | 10 | make_dsp_batch_301_332_redraw.py | `draw_design_flow` | 51 |  |  | pending | 待逐图对照 |
 | 11 | make_dsp_batch_333_366_redraw.py | `fir_tap_diagram` | 38 |  |  | pending | 待逐图对照 |
