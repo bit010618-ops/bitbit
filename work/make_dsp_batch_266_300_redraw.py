@@ -1118,6 +1118,12 @@ def butterworth_indicator_source_geometry():
             'three_db': '#0000FF',
             'stopband': '#7B3F98',
         },
+        'badge_fills': {
+            '1dB': '#8B0016',
+            '3dB': '#0033B5',
+            '40dB': '#7B3F98',
+        },
+        'caption': 'Omega_c称为3dB截止频率：',
     }
 
 
@@ -1194,13 +1200,16 @@ def draw_butterworth_response(doc):
         draw_math_at(c, lab, xx - 18, y + label_y_offset, 36, 15, 10.5,
                      color=color_hex, name=f'bw_{key}')
     c.setFillColor(RED); c.setFont('CNB', 16); c.drawString(x + 155, y + 116, '衰减')
-    c.setFillColor(colors.white); c.setStrokeColor(colors.HexColor('#7B3F98')); c.rect(x + 190, y + 108, 38, 20, stroke=1, fill=1)
-    c.setFillColor(colors.HexColor('#7B3F98')); c.setFont('CNB', 12); c.drawCentredString(x + 209, y + 113, '1dB')
-    c.setFillColor(colors.white); c.setStrokeColor(colors.blue); c.rect(x + 190, y + 78, 38, 20, stroke=1, fill=1)
-    c.setFillColor(colors.blue); c.setFont('CNB', 12); c.drawCentredString(x + 209, y + 83, '3dB')
+    badge_1 = colors.HexColor(geometry['badge_fills']['1dB'])
+    c.setFillColor(badge_1); c.setStrokeColor(badge_1); c.rect(x + 190, y + 108, 38, 20, stroke=1, fill=1)
+    c.setFillColor(colors.white); c.setFont('CNB', 12); c.drawCentredString(x + 209, y + 113, '1dB')
+    badge_3 = colors.HexColor(geometry['badge_fills']['3dB'])
+    c.setFillColor(badge_3); c.setStrokeColor(badge_3); c.rect(x + 190, y + 78, 38, 20, stroke=1, fill=1)
+    c.setFillColor(colors.white); c.setFont('CNB', 12); c.drawCentredString(x + 209, y + 83, '3dB')
     c.setFillColor(RED); c.setFont('CNB', 16); c.drawString(x + 230, y + 25, '衰减')
-    c.setFillColor(colors.white); c.setStrokeColor(colors.HexColor('#7B3F98')); c.rect(x + 275, y + 16, 44, 20, stroke=1, fill=1)
-    c.setFillColor(colors.HexColor('#7B3F98')); c.setFont('CNB', 12); c.drawCentredString(x + 297, y + 21, '40dB')
+    badge_40 = colors.HexColor(geometry['badge_fills']['40dB'])
+    c.setFillColor(badge_40); c.setStrokeColor(badge_40); c.rect(x + 275, y + 16, 44, 20, stroke=1, fill=1)
+    c.setFillColor(colors.white); c.setFont('CNB', 12); c.drawCentredString(x + 297, y + 21, '40dB')
     draw_math_at(c, r'|H_a(j\Omega)|', x - 50, y + hh + 8, 80, 20, 12, name='bw_y_label')
     draw_math_at(c, r'\Omega(\mathrm{rad/s})', x + w + 8, y - 3, 72, 18, 11, name='bw_x_label')
     doc.y -= h
@@ -1797,7 +1806,17 @@ def build():
     doc.h2('5.3.1 模拟低通滤波器的设计指标及逼近方法')
     doc.p('模拟低通滤波器设计以通带截止频率、阻带截止频率、通带最大衰减和阻带最小衰减为核心指标。')
     draw_butterworth_response(doc)
-    draw_formula_block(doc, r'|H_a(j\Omega_c)|=\frac{\sqrt{2}}{2}=0.707,\qquad -20\lg |H_a(j\Omega_c)|=3\mathrm{dB}', 'three_db', fontsize=16, max_h=42)
+    doc.ensure(44)
+    c = doc.c
+    definition_y = doc.y - 18
+    draw_math_at(c, r'\Omega_c', MARGIN_X, definition_y - 2, 34, 18, 12,
+                 name='three_db_caption_omega')
+    c.setFillColor(TEXT); c.setFont('CN', 10.5)
+    c.drawString(MARGIN_X + 34, definition_y, '称为3dB截止频率：')
+    draw_math_at(c, r'|H_a(j\Omega_c)|=\frac{\sqrt{2}}{2}=0.707,\qquad -20\lg |H_a(j\Omega_c)|=3\mathrm{dB}',
+                 MARGIN_X + 132, definition_y - 7, CONTENT_W - 132, 32, 15,
+                 name='three_db')
+    doc.y -= 42
     draw_formula_block(doc, r'\alpha_p=20\lg\frac{|H_a(j0)|}{|H_a(j\Omega_p)|},\qquad \alpha_s=20\lg\frac{|H_a(j0)|}{|H_a(j\Omega_s)|}', 'attenuation_defs', fontsize=15, max_h=42)
 
     doc.h2('5.3.2 巴特沃斯低通滤波器的设计方法')

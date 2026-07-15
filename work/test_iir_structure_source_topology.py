@@ -112,6 +112,17 @@ def test_digital_filter_type_plots_keep_source_period_and_cutoff_labels():
     }
 
 
+def test_butterworth_indicator_keeps_source_badges_and_caption():
+    geometry = load_module().butterworth_indicator_source_geometry()
+
+    assert geometry['badge_fills'] == {
+        '1dB': '#8B0016',
+        '3dB': '#0033B5',
+        '40dB': '#7B3F98',
+    }
+    assert geometry['caption'] == 'Omega_c称为3dB截止频率：'
+
+
 def test_numeric_direct_i_and_ii_have_one_arrow_per_vertical_stage():
     arrows = load_module().direct_iir_example_arrow_geometry()
 
