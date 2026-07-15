@@ -162,6 +162,17 @@ def test_numeric_network_delay_labels_only_mark_actual_delay_chains():
 
 
 def test_h2_direct_ii_right_return_stops_after_its_two_coefficients():
-    example = load_module().direct_form_numeric_examples_source_topology()[1]['direct_ii']
+    module = load_module()
+    example = module.direct_form_numeric_examples_source_topology()[1]['direct_ii']
+    geometry = module.direct_form_numeric_branch_geometry(example)
+
     assert len(example['right_coefficients']) == 2
     assert example['shared_delays'] == 3
+    assert geometry['right_return_stages'] == 2
+    assert geometry['right_return_stages'] < geometry['shared_delay_stages']
+
+
+def test_numeric_panels_do_not_add_titles_missing_from_the_source_slide():
+    geometry = load_module().direct_form_numeric_layout_geometry()
+
+    assert geometry['draw_panel_titles'] is False

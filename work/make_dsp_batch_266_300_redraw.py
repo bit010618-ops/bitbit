@@ -106,6 +106,29 @@ def direct_form_numeric_examples_source_topology():
     )
 
 
+def direct_form_numeric_delay_label_policy():
+    return {
+        'direct_i': ('feedforward_down', 'feedback_down'),
+        'direct_ii': ('shared_down',),
+    }
+
+
+def direct_form_numeric_layout_geometry():
+    return {
+        'draw_panel_titles': False,
+        'stage_gap': 36,
+        'row_gap': 258,
+    }
+
+
+def direct_form_numeric_branch_geometry(spec):
+    return {
+        'shared_delay_stages': spec['shared_delays'],
+        'left_return_stages': len(spec['left_coefficients']),
+        'right_return_stages': len(spec['right_coefficients']),
+    }
+
+
 def cascade_parallel_source_topology():
     """Non-negotiable network topology taken from PPT pages 284 and 286."""
     return {
@@ -1072,6 +1095,8 @@ def draw_direct_ii_examples(doc):
 
 def draw_direct_form_numeric_examples(doc):
     examples = direct_form_numeric_examples_source_topology()
+    layout = direct_form_numeric_layout_geometry()
+    delay_labels = direct_form_numeric_delay_label_policy()
     doc.new_page()
     doc.h2('例：两组系统函数的直接 I 型与直接 II 型实现')
     doc.p('下列四张结构图按原课件排列：上排对应 H1(z)，下排对应 H2(z)；左列为直接 I 型，右列为直接 II 型。')
@@ -1086,24 +1111,19 @@ def draw_direct_form_numeric_examples(doc):
     def math_label(expr, x, y, width=34, height=14, fontsize=9, name='numeric_label'):
         draw_math_at(c, ratio_tex(expr), x, y, width, height, fontsize, name=name)
 
-    def vertical_arrows(rail_x, y_top, count, direction, tag):
+    def vertical_arrows(rail_x, y_top, count, direction, tag, show_delay_labels=False):
         for index in range(count):
-            upper = y_top - 36 * index
-            lower = y_top - 36 * (index + 1)
+            upper = y_top - layout['stage_gap'] * index
+            lower = y_top - layout['stage_gap'] * (index + 1)
             if direction == 'down':
                 arrow(c, rail_x, upper, rail_x, lower, BLACK, 1.0)
             else:
                 arrow(c, rail_x, lower, rail_x, upper, BLACK, 1.0)
-            math_label(r'z^{-1}', rail_x - 28 if direction == 'down' else rail_x + 5,
-                       (upper + lower) / 2 + 7, 28, 12, 8.5, f'{tag}_z_{index}')
-
-    def panel_title(x, y, name, form):
-        c.setFillColor(BLUE_DARK)
-        c.setFont('CNB', 9.5)
-        c.drawCentredString(x + panel_w / 2, y + 22, f'{name}  {form}')
+            if show_delay_labels:
+                math_label(r'z^{-1}', rail_x - 28,
+                           (upper + lower) / 2 + 7, 28, 12, 8.5, f'{tag}_z_{index}')
 
     def draw_direct_i_panel(x, y, name, spec, tag):
-        panel_title(x, y, name, '直接 I 型')
         main_y = y
         ff_left, ff_right = x + 48, x + 96
         fb_left, fb_right = x + 135, x + 183
@@ -1121,26 +1141,32 @@ def draw_direct_form_numeric_examples(doc):
         if spec['output_gain']:
             math_label(spec['output_gain'], ff_right + 7, main_y + 14, 32, 13, 9, f'{tag}_out_gain')
 
-        vertical_arrows(ff_left, main_y, spec['feedforward_delays'], 'down', f'{tag}_ff_down')
+        vertical_arrows(
+            ff_left, main_y, spec['feedforward_delays'], 'down', f'{tag}_ff_down',
+            'feedforward_down' in delay_labels['direct_i']
+        )
         vertical_arrows(ff_right, main_y, spec['feedforward_delays'], 'up', f'{tag}_ff_up')
         for index, coefficient in enumerate(spec['feedforward']):
-            row_y = main_y - 36 * (index + 1)
+            row_y = main_y - layout['stage_gap'] * (index + 1)
             dot(c, ff_left, row_y, 2.0, BLACK)
             dot(c, ff_right, row_y, 2.0, BLACK)
             arrow(c, ff_left, row_y, ff_right, row_y, BLACK, 1.0)
             math_label(coefficient, ff_left + 17, row_y + 10, 30, 12, 8.5, f'{tag}_b_{index}')
 
-        vertical_arrows(fb_right, main_y, spec['feedback_delays'], 'down', f'{tag}_fb_down')
+        vertical_arrows(
+            fb_right, main_y, spec['feedback_delays'], 'down', f'{tag}_fb_down',
+            'feedback_down' in delay_labels['direct_i']
+        )
         vertical_arrows(fb_left, main_y, spec['feedback_delays'], 'up', f'{tag}_fb_up')
         for index, coefficient in enumerate(spec['feedback']):
-            row_y = main_y - 36 * (index + 1)
+            row_y = main_y - layout['stage_gap'] * (index + 1)
             dot(c, fb_left, row_y, 2.0, BLACK)
             dot(c, fb_right, row_y, 2.0, BLACK)
             arrow(c, fb_right, row_y, fb_left, row_y, BLACK, 1.0)
             math_label(coefficient, fb_left + 14, row_y + 10, 34, 12, 8.5, f'{tag}_a_{index}')
 
     def draw_direct_ii_panel(x, y, name, spec, tag):
-        panel_title(x, y, name, '直接 II 型')
+        branch_geometry = direct_form_numeric_branch_geometry(spec)
         main_y = y
         left, middle, right = x + 48, x + 113, x + 178
         end_x = x + 218
@@ -1154,22 +1180,26 @@ def draw_direct_form_numeric_examples(doc):
         if spec['output_gain']:
             math_label(spec['output_gain'], middle + 8, main_y + 14, 30, 13, 9, f'{tag}_out_gain')
 
-        vertical_arrows(middle, main_y, spec['shared_delays'], 'down', f'{tag}_shared')
-        vertical_arrows(left, main_y, spec['shared_delays'], 'up', f'{tag}_left_up')
-        vertical_arrows(right, main_y, spec['shared_delays'], 'up', f'{tag}_right_up')
-        for index in range(spec['shared_delays']):
-            row_y = main_y - 36 * (index + 1)
-            for node_x in (left, middle, right):
-                dot(c, node_x, row_y, 2.0, BLACK)
+        vertical_arrows(
+            middle, main_y, branch_geometry['shared_delay_stages'], 'down', f'{tag}_shared',
+            'shared_down' in delay_labels['direct_ii']
+        )
+        vertical_arrows(left, main_y, branch_geometry['left_return_stages'], 'up', f'{tag}_left_up')
+        vertical_arrows(right, main_y, branch_geometry['right_return_stages'], 'up', f'{tag}_right_up')
+        for index in range(branch_geometry['shared_delay_stages']):
+            row_y = main_y - layout['stage_gap'] * (index + 1)
+            dot(c, left, row_y, 2.0, BLACK)
+            dot(c, middle, row_y, 2.0, BLACK)
             arrow(c, middle, row_y, left, row_y, BLACK, 1.0)
             math_label(spec['left_coefficients'][index], left + 18, row_y + 10,
                        34, 12, 8.5, f'{tag}_left_{index}')
-            if index < len(spec['right_coefficients']):
+            if index < branch_geometry['right_return_stages']:
+                dot(c, right, row_y, 2.0, BLACK)
                 arrow(c, middle, row_y, right, row_y, BLACK, 1.0)
                 math_label(spec['right_coefficients'][index], middle + 20, row_y + 10,
                            34, 12, 8.5, f'{tag}_right_{index}')
 
-    row_gap = 258
+    row_gap = layout['row_gap']
     draw_direct_i_panel(left_x, top_y, examples[0]['name'], examples[0]['direct_i'], 'h1_di')
     draw_direct_ii_panel(right_x, top_y, examples[0]['name'], examples[0]['direct_ii'], 'h1_dii')
     draw_direct_i_panel(left_x, top_y - row_gap, examples[1]['name'], examples[1]['direct_i'], 'h2_di')
