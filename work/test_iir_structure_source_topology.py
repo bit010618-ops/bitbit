@@ -176,3 +176,12 @@ def test_numeric_panels_do_not_add_titles_missing_from_the_source_slide():
     geometry = load_module().direct_form_numeric_layout_geometry()
 
     assert geometry['draw_panel_titles'] is False
+
+
+def test_direct_i_overview_keeps_output_frame_and_explanation_separate():
+    geometry = load_module().direct_i_general_geometry()
+
+    assert geometry['feedforward_frame_right'] < geometry['feedback_frame_left']
+    assert geometry['feedback_frame_right'] + 20 <= geometry['main_line_end']
+    assert geometry['feedback_frame_right'] + 8 <= geometry['output_label_x']
+    assert geometry['output_label_x'] + 28 <= geometry['right_text_x']

@@ -477,8 +477,8 @@ def draw_second_order_diagrams(doc):
 
 def direct_i_general_geometry():
     return {
-        'figure_x': MARGIN_X + 145,
-        'main_line_end': 258,
+        'figure_x': MARGIN_X + 130,
+        'main_line_end': 280,
         'feedforward_frame_left': 62,
         'feedforward_frame_right': 158,
         'feedforward_rail_x': 80,
@@ -487,7 +487,8 @@ def direct_i_general_geometry():
         'feedback_frame_right': 254,
         'feedback_rail_x': 220,
         'feedback_arrow_end': 188,
-        'right_text_x': 270,
+        'output_label_x': 268,
+        'right_text_x': 300,
         'right_text_y': 22,
     }
 
@@ -517,7 +518,7 @@ def draw_direct_i_general(doc):
     # signal-flow center
     arrow(c, x, y + 45, x + geometry['main_line_end'], y + 45, RED, 1.5)
     draw_math_at(c, r'x(n)', x - 45, y + 57, 45, 22, 13, name='di_x')
-    draw_math_at(c, r'y(n)', x + geometry['main_line_end'] - 8, y + 57, 45, 22, 13, name='di_y')
+    draw_math_at(c, r'y(n)', x + geometry['output_label_x'], y + 57, 45, 22, 13, name='di_y')
     # two dashed regions
     dashed_rect(c, x + geometry['feedforward_frame_left'], y - 110,
                 geometry['feedforward_frame_right'] - geometry['feedforward_frame_left'], 170, colors.blue)
