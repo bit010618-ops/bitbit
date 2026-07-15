@@ -206,6 +206,12 @@ def draw_dtft_conj_example_plots(doc):
     doc.ensure(panel_gap * 3 + 8)
     c = doc.c
     y = doc.y
+    half_label = formula_png(
+        "b087_plot_half_label", r"\frac{1}{2}", 10, color="#E60012"
+    )
+    negative_half_label = formula_png(
+        "b087_plot_negative_half_label", r"-\frac{1}{2}", 10, color="#E60012"
+    )
     panels = [
         ("e", {-1: 0.5, 0: 1, 1: 0.5}),
         ("o", {-1: -0.5, 0: 0, 1: 0.5}),
@@ -221,15 +227,19 @@ def draw_dtft_conj_example_plots(doc):
             c.line(x2, y2, x2 - 6, y2 + 3.5)
             c.line(x2, y2, x2 - 6, y2 - 3.5)
 
-    def fraction_label(px, py, negative=False):
-        c.setFillColor(SOURCE_SAMPLE_RED)
-        c.setStrokeColor(SOURCE_SAMPLE_RED)
-        c.setFont("CNB", 6.8)
-        if negative:
-            c.drawString(px - 7, py - 3, "-")
-        c.drawCentredString(px, py + 4, "1")
-        c.line(px - 4, py + 1, px + 4, py + 1)
-        c.drawCentredString(px, py - 6, "2")
+    def formula_label(image_path, center_x, center_y, max_w=24, max_h=17):
+        im = Image.open(image_path)
+        iw, ih = im.size
+        scale = min(max_w / iw, max_h / ih)
+        dw, dh = iw * scale, ih * scale
+        c.drawImage(
+            ImageReader(str(image_path)),
+            center_x - dw / 2,
+            center_y - dh / 2,
+            dw,
+            dh,
+            mask="auto",
+        )
 
     x = MARGIN_X + 255
     width = 205
@@ -272,11 +282,11 @@ def draw_dtft_conj_example_plots(doc):
             c.circle(px, py, 2.5, stroke=1, fill=1)
             if value == 1:
                 c.setFont("CNB", 7.5)
-                c.drawString(px + 6, py + 2, "1")
+                c.drawString(px + 10, py + 2, "1")
             elif value == 0.5:
-                fraction_label(px + 8, py + 5)
+                formula_label(half_label, px + 10, py + 10)
             elif value == -0.5:
-                fraction_label(px, py - 7, negative=True)
+                formula_label(negative_half_label, px, py - 13)
     doc.y -= panel_gap * 3
 
 

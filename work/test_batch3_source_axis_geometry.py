@@ -38,4 +38,12 @@ def test_source_page_87_odd_component_keeps_origin_sample():
 def test_source_page_87_negative_half_sign_stays_with_fraction():
     source = _function_source("draw_dtft_conj_example_plots")
 
-    assert "c.drawString(px - 7, py - 3, '-')" in source
+    assert r"-\\frac{1}{2}" in source
+    assert "negative_half_label" in source
+    assert "c.drawString(px - 7, py - 3, '-')" not in source
+
+
+def test_source_page_87_unit_value_sits_clear_of_vertical_stem():
+    source = _function_source("draw_dtft_conj_example_plots")
+
+    assert "c.drawString(px + 10, py + 2, '1')" in source
