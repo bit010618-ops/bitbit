@@ -1,5 +1,6 @@
 import importlib.util
 import ast
+import inspect
 from pathlib import Path
 
 
@@ -229,3 +230,65 @@ def test_direct_i_overview_preserves_source_omission_segments_and_terminals():
         >= 12
     )
     assert geometry['block_height'] >= -geometry['feedback_label_y_offset'] + 30
+
+
+def test_parallel_iir_overview_preserves_source_bus_and_branch_topology():
+    module = load_module()
+    topology = module.parallel_iir_source_topology()
+
+    assert topology == {
+        'main_line': ('terminal_dots', 'interior_arrows'),
+        'global_buses': ('input_down', 'output_up'),
+        'direct_polynomial': ('G_0', 'G_1', 'G_{M-N}'),
+        'direct_polynomial_direction': 'right',
+        'section_delay_direction': 'down',
+        'section_feedback_direction': 'left',
+        'section_feedforward_direction': 'right',
+        'section_coefficients': (
+            r'\beta_{01}', r'\alpha_{11}', r'\beta_{11}', r'\alpha_{21}',
+            r'\beta_{01L}', r'\alpha_{11L}', r'\beta_{11L}', r'\alpha_{21L}',
+        ),
+        'omissions': (
+            'direct_polynomial_left',
+            'direct_polynomial_right',
+            'between_sections',
+        ),
+        'ellipsis_orientation': 'vertical',
+        'junctions': 'source_nodes',
+    }
+
+
+def test_parallel_iir_sections_keep_the_source_compact_rail_order():
+    geometry = load_module().parallel_iir_source_geometry()
+
+    assert (
+        geometry['input_bus_x']
+        < geometry['feedback_accumulator_x']
+        < geometry['delay_chain_x']
+        < geometry['feedforward_accumulator_x']
+        < geometry['output_bus_x']
+    )
+    assert geometry['section_width'] <= 150
+    assert geometry['section_row_gap'] >= 28
+    assert geometry['block_height'] >= 350
+    assert geometry['annotation_gap_below_network'] >= 24
+
+
+def test_parallel_iir_matches_source_proportions_and_double_omission_rails():
+    module = load_module()
+    geometry = module.parallel_iir_source_geometry()
+    topology = module.parallel_iir_source_topology()
+
+    section_span = geometry['feedforward_accumulator_x'] - geometry['feedback_accumulator_x']
+    global_span = geometry['output_bus_x'] - geometry['input_bus_x']
+    assert global_span <= section_span * 2
+    assert geometry['section_row_gap'] >= 48
+    assert geometry['first_section_offset'] <= -145
+    assert geometry['last_section_offset'] <= -320
+    assert topology['omissions'] == (
+        'direct_polynomial_left',
+        'direct_polynomial_right',
+        'between_sections',
+    )
+    assert topology['ellipsis_orientation'] == 'vertical'
+    assert '各支路分别实现，再在输出端相加' not in inspect.getsource(module.draw_parallel_iir)

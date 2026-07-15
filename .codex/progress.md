@@ -1,9 +1,9 @@
 # Current DSP Handout Progress
 
 - Active objective: finish the full-book source-faithful diagram audit without collisions.
-- Latest verified unit: direct-I IIR overview topology and omission notation.
-- Audit matrix: `draw_direct_i_general` is now verified (source PPT 280, handout page 60).
-- Tests: `14 passed` in `work/test_iir_structure_source_topology.py`.
-- Latest preview: `tmp/pdfs/iir_preview/direct-i-source-locked-v2-03.png`.
+- Latest verified unit: parallel-IIR overview topology and proportions.
+- Audit matrix: `draw_parallel_iir` is now verified (source PPT 286, handout page 63).
+- Tests: `17 passed` in `work/test_iir_structure_source_topology.py`.
+- Latest preview: `tmp/pdfs/iir_preview/parallel-source-locked-08.png`.
 - Stable full-book PDF remains unchanged.
-- Next action: continue the next unverified item in `work/figure_audit_matrix.md`.
+- Active next item: select the next unverified diagram family from `work/figure_audit_matrix.md` and compare it with the original source before editing.

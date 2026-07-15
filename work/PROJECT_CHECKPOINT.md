@@ -1,6 +1,6 @@
 # DSP Handout Project Checkpoint
 
-Last updated: 2026-07-15 12:00 +08:00
+Last updated: 2026-07-15 12:45 +08:00
 Branch: `main`
 Remote: `origin` -> `https://github.com/bit010618-ops/bitbit.git`
 Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
@@ -24,12 +24,14 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 - Verified render: `tmp/pdfs/iir_preview/fixed-four-06.png`, compared against `tmp/pdfs/audit_source/iir-16.png`.
 - The direct-I overview now restores the source topology and omission notation: both blue dashed network frames, four internal red dotted omission segments, terminal dots, interior main-line arrows, no synthetic internal node dots, the feedback accumulator rail, and the left-pointing callout arrow.
 - Verified direct-I render: `tmp/pdfs/iir_preview/direct-i-source-locked-v2-03.png`, compared against `tmp/pdfs/audit_source/iir-10.png` and the enlarged crop `tmp/pdfs/iir_preview/source-direct-i-crop.png`.
-- Targeted verification: `14 passed` in `work/test_iir_structure_source_topology.py`.
+- The parallel-IIR overview now matches the source topology and proportions: compact input/output bus, direct polynomial branch, both omission rails, first and final second-order branches, source arrow directions, source labels, and vertical ellipses.
+- Verified parallel-IIR render: `tmp/pdfs/iir_preview/parallel-source-locked-08.png`, compared against `tmp/pdfs/audit_source/iir-19.png`.
+- Targeted verification: `17 passed` in `work/test_iir_structure_source_topology.py`.
 
 ## Current WIP Defects - Not Fixed Yet
 
 1. The stable full-book PDF has not been rebuilt from these batch-9 generator changes.
-2. The remaining full-book source audit must continue from the next unverified item in `work/figure_audit_matrix.md`; do not repeat the verified FFT, four-network, or direct-I overview items above.
+2. The remaining full-book source audit must continue from the next unverified item in `work/figure_audit_matrix.md`; do not repeat the verified FFT, four-network, direct-I, or parallel-IIR overview items above.
 
 ## Source References
 
@@ -39,16 +41,18 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 - Verified four-network preview: `tmp/pdfs/iir_preview/fixed-four-06.png`
 - Verified direct-I overview preview: `tmp/pdfs/iir_preview/direct-i-source-locked-v2-03.png`
 - Enlarged source crop: `tmp/pdfs/iir_preview/source-direct-i-crop.png`
+- Parallel-IIR source: `tmp/pdfs/audit_source/iir-19.png`
+- Verified parallel-IIR preview: `tmp/pdfs/iir_preview/parallel-source-locked-08.png`
 
 ## Current Tests
 
 - Target file: `work/test_iir_structure_source_topology.py`
 - Existing topology tests include source coefficient preservation, H2 `-5`, delay-label policy, H2 right-branch length, and source-title suppression.
-- Current targeted result: `14 passed`.
+- Current targeted result: `17 passed`.
 
 ## Exact Next Step
 
-1. Open `work/figure_audit_matrix.md` and select the next unverified diagram family after the verified direct-I overview.
+1. Open `work/figure_audit_matrix.md` and select the next unverified diagram family after the verified parallel-IIR overview.
 2. Compare that diagram against its original PDF/PPT page before editing.
 3. Add a failing structural test for any confirmed mismatch, then make the smallest source-faithful generator change.
 4. Render and visually inspect the affected page before updating this checkpoint again.

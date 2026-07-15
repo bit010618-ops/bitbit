@@ -153,12 +153,53 @@ def cascade_parallel_source_topology():
     }
 
 
-def parallel_iir_layout_geometry():
+def parallel_iir_source_topology():
     return {
-        'network_bottom_offset': -261,
-        'annotation_offset': -284,
-        'annotation_gap_below_network': 23,
+        'main_line': ('terminal_dots', 'interior_arrows'),
+        'global_buses': ('input_down', 'output_up'),
+        'direct_polynomial': ('G_0', 'G_1', 'G_{M-N}'),
+        'direct_polynomial_direction': 'right',
+        'section_delay_direction': 'down',
+        'section_feedback_direction': 'left',
+        'section_feedforward_direction': 'right',
+        'section_coefficients': (
+            r'\beta_{01}', r'\alpha_{11}', r'\beta_{11}', r'\alpha_{21}',
+            r'\beta_{01L}', r'\alpha_{11L}', r'\beta_{11L}', r'\alpha_{21L}',
+        ),
+        'omissions': (
+            'direct_polynomial_left',
+            'direct_polynomial_right',
+            'between_sections',
+        ),
+        'ellipsis_orientation': 'vertical',
+        'junctions': 'source_nodes',
     }
+
+
+def parallel_iir_source_geometry():
+    return {
+        'block_height': 475,
+        'main_line_start_x': -58,
+        'input_bus_x': 0,
+        'feedback_accumulator_x': 52,
+        'delay_chain_x': 101,
+        'feedforward_accumulator_x': 150,
+        'output_bus_x': 190,
+        'main_line_end_x': 250,
+        'section_width': 98,
+        'section_row_gap': 48,
+        'direct_first_row_offset': -30,
+        'direct_last_row_offset': -86,
+        'first_section_offset': -155,
+        'section_ellipsis_offset': -273,
+        'last_section_offset': -325,
+        'annotation_offset': -447,
+        'annotation_gap_below_network': 26,
+    }
+
+
+def parallel_iir_layout_geometry():
+    return parallel_iir_source_geometry()
 
 RED = colors.HexColor('#E00000')
 PURPLE = colors.HexColor('#E000E8')
@@ -625,50 +666,119 @@ def draw_direct_i_general(doc):
 
 
 def draw_parallel_iir(doc):
-    topology = cascade_parallel_source_topology()['parallel']
-    h = 338
+    topology = parallel_iir_source_topology()
+    geometry = parallel_iir_source_geometry()
+    h = geometry['block_height']
     doc.ensure(h + 12)
     c = doc.c
-    top=doc.y; y=top-38; left=MARGIN_X+82; right=MARGIN_X+430
-    c.setStrokeColor(RED); c.setFillColor(RED); c.setLineWidth(1.15)
-    arrow(c,MARGIN_X+28,y,left,y,RED,1.15); arrow(c,left,y,right,y,RED,1.15); arrow(c,right,y,right+24,y,RED,1.15)
-    draw_math_at(c,r'x(n)',MARGIN_X,y+13,40,16,11,name='parallel_x')
-    draw_math_at(c,r'y(n)',right+28,y+13,40,16,11,name='parallel_y')
-    dot(c,left,y,2.6,RED); dot(c,right,y,2.6,RED)
+    main_y = doc.y - 34
+    origin_x = MARGIN_X + 110
+    x_in = origin_x + geometry['input_bus_x']
+    x_feedback = origin_x + geometry['feedback_accumulator_x']
+    x_delay = origin_x + geometry['delay_chain_x']
+    x_feedforward = origin_x + geometry['feedforward_accumulator_x']
+    x_out = origin_x + geometry['output_bus_x']
+    x_start = origin_x + geometry['main_line_start_x']
+    x_end = origin_x + geometry['main_line_end_x']
 
-    # Upper direct-polynomial branch G0, G1, ..., G_{M-N}.
-    direct_left=left+42; direct_right=left+142
-    c.line(left,y,left,y-68); c.line(right,y,right,y-68)
-    for i,(yy,lab) in enumerate([(y-22,r'G_0'),(y-43,r'G_1'),(y-66,r'G_{M-N}')]):
-        c.line(direct_left,yy,direct_right,yy)
-        dot(c,direct_left,yy,2.1,RED); dot(c,direct_right,yy,2.1,RED)
-        draw_math_at(c,lab,direct_left+36,yy+10,38,14,9.5,name=f'parallel_direct_{i}')
-    c.line(direct_left,y,direct_left,y-66); c.line(direct_right,y,direct_right,y-66)
-    c.setFont('CNB',9); c.setFillColor(TEXT); c.drawCentredString((direct_left+direct_right)/2,y-56,'...')
+    c.setStrokeColor(RED)
+    c.setFillColor(RED)
+    c.setLineWidth(1.15)
+    c.line(x_start, main_y, x_end, main_y)
+    dot(c, x_start, main_y, 2.5, RED)
+    dot(c, x_end, main_y, 2.5, RED)
+    for start, end in ((x_start + 10, x_in - 7), (x_in + 12, x_delay - 7),
+                       (x_delay + 10, x_feedforward - 7),
+                       (x_feedforward + 12, x_out - 7), (x_out + 10, x_end - 5)):
+        arrow(c, start, main_y, end, main_y, RED, 1.15)
+    draw_math_at(c, r'x(n)', x_start - 34, main_y + 13, 42, 17, 11,
+                 name='parallel_x')
+    draw_math_at(c, r'y(n)', x_end + 7, main_y + 13, 42, 17, 11,
+                 name='parallel_y')
+
+    first_section_y = main_y + geometry['first_section_offset']
+    last_section_y = main_y + geometry['last_section_offset']
+    arrow(c, x_in, main_y, x_in, last_section_y + 2, RED, 1.15)
+    arrow(c, x_out, last_section_y, x_out, main_y - 2, RED, 1.15)
+
+    direct_y1 = main_y + geometry['direct_first_row_offset']
+    direct_y2 = main_y + geometry['direct_last_row_offset']
+    arrow(c, x_delay, main_y, x_delay, direct_y1 + 2, RED, 1.05)
+    c.setDash(1, 3)
+    c.line(x_delay, direct_y1, x_delay, direct_y2)
+    c.line(x_feedforward - 8, direct_y1, x_feedforward - 8, direct_y2)
+    c.setDash()
+    arrow(c, x_feedforward, direct_y2, x_feedforward, main_y - 2, RED, 1.05)
+    for index, (yy, label) in enumerate(((direct_y1, r'G_1'),
+                                         (direct_y2, r'G_{M-N}')), 1):
+        arrow(c, x_delay, yy, x_feedforward - 2, yy, RED, 1.05)
+        dot(c, x_delay, yy, 2.2, RED)
+        dot(c, x_feedforward, yy, 2.2, RED)
+        draw_math_at(c, label, x_delay + 20, yy + 10, 48, 15, 10,
+                     name=f'parallel_direct_{index}')
+    draw_math_at(c, r'G_0', x_delay + 18, main_y + 12, 45, 15, 10,
+                 name='parallel_direct_0')
+    draw_math_at(c, r'z^{-1}', x_delay - 34, (main_y + direct_y1) / 2 + 5,
+                 32, 15, 9.5, name='parallel_direct_z')
+    c.setFillColor(TEXT)
+    direct_ellipsis_x = (x_delay + x_feedforward) / 2
+    direct_ellipsis_y = (direct_y1 + direct_y2) / 2
+    for offset in (-7, 0, 7):
+        c.circle(direct_ellipsis_x, direct_ellipsis_y + offset, 1.1, stroke=0, fill=1)
 
     def second_order_branch(base_y, suffix):
-        branch_left=left+36; delay_x=left+104; branch_right=right-36
-        c.line(left,base_y,branch_left,base_y); c.line(branch_right,base_y,right,base_y)
-        c.line(branch_left,base_y,branch_right,base_y)
-        dot(c,branch_left,base_y,2.2,RED); dot(c,branch_right,base_y,2.2,RED)
-        draw_math_at(c,rf'\beta_{{01{suffix}}}',branch_right-54,base_y+12,48,14,9,name=f'parallel_beta0_{suffix}')
-        for j,(alpha,beta) in enumerate([(rf'\alpha_{{11{suffix}}}',rf'\beta_{{11{suffix}}}'),(rf'\alpha_{{21{suffix}}}',r'')]):
-            yy=base_y-28*(j+1)
-            c.line(branch_left,yy,delay_x,yy); c.line(delay_x,yy,branch_right,yy)
-            c.line(branch_left,base_y if j==0 else yy+28,branch_left,yy)
-            c.line(delay_x,base_y if j==0 else yy+28,delay_x,yy)
-            c.line(branch_right,base_y if j==0 else yy+28,branch_right,yy)
-            draw_math_at(c,alpha,branch_left+10,yy+10,42,13,8.5,name=f'parallel_alpha_{suffix}_{j}')
-            if beta:
-                draw_math_at(c,beta,branch_right-48,yy+10,42,13,8.5,name=f'parallel_beta_{suffix}_{j}')
-            draw_math_at(c,r'z^{-1}',delay_x+5,yy+10,30,13,8.5,name=f'parallel_z_{suffix}_{j}')
-    c.line(left,y-68,left,y-222); c.line(right,y-68,right,y-222)
-    second_order_branch(y-105,'')
-    c.setFont('CNB',12); c.setFillColor(TEXT); c.drawCentredString((left+right)/2,y-178,'...')
-    second_order_branch(y-205,'L')
-    layout = parallel_iir_layout_geometry()
-    c.setFillColor(RED); c.setFont('CNB',8.8)
-    c.drawCentredString((left+right)/2,y+layout['annotation_offset'],'各支路分别实现，再在输出端相加')
+        row_gap = geometry['section_row_gap']
+        row1 = base_y - row_gap
+        row2 = base_y - 2 * row_gap
+        arrow(c, x_in, base_y, x_feedback - 2, base_y, RED, 1.05)
+        arrow(c, x_feedback, base_y, x_delay - 2, base_y, RED, 1.05)
+        arrow(c, x_delay, base_y, x_feedforward - 2, base_y, RED, 1.05)
+        arrow(c, x_feedforward, base_y, x_out - 2, base_y, RED, 1.05)
+        for xx in (x_feedback, x_delay, x_feedforward):
+            dot(c, xx, base_y, 2.2, RED)
+        dot(c, x_in, base_y, 2.2, RED)
+        dot(c, x_out, base_y, 2.2, RED)
+
+        arrow(c, x_delay, base_y, x_delay, row1 + 2, RED, 1.05)
+        arrow(c, x_delay, row1, x_delay, row2 + 2, RED, 1.05)
+        dot(c, x_delay, row1, 2.2, RED)
+        dot(c, x_delay, row2, 2.2, RED)
+        for index, yy in enumerate((row1, row2), 1):
+            draw_math_at(c, r'z^{-1}', x_delay + 6,
+                         yy + row_gap / 2 - 2, 32, 15, 9.5,
+                         name=f'parallel_z_{suffix}_{index}')
+
+        arrow(c, x_delay, row1, x_feedback + 2, row1, RED, 1.05)
+        arrow(c, x_delay, row2, x_feedback + 2, row2, RED, 1.05)
+        arrow(c, x_feedback, row2, x_feedback, row1 - 2, RED, 1.05)
+        arrow(c, x_feedback, row1, x_feedback, base_y - 2, RED, 1.05)
+        dot(c, x_feedback, row1, 2.2, RED)
+        dot(c, x_feedback, row2, 2.2, RED)
+
+        arrow(c, x_delay, row1, x_feedforward - 2, row1, RED, 1.05)
+        arrow(c, x_feedforward, row1, x_feedforward, base_y - 2, RED, 1.05)
+        dot(c, x_feedforward, row1, 2.2, RED)
+
+        draw_math_at(c, rf'\beta_{{01{suffix}}}', x_feedforward + 8,
+                     base_y + 12, 48, 15, 9.5,
+                     name=f'parallel_beta0_{suffix}')
+        draw_math_at(c, rf'\alpha_{{11{suffix}}}', x_feedback + 4,
+                     row1 + 10, 48, 15, 9,
+                     name=f'parallel_alpha1_{suffix}')
+        draw_math_at(c, rf'\beta_{{11{suffix}}}', x_delay + 20,
+                     row1 + 10, 48, 15, 9,
+                     name=f'parallel_beta1_{suffix}')
+        draw_math_at(c, rf'\alpha_{{21{suffix}}}', x_feedback + 4,
+                     row2 + 10, 48, 15, 9,
+                     name=f'parallel_alpha2_{suffix}')
+
+    second_order_branch(first_section_y, '')
+    c.setFillColor(TEXT)
+    section_ellipsis_x = (x_feedback + x_feedforward) / 2
+    section_ellipsis_y = main_y + geometry['section_ellipsis_offset']
+    for offset in (-8, 0, 8):
+        c.circle(section_ellipsis_x, section_ellipsis_y + offset, 1.25, stroke=0, fill=1)
+    second_order_branch(last_section_y, 'L')
     doc.y -= h
 
 
