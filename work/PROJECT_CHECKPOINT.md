@@ -1,6 +1,6 @@
 # DSP Handout Project Checkpoint
 
-Last updated: 2026-07-15 11:47 +08:00
+Last updated: 2026-07-15 12:00 +08:00
 Branch: `main`
 Remote: `origin` -> `https://github.com/bit010618-ops/bitbit.git`
 Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
@@ -22,15 +22,14 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 - The H2 numerator was corrected from `+5` to `-5` in the corresponding formula.
 - The four numerical direct-I/direct-II diagrams now match the source 2x2 topology: synthetic H1/H2 panel titles were removed, `z^{-1}` appears only on true downward delay chains, and the H2 direct-II right branch stops after its second coefficient.
 - Verified render: `tmp/pdfs/iir_preview/fixed-four-06.png`, compared against `tmp/pdfs/audit_source/iir-16.png`.
-- The direct-I overview output zones are separated, the previously omitted upward accumulator rail in the feedback network has been restored, and the source's left-pointing callout arrow has been reinstated.
-- Current WIP render: `tmp/pdfs/iir_preview/source-faithful-direct-i-03.png`; continue comparing it against `tmp/pdfs/audit_source/iir-10.png` before marking the page verified.
-- Targeted verification: `13 passed` in `work/test_iir_structure_source_topology.py`.
+- The direct-I overview now restores the source topology and omission notation: both blue dashed network frames, four internal red dotted omission segments, terminal dots, interior main-line arrows, no synthetic internal node dots, the feedback accumulator rail, and the left-pointing callout arrow.
+- Verified direct-I render: `tmp/pdfs/iir_preview/direct-i-source-locked-v2-03.png`, compared against `tmp/pdfs/audit_source/iir-10.png` and the enlarged crop `tmp/pdfs/iir_preview/source-direct-i-crop.png`.
+- Targeted verification: `14 passed` in `work/test_iir_structure_source_topology.py`.
 
 ## Current WIP Defects - Not Fixed Yet
 
-1. Direct-I overview remains WIP: verify final label placement and every arrow endpoint against `iir-10.png`; accumulator and callout topology are now present.
-2. The stable full-book PDF has not been rebuilt from these batch-9 generator changes.
-3. The remaining full-book source audit must continue from the next unverified item in `work/figure_audit_matrix.md`; do not repeat the verified FFT or four-network items above.
+1. The stable full-book PDF has not been rebuilt from these batch-9 generator changes.
+2. The remaining full-book source audit must continue from the next unverified item in `work/figure_audit_matrix.md`; do not repeat the verified FFT, four-network, or direct-I overview items above.
 
 ## Source References
 
@@ -38,22 +37,23 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 - Formula source: `tmp/pdfs/audit_source/iir-15.png`
 - Four-network source: `tmp/pdfs/audit_source/iir-16.png`
 - Verified four-network preview: `tmp/pdfs/iir_preview/fixed-four-06.png`
-- Current direct-I overview preview: `tmp/pdfs/iir_preview/source-faithful-direct-i-03.png`
+- Verified direct-I overview preview: `tmp/pdfs/iir_preview/direct-i-source-locked-v2-03.png`
+- Enlarged source crop: `tmp/pdfs/iir_preview/source-direct-i-crop.png`
 
 ## Current Tests
 
 - Target file: `work/test_iir_structure_source_topology.py`
 - Existing topology tests include source coefficient preservation, H2 `-5`, delay-label policy, H2 right-branch length, and source-title suppression.
-- Current targeted result: `13 passed`.
+- Current targeted result: `14 passed`.
 
 ## Exact Next Step
 
-1. Finish the direct-I overview source audit against `tmp/pdfs/audit_source/iir-10.png`.
-2. Add any remaining missing source arrow/loop as a failing test before editing the generator.
-3. Rebuild batch 9 and visually compare the affected page again.
-4. Only after that page is verified, continue to the next unverified item in `work/figure_audit_matrix.md`.
+1. Open `work/figure_audit_matrix.md` and select the next unverified diagram family after the verified direct-I overview.
+2. Compare that diagram against its original PDF/PPT page before editing.
+3. Add a failing structural test for any confirmed mismatch, then make the smallest source-faithful generator change.
+4. Render and visually inspect the affected page before updating this checkpoint again.
 
 ## Commit Policy
 
-- This checkpoint is intentionally WIP. Do not describe the three defects above as fixed.
+- This checkpoint is intentionally WIP. Do not describe the full-book audit or stable full-book PDF as complete.
 - Update, commit, and push this file after each verified unit of work.

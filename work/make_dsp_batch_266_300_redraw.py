@@ -356,6 +356,14 @@ def dashed_rect(c, x, y, w, h, color=colors.blue):
     c.restoreState()
 
 
+def dotted_arrow(c, x1, y1, x2, y2, color=RED, width=1.2, head=6):
+    """Draw a dotted omitted-stage connection with its source arrowhead."""
+    c.saveState()
+    c.setDash(1, 3)
+    arrow(c, x1, y1, x2, y2, color, width, head)
+    c.restoreState()
+
+
 def draw_basic_ops_table(doc):
     h = 168
     doc.ensure(h + 12)
@@ -477,14 +485,19 @@ def draw_second_order_diagrams(doc):
 
 def direct_i_general_geometry():
     return {
+        'block_height': 240,
         'figure_x': MARGIN_X + 130,
         'main_line_end': 280,
         'feedforward_frame_left': 62,
         'feedforward_frame_right': 158,
+        'feedforward_frame_bottom': -110,
+        'feedforward_frame_height': 188,
         'feedforward_rail_x': 80,
         'accumulator_x': 146,
         'feedback_frame_left': 174,
         'feedback_frame_right': 254,
+        'feedback_frame_bottom': -145,
+        'feedback_frame_height': 223,
         'feedback_rail_x': 220,
         'feedback_accumulator_x': 188,
         'feedback_arrow_end': 188,
@@ -494,13 +507,23 @@ def direct_i_general_geometry():
         'callout_from_x': 292,
         'callout_to_x': 260,
         'callout_y': -28,
+        'feedforward_level_offsets': (45, 5, -35, -90),
+        'feedback_level_offsets': (5, -35, -80, -125),
+        'feedforward_omission_after_index': 2,
+        'feedback_omission_after_index': 1,
+        'feedforward_label_y_offset': -128,
+        'feedback_label_y_offset': -164,
     }
 
 
 def direct_i_general_connection_policy():
     return {
+        'main_line': ('terminal_dots', 'interior_arrows'),
+        'junctions': 'no_internal_dots',
         'feedforward': ('delay_down', 'coefficient_right', 'accumulator_up'),
         'feedback': ('delay_down', 'coefficient_left', 'accumulator_up'),
+        'feedforward_omission': ('delay_chain_dashed', 'accumulator_dashed'),
+        'feedback_omission': ('delay_chain_dashed', 'accumulator_dashed'),
         'callout': ('right_text_to_feedback_frame', 'left'),
     }
 
@@ -508,7 +531,7 @@ def direct_i_general_connection_policy():
 def draw_direct_i_general(doc):
     topology = direct_structure_source_topology()['direct_i']
     geometry = direct_i_general_geometry()
-    h = 210
+    h = geometry['block_height']
     doc.ensure(h + 12)
     c = doc.c
     y = doc.y - 55
@@ -530,54 +553,73 @@ def draw_direct_i_general(doc):
     arrow(c, x + geometry['callout_from_x'], y + geometry['callout_y'],
           x + geometry['callout_to_x'], y + geometry['callout_y'], TEXT, 1.0)
     # signal-flow center
-    arrow(c, x, y + 45, x + geometry['main_line_end'], y + 45, RED, 1.5)
+    main_y = y + 45
+    c.saveState()
+    c.setStrokeColor(RED)
+    c.setLineWidth(1.5)
+    c.line(x, main_y, x + geometry['main_line_end'], main_y)
+    c.restoreState()
+    dot(c, x, main_y, 3, RED)
+    dot(c, x + geometry['main_line_end'], main_y, 3, RED)
+    for start, end in ((8, 30), (76, 103), (148, 170), (220, 245)):
+        arrow(c, x + start, main_y, x + end, main_y, RED, 1.5)
     draw_math_at(c, r'x(n)', x - 45, y + 57, 45, 22, 13, name='di_x')
     draw_math_at(c, r'y(n)', x + geometry['output_label_x'], y + 57, 45, 22, 13, name='di_y')
     # two dashed regions
-    dashed_rect(c, x + geometry['feedforward_frame_left'], y - 110,
-                geometry['feedforward_frame_right'] - geometry['feedforward_frame_left'], 170, colors.blue)
-    dashed_rect(c, x + geometry['feedback_frame_left'], y - 125,
-                geometry['feedback_frame_right'] - geometry['feedback_frame_left'], 185, colors.blue)
+    dashed_rect(c, x + geometry['feedforward_frame_left'], y + geometry['feedforward_frame_bottom'],
+                geometry['feedforward_frame_right'] - geometry['feedforward_frame_left'],
+                geometry['feedforward_frame_height'], colors.blue)
+    dashed_rect(c, x + geometry['feedback_frame_left'], y + geometry['feedback_frame_bottom'],
+                geometry['feedback_frame_right'] - geometry['feedback_frame_left'],
+                geometry['feedback_frame_height'], colors.blue)
     # left transversal branch
-    for k, lab in enumerate(topology['feedforward_coefficients']):
-        yy2 = y + 45 - k * 38
-        if k == 0:
-            dot(c, x + geometry['feedforward_rail_x'], yy2, 3, RED)
-            arrow(c, x + geometry['feedforward_rail_x'], yy2,
-                  x + geometry['accumulator_x'] - 2, yy2, RED, 1.3)
-        else:
-            dot(c, x + geometry['feedforward_rail_x'], yy2, 3, RED)
-            arrow(c, x + geometry['feedforward_rail_x'], yy2,
-                  x + geometry['accumulator_x'] - 2, yy2, RED, 1.3)
-        draw_math_at(c, lab, x + 105, yy2 + 14, 35, 18, 12, name=f'di_{lab}')
-        if k < 3:
-            arrow(c, x + geometry['feedforward_rail_x'], yy2,
-                  x + geometry['feedforward_rail_x'], yy2 - 30, RED, 1.2)
-            draw_math_at(c, r'z^{-1}', x + 38, yy2 - 18, 32, 16, 11, name=f'di_zl{k}')
-    c.setFont('CNB', 10); c.setFillColor(RED); c.drawString(x + 45, y - 128, '横向网络')
-    # The source uses an upward accumulator rail between every tap level.
-    feedforward_levels = [y + 45 - k * 38 for k in range(len(topology['feedforward_coefficients']))]
-    for lower, upper in zip(reversed(feedforward_levels[1:]), reversed(feedforward_levels[:-1])):
-        arrow(c, x + geometry['accumulator_x'], lower,
-              x + geometry['accumulator_x'], upper, RED, 1.4)
+    feedforward_levels = [y + offset for offset in geometry['feedforward_level_offsets']]
+    for k, (lab, yy2) in enumerate(zip(topology['feedforward_coefficients'], feedforward_levels)):
+        arrow(c, x + geometry['feedforward_rail_x'], yy2,
+              x + geometry['accumulator_x'] - 2, yy2, RED, 1.3)
+        draw_math_at(c, lab, x + 103, yy2 + 14, 38, 18, 12, name=f'di_{lab}')
+        if k < len(feedforward_levels) - 1:
+            next_y = feedforward_levels[k + 1]
+            connector = dotted_arrow if k == geometry['feedforward_omission_after_index'] else arrow
+            connector(c, x + geometry['feedforward_rail_x'], yy2,
+                      x + geometry['feedforward_rail_x'], next_y + 2, RED, 1.2)
+            draw_math_at(c, r'z^{-1}', x + 38, (yy2 + next_y) / 2 + 7,
+                         32, 16, 11, name=f'di_zl{k}')
+    c.setFont('CNB', 10); c.setFillColor(RED)
+    c.drawString(x + 45, y + geometry['feedforward_label_y_offset'], '横向网络')
+    for k in reversed(range(len(feedforward_levels) - 1)):
+        lower = feedforward_levels[k + 1]
+        upper = feedforward_levels[k]
+        connector = dotted_arrow if k == geometry['feedforward_omission_after_index'] else arrow
+        connector(c, x + geometry['accumulator_x'], lower,
+                  x + geometry['accumulator_x'], upper, RED, 1.4)
     # right feedback branch
-    for k, lab in enumerate(topology['feedback_coefficients']):
-        yy2 = y + 10 - k * 38
-        dot(c, x + geometry['feedback_rail_x'], yy2, 3, RED)
+    feedback_levels = [y + offset for offset in geometry['feedback_level_offsets']]
+    for k, (lab, yy2) in enumerate(zip(topology['feedback_coefficients'], feedback_levels)):
         arrow(c, x + geometry['feedback_rail_x'], yy2,
               x + geometry['feedback_accumulator_x'], yy2, RED, 1.3)
-        draw_math_at(c, lab, x + 185, yy2 + 14, 40, 18, 12, name=f'di_{lab}')
-        if k < 3:
-            arrow(c, x + geometry['feedback_rail_x'], yy2 + 28,
-                  x + geometry['feedback_rail_x'], yy2 + 2, RED, 1.2)
-            draw_math_at(c, r'z^{-1}', x + 232, yy2 + 14, 32, 16, 11, name=f'di_zr{k}')
-    feedback_levels = [y + 10 - k * 38 for k in range(len(topology['feedback_coefficients']))]
-    for lower, upper in zip(reversed(feedback_levels[1:]), reversed(feedback_levels[:-1])):
-        arrow(c, x + geometry['feedback_accumulator_x'], lower,
-              x + geometry['feedback_accumulator_x'], upper, RED, 1.4)
+        draw_math_at(c, lab, x + 187, yy2 + 14, 38, 18, 12, name=f'di_{lab}')
+
+    feedback_chain = [main_y] + feedback_levels
+    for k in range(len(feedback_chain) - 1):
+        upper = feedback_chain[k]
+        lower = feedback_chain[k + 1]
+        connector = dotted_arrow if k - 1 == geometry['feedback_omission_after_index'] else arrow
+        connector(c, x + geometry['feedback_rail_x'], upper,
+                  x + geometry['feedback_rail_x'], lower + 2, RED, 1.2)
+        draw_math_at(c, r'z^{-1}', x + 232, (upper + lower) / 2 + 7,
+                     32, 16, 11, name=f'di_zr{k}')
+
+    for k in reversed(range(len(feedback_levels) - 1)):
+        lower = feedback_levels[k + 1]
+        upper = feedback_levels[k]
+        connector = dotted_arrow if k == geometry['feedback_omission_after_index'] else arrow
+        connector(c, x + geometry['feedback_accumulator_x'], lower,
+                  x + geometry['feedback_accumulator_x'], upper, RED, 1.4)
     arrow(c, x + geometry['feedback_accumulator_x'], feedback_levels[0],
           x + geometry['feedback_accumulator_x'], y + 45, RED, 1.4)
-    c.setFont('CNB', 10); c.setFillColor(RED); c.drawString(x + 178, y - 145, '反馈网络')
+    c.setFont('CNB', 10); c.setFillColor(RED)
+    c.drawString(x + 178, y + geometry['feedback_label_y_offset'], '反馈网络')
     c.setFillColor(TEXT)
     doc.y -= h
 

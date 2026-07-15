@@ -185,6 +185,8 @@ def test_direct_i_overview_keeps_output_frame_and_explanation_separate():
     assert geometry['feedback_frame_right'] + 20 <= geometry['main_line_end']
     assert geometry['feedback_frame_right'] + 8 <= geometry['output_label_x']
     assert geometry['output_label_x'] + 28 <= geometry['right_text_x']
+    assert -110 + geometry['feedforward_frame_height'] - 45 >= 30
+    assert -125 + geometry['feedback_frame_height'] - 45 >= 30
 
 
 def test_direct_i_feedback_coefficients_join_an_upward_accumulator_rail():
@@ -199,3 +201,31 @@ def test_direct_i_feedback_coefficients_join_an_upward_accumulator_rail():
         'accumulator_up',
     )
     assert policy['callout'] == ('right_text_to_feedback_frame', 'left')
+
+
+def test_direct_i_overview_preserves_source_omission_segments_and_terminals():
+    module = load_module()
+    policy = module.direct_i_general_connection_policy()
+    geometry = module.direct_i_general_geometry()
+
+    assert policy['main_line'] == ('terminal_dots', 'interior_arrows')
+    assert policy['junctions'] == 'no_internal_dots'
+    assert policy['feedforward_omission'] == (
+        'delay_chain_dashed',
+        'accumulator_dashed',
+    )
+    assert policy['feedback_omission'] == (
+        'delay_chain_dashed',
+        'accumulator_dashed',
+    )
+    assert geometry['feedforward_omission_after_index'] == 2
+    assert geometry['feedback_omission_after_index'] == 1
+    assert (
+        geometry['feedforward_frame_bottom'] - geometry['feedforward_label_y_offset']
+        >= 12
+    )
+    assert (
+        geometry['feedback_frame_bottom'] - geometry['feedback_label_y_offset']
+        >= 12
+    )
+    assert geometry['block_height'] >= -geometry['feedback_label_y_offset'] + 30
