@@ -185,3 +185,17 @@ def test_direct_i_overview_keeps_output_frame_and_explanation_separate():
     assert geometry['feedback_frame_right'] + 20 <= geometry['main_line_end']
     assert geometry['feedback_frame_right'] + 8 <= geometry['output_label_x']
     assert geometry['output_label_x'] + 28 <= geometry['right_text_x']
+
+
+def test_direct_i_feedback_coefficients_join_an_upward_accumulator_rail():
+    module = load_module()
+    geometry = module.direct_i_general_geometry()
+    policy = module.direct_i_general_connection_policy()
+
+    assert geometry['feedback_accumulator_x'] < geometry['feedback_rail_x']
+    assert policy['feedback'] == (
+        'delay_down',
+        'coefficient_left',
+        'accumulator_up',
+    )
+    assert policy['callout'] == ('right_text_to_feedback_frame', 'left')

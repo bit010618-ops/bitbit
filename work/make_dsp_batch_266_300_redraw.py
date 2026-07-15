@@ -486,10 +486,22 @@ def direct_i_general_geometry():
         'feedback_frame_left': 174,
         'feedback_frame_right': 254,
         'feedback_rail_x': 220,
+        'feedback_accumulator_x': 188,
         'feedback_arrow_end': 188,
         'output_label_x': 268,
         'right_text_x': 300,
         'right_text_y': 22,
+        'callout_from_x': 292,
+        'callout_to_x': 260,
+        'callout_y': -28,
+    }
+
+
+def direct_i_general_connection_policy():
+    return {
+        'feedforward': ('delay_down', 'coefficient_right', 'accumulator_up'),
+        'feedback': ('delay_down', 'coefficient_left', 'accumulator_up'),
+        'callout': ('right_text_to_feedback_frame', 'left'),
     }
 
 
@@ -515,6 +527,8 @@ def draw_direct_i_general(doc):
         c.setFillColor(RED if '反馈' in line else TEXT)
         c.drawString(right_x, y + geometry['right_text_y'] - i * 14, line)
     c.setFillColor(TEXT)
+    arrow(c, x + geometry['callout_from_x'], y + geometry['callout_y'],
+          x + geometry['callout_to_x'], y + geometry['callout_y'], TEXT, 1.0)
     # signal-flow center
     arrow(c, x, y + 45, x + geometry['main_line_end'], y + 45, RED, 1.5)
     draw_math_at(c, r'x(n)', x - 45, y + 57, 45, 22, 13, name='di_x')
@@ -541,20 +555,28 @@ def draw_direct_i_general(doc):
                   x + geometry['feedforward_rail_x'], yy2 - 30, RED, 1.2)
             draw_math_at(c, r'z^{-1}', x + 38, yy2 - 18, 32, 16, 11, name=f'di_zl{k}')
     c.setFont('CNB', 10); c.setFillColor(RED); c.drawString(x + 45, y - 128, '横向网络')
-    # center summing vertical
-    arrow(c, x + geometry['accumulator_x'], y - 100,
-          x + geometry['accumulator_x'], y + 44, RED, 1.4)
+    # The source uses an upward accumulator rail between every tap level.
+    feedforward_levels = [y + 45 - k * 38 for k in range(len(topology['feedforward_coefficients']))]
+    for lower, upper in zip(reversed(feedforward_levels[1:]), reversed(feedforward_levels[:-1])):
+        arrow(c, x + geometry['accumulator_x'], lower,
+              x + geometry['accumulator_x'], upper, RED, 1.4)
     # right feedback branch
     for k, lab in enumerate(topology['feedback_coefficients']):
         yy2 = y + 10 - k * 38
         dot(c, x + geometry['feedback_rail_x'], yy2, 3, RED)
         arrow(c, x + geometry['feedback_rail_x'], yy2,
-              x + geometry['feedback_arrow_end'], yy2, RED, 1.3)
+              x + geometry['feedback_accumulator_x'], yy2, RED, 1.3)
         draw_math_at(c, lab, x + 185, yy2 + 14, 40, 18, 12, name=f'di_{lab}')
         if k < 3:
             arrow(c, x + geometry['feedback_rail_x'], yy2 + 28,
                   x + geometry['feedback_rail_x'], yy2 + 2, RED, 1.2)
             draw_math_at(c, r'z^{-1}', x + 232, yy2 + 14, 32, 16, 11, name=f'di_zr{k}')
+    feedback_levels = [y + 10 - k * 38 for k in range(len(topology['feedback_coefficients']))]
+    for lower, upper in zip(reversed(feedback_levels[1:]), reversed(feedback_levels[:-1])):
+        arrow(c, x + geometry['feedback_accumulator_x'], lower,
+              x + geometry['feedback_accumulator_x'], upper, RED, 1.4)
+    arrow(c, x + geometry['feedback_accumulator_x'], feedback_levels[0],
+          x + geometry['feedback_accumulator_x'], y + 45, RED, 1.4)
     c.setFont('CNB', 10); c.setFillColor(RED); c.drawString(x + 178, y - 145, '反馈网络')
     c.setFillColor(TEXT)
     doc.y -= h
