@@ -999,6 +999,19 @@ def filter_design_source_topology():
             'types': ('lowpass', 'highpass', 'bandpass', 'bandstop'),
             'period': '2pi',
             'repeat_range': (-3, 3),
+            'header_annotation': ('omega = Omega T', '周期延拓'),
+            'cutoff_labels': {
+                'lowpass': ('-omega_c', 'omega_c'),
+                'highpass': ('-omega_c', 'omega_c'),
+                'bandpass': ('omega_c1', 'omega_c2'),
+                'bandstop': ('omega_c1', 'omega_c2'),
+            },
+            'outer_pi_labels': {
+                'lowpass': (-2, -1, 1, 2),
+                'highpass': (-3, -2, -1, 1, 2, 3),
+                'bandpass': (-3, -2, -1, 1, 2, 3),
+                'bandstop': (-3, -2, -1, 1, 2, 3),
+            },
         },
     }
 
@@ -1012,6 +1025,7 @@ def draw_digital_filter_type_plots(doc):
     axis_w = 350
     center = x0 + axis_w / 2
     pi_step = axis_w / 6
+    source = filter_design_source_topology()['digital_ideal_responses']
     specs = [('数字低通滤波器', 'lowpass'), ('数字高通滤波器', 'highpass'),
              ('数字带通滤波器', 'bandpass'), ('数字带阻滤波器', 'bandstop')]
     for i, (label, kind) in enumerate(specs):
@@ -1023,6 +1037,11 @@ def draw_digital_filter_type_plots(doc):
         c.drawString(MARGIN_X + 28, y + 42, label[2:4])
         c.setFillColor(TEXT)
         c.drawString(MARGIN_X + 56, y + 42, label[4:])
+        if i == 0:
+            draw_math_at(c, r'\omega=\Omega T', x0 + axis_w - 93, y + 47, 78, 17, 11,
+                         name='digital_period_relation')
+            c.setFillColor(TEXT); c.setFont('CNB', 10.5)
+            c.drawString(x0 + axis_w - 91, y + 37, source['header_annotation'][1])
         if i:
             c.setStrokeColor(PURPLE); c.setLineWidth(1)
             c.line(MARGIN_X, y + 55, MARGIN_X + CONTENT_W, y + 55)
@@ -1054,12 +1073,25 @@ def draw_digital_filter_type_plots(doc):
             else:
                 c.line(px, py, nx, ny)
             px, py, previous = nx, ny, state
-        for k in range(-3, 4):
+        for k in source['outer_pi_labels'][kind]:
             tx = center + k * pi_step
-            if x0 + 2 <= tx <= x0 + axis_w - 2 and k:
-                c.setStrokeColor(colors.HexColor('#163DFF')); c.line(tx, y - 3, tx, y + 3)
-                draw_math_at(c, rf'{k}\pi' if abs(k) != 1 else (r'-\pi' if k < 0 else r'\pi'),
-                             tx - 18, y - 13, 38, 14, 9, name=f'digital_tick_{kind}_{k}')
+            c.setStrokeColor(colors.HexColor('#163DFF')); c.line(tx, y - 3, tx, y + 3)
+            draw_math_at(c, rf'{k}\pi' if abs(k) != 1 else (r'-\pi' if k < 0 else r'\pi'),
+                         tx - 18, y - 13, 38, 14, 9, name=f'digital_tick_{kind}_{k}')
+        cutoff_positions = {
+            'lowpass': (-.28, .28),
+            'highpass': (-.28, .28),
+            'bandpass': (.25, .55),
+            'bandstop': (.25, .55),
+        }[kind]
+        for j, (q, cutoff) in enumerate(zip(cutoff_positions, source['cutoff_labels'][kind])):
+            tx = center + q * pi_step
+            formula = {
+                '-omega_c': r'-\omega_c', 'omega_c': r'\omega_c',
+                'omega_c1': r'\omega_{c1}', 'omega_c2': r'\omega_{c2}',
+            }[cutoff]
+            draw_math_at(c, formula, tx - 20, y - 13, 40, 14, 9,
+                         name=f'digital_cutoff_{kind}_{j}')
         c.setFillColor(RED); c.setFont('CNB', 12)
         c.drawString(x0 - 25, y + 6, '······')
         c.drawString(x0 + axis_w - 5, y + 6, '······')

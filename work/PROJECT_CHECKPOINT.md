@@ -1,6 +1,6 @@
 # DSP Handout Project Checkpoint
 
-Last updated: 2026-07-15 13:50 +08:00
+Last updated: 2026-07-15 14:20 +08:00
 Branch: `main`
 Remote: `origin` -> `https://github.com/bit010618-ops/bitbit.git`
 Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
@@ -30,7 +30,9 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 - Verified direct-II render: `tmp/pdfs/iir_preview/direct-ii-source-locked-04.png`, compared against `tmp/pdfs/audit_source/iir-11.png` and `tmp/pdfs/iir_preview/source-direct-ii-upper-right-crop.png`.
 - The analog ideal low/high/band-pass/band-stop plots now retain all source annotations from PPT page 289. The previously omitted low-pass `全部为阻带` and high-pass `全部为通带` callouts, red direction arrows, and infinity marks have been restored without axis or label collisions.
 - Verified analog-filter render: `tmp/pdfs/iir_preview/analog-filter-source-candidate-10.png`, compared against `tmp/pdfs/audit_source/iir-25.png`.
-- Targeted verification: `19 passed` in `work/test_iir_structure_source_topology.py`.
+- The four periodic digital ideal-response plots now retain the source repetition pattern, red omission dots, `omega = Omega T` / periodic-extension annotation, low/high cutoff labels, band-pass/band-stop cutoff labels, and source-specific outer pi ticks.
+- Verified digital-filter render: `tmp/pdfs/iir_preview/digital-filter-source-candidate-11.png`, compared against `tmp/pdfs/audit_source/iir-26.png`.
+- Targeted verification: `20 passed` in `work/test_iir_structure_source_topology.py`.
 
 ## Current WIP Defects - Not Fixed Yet
 
@@ -51,16 +53,18 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 - Verified direct-II preview: `tmp/pdfs/iir_preview/direct-ii-source-locked-04.png`
 - Analog ideal-response source: `tmp/pdfs/audit_source/iir-25.png`
 - Verified analog-response preview: `tmp/pdfs/iir_preview/analog-filter-source-candidate-10.png`
+- Digital ideal-response source: `tmp/pdfs/audit_source/iir-26.png`
+- Verified digital-response preview: `tmp/pdfs/iir_preview/digital-filter-source-candidate-11.png`
 
 ## Current Tests
 
 - Target file: `work/test_iir_structure_source_topology.py`
 - Existing topology tests include source coefficient preservation, H2 `-5`, delay-label policy, H2 right-branch length, and source-title suppression.
-- Current targeted result: `19 passed`.
+- Current targeted result: `20 passed`.
 
 ## Exact Next Step
 
-1. Continue with `draw_digital_filter_type_plots`, comparing current batch-9 page 11 against original PPT page 290 / `tmp/pdfs/audit_source/iir-26.png`.
+1. Continue with the next unverified matrix item, `draw_butterworth_response`, comparing the current batch page against its original PPT page.
 2. Compare that diagram against its original PDF/PPT page before editing.
 3. Add a failing structural test for any confirmed mismatch, then make the smallest source-faithful generator change.
 4. Render and visually inspect the affected page before updating this checkpoint again.

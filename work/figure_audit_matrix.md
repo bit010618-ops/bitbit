@@ -64,7 +64,7 @@
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_parallel_iir` | 393 | 286 | 63 | verified | 已按原图恢复顶部直接项支路、左右总线、两组纵向省略轨、首末二阶节、延迟链、反馈/前馈箭头与标签比例；`17 passed`，视觉证据 `tmp/pdfs/iir_preview/parallel-source-locked-08.png`。 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_direct_ii_general` | 439 | 276 | 61 | verified | Source topology restored: two separate dashed networks before merging, three-rail shared-delay network after merging, source arrow directions and coefficient positions; `18 passed`; preview `tmp/pdfs/iir_preview/direct-ii-source-locked-04.png`. |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_filter_type_plots` | 505 | 289 | batch 10 | verified | Four analog ideal responses retain source shapes, colors, cutoff labels, separators, and restored low/high passband-stopband annotations with infinity arrows; `19 passed`; preview `tmp/pdfs/iir_preview/analog-filter-source-candidate-10.png`. |
-| 9 | make_dsp_batch_266_300_redraw.py | `draw_digital_filter_type_plots` | 556 |  |  | pending | 待逐图对照 |
+| 9 | make_dsp_batch_266_300_redraw.py | `draw_digital_filter_type_plots` | 556 | 290 | batch 11 | verified | Four periodic digital responses retain source repetition, omission dots, `omega = Omega T` / periodic-extension note, source cutoff labels, and the source-specific outer pi labels; `20 passed`; preview `tmp/pdfs/iir_preview/digital-filter-source-candidate-11.png`. |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_butterworth_response` | 619 |  |  | pending | 待逐图对照 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_butter_table` | 673 |  |  | pending | 待逐图对照 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_simple_coeff_grid` | 713 |  |  | pending | 待逐图对照 |

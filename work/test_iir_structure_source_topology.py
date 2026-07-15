@@ -94,6 +94,24 @@ def test_analog_filter_type_plots_keep_source_passband_annotations():
     }
 
 
+def test_digital_filter_type_plots_keep_source_period_and_cutoff_labels():
+    digital = load_module().filter_design_source_topology()['digital_ideal_responses']
+
+    assert digital['header_annotation'] == ('omega = Omega T', '周期延拓')
+    assert digital['cutoff_labels'] == {
+        'lowpass': ('-omega_c', 'omega_c'),
+        'highpass': ('-omega_c', 'omega_c'),
+        'bandpass': ('omega_c1', 'omega_c2'),
+        'bandstop': ('omega_c1', 'omega_c2'),
+    }
+    assert digital['outer_pi_labels'] == {
+        'lowpass': (-2, -1, 1, 2),
+        'highpass': (-3, -2, -1, 1, 2, 3),
+        'bandpass': (-3, -2, -1, 1, 2, 3),
+        'bandstop': (-3, -2, -1, 1, 2, 3),
+    }
+
+
 def test_numeric_direct_i_and_ii_have_one_arrow_per_vertical_stage():
     arrows = load_module().direct_iir_example_arrow_geometry()
 
