@@ -318,6 +318,15 @@ def test_direct_i_overview_preserves_source_omission_segments_and_terminals():
     assert geometry['block_height'] >= -geometry['feedback_label_y_offset'] + 30
 
 
+def test_direct_i_and_ii_examples_preserve_source_terminal_dots_and_interior_arrows():
+    module = load_module()
+    policy = module.direct_example_connection_policy()
+
+    assert policy['main_line'] == ('terminal_dots', 'interior_arrows')
+    assert policy['terminal_dot_count_per_network'] == 2
+    assert policy['output_endpoint'] == 'dot_not_arrow'
+
+
 def test_parallel_iir_overview_preserves_source_bus_and_branch_topology():
     module = load_module()
     topology = module.parallel_iir_source_topology()

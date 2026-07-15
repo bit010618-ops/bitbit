@@ -67,8 +67,8 @@
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_digital_filter_type_plots` | 556 | 290 | batch 11 | verified | Four periodic digital responses retain source repetition, omission dots, `omega = Omega T` / periodic-extension note, source cutoff labels, and the source-specific outer pi labels; `20 passed`; preview `tmp/pdfs/iir_preview/digital-filter-source-candidate-11.png`. |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_butterworth_response` | 619 | 292 | batch 11 | verified | Restored the source dark-filled 1dB/3dB/40dB badges with white labels and the complete `Omega_c称为3dB截止频率` definition; `21 passed`; preview `tmp/pdfs/iir_preview/butterworth-source-candidate-11.png`. |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_butter_table` | 673 |  |  | pending | 待逐图对照 |
-| 9 | make_dsp_batch_266_300_redraw.py | `draw_simple_coeff_grid` | 713 |  |  | pending | 待逐图对照 |
-| 9 | make_dsp_batch_266_300_redraw.py | `draw_direct_ii_examples` | 750 |  |  | pending | 待逐图对照 |
+| 9 | make_dsp_batch_266_300_redraw.py | `draw_simple_coeff_grid` | 713 |  |  | not applicable | 未被 `build()` 调用，属于未输出的旧辅助函数，不对应当前 PDF 页面。 |
+| 9 | make_dsp_batch_266_300_redraw.py | `draw_direct_ii_examples` | 750 | 279 | batch 5 | verified | 直接 I/II 数值例图保留原图系数与支路方向；顶端主线恢复输入/输出红色端点和线内箭头，输出端不再由箭头替代；`25 passed`；预览 `tmp/pdfs/iir_preview/direct-example-source-locked-05.png`。 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_cascade_example` | 804 |  |  | pending | 待逐图对照 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_parallel_example` | 854 |  |  | pending | 待逐图对照 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_analog_digital_bridge` | 896 |  |  | pending | 待逐图对照 |

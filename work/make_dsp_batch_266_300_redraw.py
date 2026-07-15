@@ -113,6 +113,14 @@ def direct_form_numeric_delay_label_policy():
     }
 
 
+def direct_example_connection_policy():
+    return {
+        'main_line': ('terminal_dots', 'interior_arrows'),
+        'terminal_dot_count_per_network': 2,
+        'output_endpoint': 'dot_not_arrow',
+    }
+
+
 def direct_form_numeric_layout_geometry():
     return {
         'draw_panel_titles': False,
@@ -1412,7 +1420,14 @@ def draw_direct_ii_examples(doc):
     def network(x, direct_two=False):
         draw_math_at(c,r'x(n)',x-42,y+12,42,17,12,name=f'd2_x_{direct_two}')
         draw_math_at(c,r'y(n)',x+180,y+12,42,17,12,name=f'd2_y_{direct_two}')
-        arrow(c,x,y,x+182,y,RED,1.15)
+        c.saveState()
+        c.setStrokeColor(RED)
+        c.setLineWidth(1.15)
+        c.line(x, y, x+182, y)
+        c.restoreState()
+        arrow(c,x+5,y,x+17,y,RED,1.15)
+        arrow(c,x+146,y,x+165,y,RED,1.15)
+        dot(c,x,y,2.7,RED); dot(c,x+182,y,2.7,RED)
         dot(c,x+24,y,2.7,RED); dot(c,x+138,y,2.7,RED)
         draw_math_at(c,r'8',x+45,y+13,16,14,11,name=f'd2_b0_{direct_two}')
         left=x+44; right=x+130; middle=x+87
