@@ -55,9 +55,9 @@
 | 7 | make_dsp_batch_185_227.py | `draw_bullet_list` | 232 |  |  | pending | 待逐图对照 |
 | 7 | make_dsp_batch_185_227.py | `draw_chapter_map` | 249 |  |  | pending | 待逐图对照 |
 | 7 | make_dsp_batch_185_227.py | `draw_frequency_summary` | 284 |  |  | pending | 待逐图对照 |
-| 8 | make_dsp_batch_228_265_redraw.py | `split_flow` | 78 | 238, 242 | 54 | pending | 待逐图对照 |
-| 8 | make_dsp_batch_228_265_redraw.py | `fft_butterfly` | 178 | 245, 251 | 55, 56 | pending | 待逐图对照 |
-| 8 | make_dsp_batch_228_265_redraw.py | `small_butterfly` | 291 | 241, 249 | 54 | pending | 待逐图对照 |
+| 8 | make_dsp_batch_228_265_redraw.py | `split_flow` | 78 | 238, 242 | 54 | verified | 原图并排复验通过；输入分流、偶奇支路、框内序列和连接位置一致；FFT 专项测试通过。 |
+| 8 | make_dsp_batch_228_265_redraw.py | `fft_butterfly` | 178 | 245, 251 | 55, 56 | verified | 原图并排复验通过；三级配对、节点、旋转因子、箭头和输出顺序一致；FFT 专项测试通过。 |
+| 8 | make_dsp_batch_228_265_redraw.py | `small_butterfly` | 291 | 241, 249 | 54 | verified | 原图并排复验通过；仅保留原图两条对角支路，标签和箭头方向一致；FFT 专项测试通过。 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_basic_ops_table` | 239 |  |  | pending | 待逐图对照 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_second_order_diagrams` | 299 |  |  | pending | 待逐图对照 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_direct_i_general` | 335 |  |  | pending | 待逐图对照 |

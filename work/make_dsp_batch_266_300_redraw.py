@@ -64,6 +64,48 @@ def direct_structure_source_topology():
     }
 
 
+def direct_form_numeric_examples_source_topology():
+    """Exact coefficient and delay topology from PPT pages 280-281."""
+    return (
+        {
+            'name': 'H_1',
+            'direct_i': {
+                'input_gain': '3',
+                'output_gain': '0.8',
+                'feedforward': ('2', '2', '6'),
+                'feedback': ('-4', '-3', '-2'),
+                'feedforward_delays': 3,
+                'feedback_delays': 3,
+            },
+            'direct_ii': {
+                'input_gain': '0.8',
+                'output_gain': '3',
+                'left_coefficients': ('-4', '-3', '-2'),
+                'right_coefficients': ('2', '2', '6'),
+                'shared_delays': 3,
+            },
+        },
+        {
+            'name': 'H_2',
+            'direct_i': {
+                'input_gain': '-5',
+                'output_gain': '',
+                'feedforward': ('2', '-0.5'),
+                'feedback': ('-3', '-3', '-1'),
+                'feedforward_delays': 2,
+                'feedback_delays': 3,
+            },
+            'direct_ii': {
+                'input_gain': '-5',
+                'output_gain': '',
+                'left_coefficients': ('-3', '-3', '-1'),
+                'right_coefficients': ('2', '-0.5'),
+                'shared_delays': 3,
+            },
+        },
+    )
+
+
 def cascade_parallel_source_topology():
     """Non-negotiable network topology taken from PPT pages 284 and 286."""
     return {
@@ -410,13 +452,31 @@ def draw_second_order_diagrams(doc):
     doc.y = top - h
 
 
+def direct_i_general_geometry():
+    return {
+        'figure_x': MARGIN_X + 145,
+        'main_line_end': 258,
+        'feedforward_frame_left': 62,
+        'feedforward_frame_right': 158,
+        'feedforward_rail_x': 80,
+        'accumulator_x': 146,
+        'feedback_frame_left': 174,
+        'feedback_frame_right': 254,
+        'feedback_rail_x': 220,
+        'feedback_arrow_end': 188,
+        'right_text_x': 270,
+        'right_text_y': 22,
+    }
+
+
 def draw_direct_i_general(doc):
     topology = direct_structure_source_topology()['direct_i']
+    geometry = direct_i_general_geometry()
     h = 210
     doc.ensure(h + 12)
     c = doc.c
     y = doc.y - 55
-    x = MARGIN_X + 150
+    x = geometry['figure_x']
     # equation on right/top
     # explanatory side labels
     c.setFont('CN', 9.2)
@@ -425,43 +485,51 @@ def draw_direct_i_general(doc):
     for i, line in enumerate(left_lines):
         c.setFillColor(RED if '横向' in line else TEXT)
         c.drawString(MARGIN_X, yy - i * 14, line)
-    right_x = MARGIN_X + 405
+    right_x = x + geometry['right_text_x']
     right_lines = ['第二部分是对 y(n)', '的 N 节延时链结构，', '因此是反馈网络。']
     for i, line in enumerate(right_lines):
         c.setFillColor(RED if '反馈' in line else TEXT)
-        c.drawString(right_x, yy - i * 14, line)
+        c.drawString(right_x, y + geometry['right_text_y'] - i * 14, line)
     c.setFillColor(TEXT)
     # signal-flow center
-    arrow(c, x, y + 45, x + 280, y + 45, RED, 1.5)
+    arrow(c, x, y + 45, x + geometry['main_line_end'], y + 45, RED, 1.5)
     draw_math_at(c, r'x(n)', x - 45, y + 57, 45, 22, 13, name='di_x')
-    draw_math_at(c, r'y(n)', x + 285, y + 57, 45, 22, 13, name='di_y')
+    draw_math_at(c, r'y(n)', x + geometry['main_line_end'] - 8, y + 57, 45, 22, 13, name='di_y')
     # two dashed regions
-    dashed_rect(c, x + 65, y - 110, 95, 170, colors.blue)
-    dashed_rect(c, x + 175, y - 125, 95, 185, colors.blue)
+    dashed_rect(c, x + geometry['feedforward_frame_left'], y - 110,
+                geometry['feedforward_frame_right'] - geometry['feedforward_frame_left'], 170, colors.blue)
+    dashed_rect(c, x + geometry['feedback_frame_left'], y - 125,
+                geometry['feedback_frame_right'] - geometry['feedback_frame_left'], 185, colors.blue)
     # left transversal branch
     for k, lab in enumerate(topology['feedforward_coefficients']):
         yy2 = y + 45 - k * 38
         if k == 0:
-            dot(c, x + 82, yy2, 3, RED)
-            arrow(c, x + 82, yy2, x + 145, yy2, RED, 1.3)
+            dot(c, x + geometry['feedforward_rail_x'], yy2, 3, RED)
+            arrow(c, x + geometry['feedforward_rail_x'], yy2,
+                  x + geometry['accumulator_x'] - 2, yy2, RED, 1.3)
         else:
-            dot(c, x + 82, yy2, 3, RED)
-            arrow(c, x + 82, yy2, x + 145, yy2, RED, 1.3)
+            dot(c, x + geometry['feedforward_rail_x'], yy2, 3, RED)
+            arrow(c, x + geometry['feedforward_rail_x'], yy2,
+                  x + geometry['accumulator_x'] - 2, yy2, RED, 1.3)
         draw_math_at(c, lab, x + 105, yy2 + 14, 35, 18, 12, name=f'di_{lab}')
         if k < 3:
-            arrow(c, x + 82, yy2, x + 82, yy2 - 30, RED, 1.2)
+            arrow(c, x + geometry['feedforward_rail_x'], yy2,
+                  x + geometry['feedforward_rail_x'], yy2 - 30, RED, 1.2)
             draw_math_at(c, r'z^{-1}', x + 38, yy2 - 18, 32, 16, 11, name=f'di_zl{k}')
     c.setFont('CNB', 10); c.setFillColor(RED); c.drawString(x + 45, y - 128, '横向网络')
     # center summing vertical
-    arrow(c, x + 155, y - 100, x + 155, y + 44, RED, 1.4)
+    arrow(c, x + geometry['accumulator_x'], y - 100,
+          x + geometry['accumulator_x'], y + 44, RED, 1.4)
     # right feedback branch
     for k, lab in enumerate(topology['feedback_coefficients']):
         yy2 = y + 10 - k * 38
-        dot(c, x + 220, yy2, 3, RED)
-        arrow(c, x + 220, yy2, x + 175, yy2, RED, 1.3)
+        dot(c, x + geometry['feedback_rail_x'], yy2, 3, RED)
+        arrow(c, x + geometry['feedback_rail_x'], yy2,
+              x + geometry['feedback_arrow_end'], yy2, RED, 1.3)
         draw_math_at(c, lab, x + 185, yy2 + 14, 40, 18, 12, name=f'di_{lab}')
         if k < 3:
-            arrow(c, x + 220, yy2 + 28, x + 220, yy2 + 2, RED, 1.2)
+            arrow(c, x + geometry['feedback_rail_x'], yy2 + 28,
+                  x + geometry['feedback_rail_x'], yy2 + 2, RED, 1.2)
             draw_math_at(c, r'z^{-1}', x + 232, yy2 + 14, 32, 16, 11, name=f'di_zr{k}')
     c.setFont('CNB', 10); c.setFillColor(RED); c.drawString(x + 178, y - 145, '反馈网络')
     c.setFillColor(TEXT)
@@ -998,8 +1066,115 @@ def draw_direct_ii_examples(doc):
     c.setFillColor(BLUE); c.setFont('CNB',9.5)
     c.drawString(MARGIN_X,top-205,'注意反馈部分系数符号')
     doc.y=top-h
-    draw_formula_block(doc, r'H_1(z)=\frac{0.8z^3+2z^2+2z+6}{z^3+4z^2+3z+2},\qquad H_2(z)=\frac{5+2z^{-1}-0.5z^{-2}}{1+3z^{-1}+3z^{-2}+z^{-3}}', 'direct2_hw', fontsize=13, max_h=46)
+    draw_formula_block(doc, r'H_1(z)=\frac{0.8z^3+2z^2+2z+6}{z^3+4z^2+3z+2},\qquad H_2(z)=\frac{-5+2z^{-1}-0.5z^{-2}}{1+3z^{-1}+3z^{-2}+z^{-3}}', 'direct2_hw', fontsize=13, max_h=46)
     draw_note(doc, '直接 II 型注意', ['直接 II 型虽然节省延时单元，但反馈网络与前向网络共用状态变量，系数量化和舍入误差更容易影响极点位置。'])
+
+
+def draw_direct_form_numeric_examples(doc):
+    examples = direct_form_numeric_examples_source_topology()
+    doc.new_page()
+    doc.h2('例：两组系统函数的直接 I 型与直接 II 型实现')
+    doc.p('下列四张结构图按原课件排列：上排对应 H1(z)，下排对应 H2(z)；左列为直接 I 型，右列为直接 II 型。')
+
+    c = doc.c
+    panel_w = 228
+    panel_h = 205
+    top_y = doc.y - 38
+    left_x = MARGIN_X + 6
+    right_x = MARGIN_X + 263
+
+    def math_label(expr, x, y, width=34, height=14, fontsize=9, name='numeric_label'):
+        draw_math_at(c, ratio_tex(expr), x, y, width, height, fontsize, name=name)
+
+    def vertical_arrows(rail_x, y_top, count, direction, tag):
+        for index in range(count):
+            upper = y_top - 36 * index
+            lower = y_top - 36 * (index + 1)
+            if direction == 'down':
+                arrow(c, rail_x, upper, rail_x, lower, BLACK, 1.0)
+            else:
+                arrow(c, rail_x, lower, rail_x, upper, BLACK, 1.0)
+            math_label(r'z^{-1}', rail_x - 28 if direction == 'down' else rail_x + 5,
+                       (upper + lower) / 2 + 7, 28, 12, 8.5, f'{tag}_z_{index}')
+
+    def panel_title(x, y, name, form):
+        c.setFillColor(BLUE_DARK)
+        c.setFont('CNB', 9.5)
+        c.drawCentredString(x + panel_w / 2, y + 22, f'{name}  {form}')
+
+    def draw_direct_i_panel(x, y, name, spec, tag):
+        panel_title(x, y, name, '直接 I 型')
+        main_y = y
+        ff_left, ff_right = x + 48, x + 96
+        fb_left, fb_right = x + 135, x + 183
+        end_x = x + 218
+
+        math_label(r'x(n)', x - 5, main_y + 12, 38, 15, 10, f'{tag}_x')
+        math_label(r'y(n)', end_x - 3, main_y + 12, 38, 15, 10, f'{tag}_y')
+        for start, end in ((x + 24, ff_left), (ff_left, ff_right),
+                           (ff_right, fb_left), (fb_left, fb_right), (fb_right, end_x)):
+            arrow(c, start, main_y, end, main_y, BLACK, 1.0)
+        for node_x in (ff_left, ff_right, fb_left, fb_right):
+            dot(c, node_x, main_y, 2.2, BLACK)
+
+        math_label(spec['input_gain'], ff_left + 10, main_y + 14, 30, 13, 9, f'{tag}_in_gain')
+        if spec['output_gain']:
+            math_label(spec['output_gain'], ff_right + 7, main_y + 14, 32, 13, 9, f'{tag}_out_gain')
+
+        vertical_arrows(ff_left, main_y, spec['feedforward_delays'], 'down', f'{tag}_ff_down')
+        vertical_arrows(ff_right, main_y, spec['feedforward_delays'], 'up', f'{tag}_ff_up')
+        for index, coefficient in enumerate(spec['feedforward']):
+            row_y = main_y - 36 * (index + 1)
+            dot(c, ff_left, row_y, 2.0, BLACK)
+            dot(c, ff_right, row_y, 2.0, BLACK)
+            arrow(c, ff_left, row_y, ff_right, row_y, BLACK, 1.0)
+            math_label(coefficient, ff_left + 17, row_y + 10, 30, 12, 8.5, f'{tag}_b_{index}')
+
+        vertical_arrows(fb_right, main_y, spec['feedback_delays'], 'down', f'{tag}_fb_down')
+        vertical_arrows(fb_left, main_y, spec['feedback_delays'], 'up', f'{tag}_fb_up')
+        for index, coefficient in enumerate(spec['feedback']):
+            row_y = main_y - 36 * (index + 1)
+            dot(c, fb_left, row_y, 2.0, BLACK)
+            dot(c, fb_right, row_y, 2.0, BLACK)
+            arrow(c, fb_right, row_y, fb_left, row_y, BLACK, 1.0)
+            math_label(coefficient, fb_left + 14, row_y + 10, 34, 12, 8.5, f'{tag}_a_{index}')
+
+    def draw_direct_ii_panel(x, y, name, spec, tag):
+        panel_title(x, y, name, '直接 II 型')
+        main_y = y
+        left, middle, right = x + 48, x + 113, x + 178
+        end_x = x + 218
+        math_label(r'x(n)', x - 5, main_y + 12, 38, 15, 10, f'{tag}_x')
+        math_label(r'y(n)', end_x - 3, main_y + 12, 38, 15, 10, f'{tag}_y')
+        for start, end in ((x + 24, left), (left, middle), (middle, right), (right, end_x)):
+            arrow(c, start, main_y, end, main_y, BLACK, 1.0)
+        for node_x in (left, middle, right):
+            dot(c, node_x, main_y, 2.2, BLACK)
+        math_label(spec['input_gain'], left + 8, main_y + 14, 34, 13, 9, f'{tag}_in_gain')
+        if spec['output_gain']:
+            math_label(spec['output_gain'], middle + 8, main_y + 14, 30, 13, 9, f'{tag}_out_gain')
+
+        vertical_arrows(middle, main_y, spec['shared_delays'], 'down', f'{tag}_shared')
+        vertical_arrows(left, main_y, spec['shared_delays'], 'up', f'{tag}_left_up')
+        vertical_arrows(right, main_y, spec['shared_delays'], 'up', f'{tag}_right_up')
+        for index in range(spec['shared_delays']):
+            row_y = main_y - 36 * (index + 1)
+            for node_x in (left, middle, right):
+                dot(c, node_x, row_y, 2.0, BLACK)
+            arrow(c, middle, row_y, left, row_y, BLACK, 1.0)
+            math_label(spec['left_coefficients'][index], left + 18, row_y + 10,
+                       34, 12, 8.5, f'{tag}_left_{index}')
+            if index < len(spec['right_coefficients']):
+                arrow(c, middle, row_y, right, row_y, BLACK, 1.0)
+                math_label(spec['right_coefficients'][index], middle + 20, row_y + 10,
+                           34, 12, 8.5, f'{tag}_right_{index}')
+
+    row_gap = 258
+    draw_direct_i_panel(left_x, top_y, examples[0]['name'], examples[0]['direct_i'], 'h1_di')
+    draw_direct_ii_panel(right_x, top_y, examples[0]['name'], examples[0]['direct_ii'], 'h1_dii')
+    draw_direct_i_panel(left_x, top_y - row_gap, examples[1]['name'], examples[1]['direct_i'], 'h2_di')
+    draw_direct_ii_panel(right_x, top_y - row_gap, examples[1]['name'], examples[1]['direct_ii'], 'h2_dii')
+    doc.y = top_y - row_gap - panel_h
 
 
 def draw_cascade_example(doc):
@@ -1288,6 +1463,7 @@ def build():
     doc.p('例题中先将分母首项归一化为 1，并把系统函数写成 z 的负幂形式，再据此画出直接 I 型和直接 II 型结构。')
     draw_direct_ii_examples(doc)
     draw_note(doc, '归一化', ['画 IIR 结构图前，必须先把 H(z) 化为 z 的负幂有理式，分母首项归一化为 1。'])
+    draw_direct_form_numeric_examples(doc)
 
     doc.h2('5.2.4 级联型 IIR 数字滤波器')
     doc.p('级联型将系统函数分解为若干一阶或二阶子系统的乘积，每个子系统单独实现后再串联。该结构便于按零极点成对控制滤波器特性。')
