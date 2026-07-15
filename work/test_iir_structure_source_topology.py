@@ -68,6 +68,23 @@ def test_direct_ii_general_uses_a_full_page_readable_source_layout():
     )
 
 
+def test_direct_ii_general_preserves_source_frame_and_side_label_policy():
+    geometry = load_module().direct_ii_general_geometry()
+
+    assert geometry['frame_modes'] == {
+        'direct_i': 'two_separate_frames',
+        'exchanged': 'two_separate_frames',
+        'merged': 'no_frame',
+    }
+    assert geometry['side_label_panels'] == {
+        'direct_i': ('x(n-1)', 'x(n-2)', 'y(n-1)', 'y(n-2)'),
+        'exchanged': (),
+        'merged': (),
+    }
+    assert geometry['exchanged_frame_gap'] >= 20
+    assert geometry['merged_outer_rails'] is True
+
+
 def test_numeric_direct_i_and_ii_have_one_arrow_per_vertical_stage():
     arrows = load_module().direct_iir_example_arrow_geometry()
 

@@ -62,7 +62,7 @@
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_second_order_diagrams` | 299 |  |  | pending | 待逐图对照 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_direct_i_general` | 335 | 280 | 60 | verified | 已恢复两组蓝色虚线框、左右网络方向、四段红色虚线省略连接、端点圆点、主线内部箭头和反馈汇总支路；`14 passed`，视觉证据 `tmp/pdfs/iir_preview/direct-i-source-locked-v2-03.png`。 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_parallel_iir` | 393 | 286 | 63 | verified | 已按原图恢复顶部直接项支路、左右总线、两组纵向省略轨、首末二阶节、延迟链、反馈/前馈箭头与标签比例；`17 passed`，视觉证据 `tmp/pdfs/iir_preview/parallel-source-locked-08.png`。 |
-| 9 | make_dsp_batch_266_300_redraw.py | `draw_direct_ii_general` | 439 |  |  | pending | 待逐图对照 |
+| 9 | make_dsp_batch_266_300_redraw.py | `draw_direct_ii_general` | 439 | 276 | 61 | verified | Source topology restored: two separate dashed networks before merging, three-rail shared-delay network after merging, source arrow directions and coefficient positions; `18 passed`; preview `tmp/pdfs/iir_preview/direct-ii-source-locked-04.png`. |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_filter_type_plots` | 505 |  |  | pending | 待逐图对照 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_digital_filter_type_plots` | 556 |  |  | pending | 待逐图对照 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_butterworth_response` | 619 |  |  | pending | 待逐图对照 |

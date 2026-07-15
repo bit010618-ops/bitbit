@@ -1,6 +1,6 @@
 # DSP Handout Project Checkpoint
 
-Last updated: 2026-07-15 12:45 +08:00
+Last updated: 2026-07-15 13:25 +08:00
 Branch: `main`
 Remote: `origin` -> `https://github.com/bit010618-ops/bitbit.git`
 Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
@@ -26,7 +26,9 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 - Verified direct-I render: `tmp/pdfs/iir_preview/direct-i-source-locked-v2-03.png`, compared against `tmp/pdfs/audit_source/iir-10.png` and the enlarged crop `tmp/pdfs/iir_preview/source-direct-i-crop.png`.
 - The parallel-IIR overview now matches the source topology and proportions: compact input/output bus, direct polynomial branch, both omission rails, first and final second-order branches, source arrow directions, source labels, and vertical ellipses.
 - Verified parallel-IIR render: `tmp/pdfs/iir_preview/parallel-source-locked-08.png`, compared against `tmp/pdfs/audit_source/iir-19.png`.
-- Targeted verification: `17 passed` in `work/test_iir_structure_source_topology.py`.
+- The direct-II derivation page now matches original PPT page 276: the upper direct-I panel retains two separate delay-chain frames and side variables; the exchanged upper-right panel uses two independent dashed networks rather than a prematurely merged delay chain; the lower network alone shares the central delay chain and has no synthetic dashed frame.
+- Verified direct-II render: `tmp/pdfs/iir_preview/direct-ii-source-locked-04.png`, compared against `tmp/pdfs/audit_source/iir-11.png` and `tmp/pdfs/iir_preview/source-direct-ii-upper-right-crop.png`.
+- Targeted verification: `18 passed` in `work/test_iir_structure_source_topology.py`.
 
 ## Current WIP Defects - Not Fixed Yet
 
@@ -43,12 +45,14 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 - Enlarged source crop: `tmp/pdfs/iir_preview/source-direct-i-crop.png`
 - Parallel-IIR source: `tmp/pdfs/audit_source/iir-19.png`
 - Verified parallel-IIR preview: `tmp/pdfs/iir_preview/parallel-source-locked-08.png`
+- Direct-II source: `tmp/pdfs/audit_source/iir-11.png`
+- Verified direct-II preview: `tmp/pdfs/iir_preview/direct-ii-source-locked-04.png`
 
 ## Current Tests
 
 - Target file: `work/test_iir_structure_source_topology.py`
 - Existing topology tests include source coefficient preservation, H2 `-5`, delay-label policy, H2 right-branch length, and source-title suppression.
-- Current targeted result: `17 passed`.
+- Current targeted result: `18 passed`.
 
 ## Exact Next Step
 

@@ -791,6 +791,18 @@ def direct_ii_general_geometry():
         'arrow_overhang': 26,
         'output_label_width': 42,
         'source_side_labels': ('x(n-1)', 'x(n-2)', 'y(n-1)', 'y(n-2)', 'w_1', 'w_2'),
+        'frame_modes': {
+            'direct_i': 'two_separate_frames',
+            'exchanged': 'two_separate_frames',
+            'merged': 'no_frame',
+        },
+        'side_label_panels': {
+            'direct_i': ('x(n-1)', 'x(n-2)', 'y(n-1)', 'y(n-2)'),
+            'exchanged': (),
+            'merged': (),
+        },
+        'exchanged_frame_gap': 28,
+        'merged_outer_rails': True,
     }
 
 
@@ -813,25 +825,60 @@ def draw_direct_ii_general(doc):
         c.rect(x, y - hh, w, hh, stroke=1, fill=0)
         c.setDash()
 
-    def draw_panel(x, y, merged, tag, side_labels=False):
+    def draw_panel(x, y, merged, tag, panel_role):
         left_rail = x + 34
         middle = x + panel_w / 2
         right_rail = x + panel_w - 34
         bottom = y - 2 * row_gap
         arrow(c, x - 26, y, x + panel_w + 26, y, TEXT, 1.0)
-        dot(c, left_rail, y, 2.4, TEXT)
-        dot(c, right_rail, y, 2.4, TEXT)
 
         if merged:
-            dashed_rect(x + 14, y + 17, panel_w / 2 - 14, 2 * row_gap + 34)
-            dashed_rect(middle, y + 17, panel_w / 2 - 14, 2 * row_gap + 34)
+            if panel_role == 'exchanged':
+                frame_w = (panel_w - geometry['exchanged_frame_gap'] - 16) / 2
+                frame_1_x = x + 8
+                frame_2_x = frame_1_x + frame_w + geometry['exchanged_frame_gap']
+                frame_1_left = frame_1_x + 13
+                frame_1_right = frame_1_x + frame_w - 13
+                frame_2_left = frame_2_x + 13
+                frame_2_right = frame_2_x + frame_w - 13
+                dashed_rect(frame_1_x, y + 17, frame_w, 2 * row_gap + 34)
+                dashed_rect(frame_2_x, y + 17, frame_w, 2 * row_gap + 34)
+                for rail_x in (frame_1_left, frame_1_right, frame_2_left, frame_2_right):
+                    c.line(rail_x, y, rail_x, bottom)
+                    dot(c, rail_x, y, 2.3, TEXT)
+                draw_math_at(c, r'w_1', frame_1_right - 15, y + 13, 32, 15, 10.5, name=f'{tag}_w1')
+                draw_math_at(c, r'w_2', frame_2_left - 15, y + 13, 32, 15, 10.5, name=f'{tag}_w2')
+                draw_math_at(c, r'b_0', frame_2_right - 15, y + 13, 32, 15, 10.5, name=f'{tag}_b0')
+                for index, (a, b) in enumerate(((r'a_1', r'b_1'), (r'a_2', r'b_2')), 1):
+                    yy = y - index * row_gap
+                    arrow(c, frame_1_right, yy + row_gap - 8, frame_1_right, yy + 5, TEXT, 0.9)
+                    arrow(c, frame_1_left, yy + 5, frame_1_left, yy + row_gap - 8, TEXT, 0.9)
+                    arrow(c, frame_1_right, yy, frame_1_left, yy, TEXT, 0.9)
+                    arrow(c, frame_2_left, yy + row_gap - 8, frame_2_left, yy + 5, TEXT, 0.9)
+                    arrow(c, frame_2_right, yy + 5, frame_2_right, yy + row_gap - 8, TEXT, 0.9)
+                    arrow(c, frame_2_left, yy, frame_2_right, yy, TEXT, 0.9)
+                    for rail_x in (frame_1_left, frame_1_right, frame_2_left, frame_2_right):
+                        dot(c, rail_x, yy, 2.2, TEXT)
+                    draw_math_at(c, r'z^{-1}', frame_1_right - 42, yy + row_gap / 2 - 2, 35, 15, 10, name=f'{tag}_za{index}')
+                    draw_math_at(c, r'z^{-1}', frame_2_left + 5, yy + row_gap / 2 - 2, 35, 15, 10, name=f'{tag}_zb{index}')
+                    draw_math_at(c, a, frame_1_left + 10, yy + 12, 32, 15, 10.5, name=f'{tag}_a{index}')
+                    draw_math_at(c, b, frame_2_left + 10, yy + 12, 32, 15, 10.5, name=f'{tag}_b{index}')
+                return x - 26, x + panel_w + 26
+
+            dot(c, left_rail, y, 2.4, TEXT)
+            dot(c, middle, y, 2.4, TEXT)
+            dot(c, right_rail, y, 2.4, TEXT)
             c.line(middle, y, middle, bottom)
+            c.line(left_rail, y, left_rail, bottom)
+            c.line(right_rail, y, right_rail, bottom)
             draw_math_at(c, r'w_1', middle - 39, y + 13, 34, 15, 10.5, name=f'{tag}_w1')
             draw_math_at(c, r'w_2', middle + 5, y + 13, 34, 15, 10.5, name=f'{tag}_w2')
             draw_math_at(c, r'b_0', right_rail - 15, y + 13, 32, 15, 10.5, name=f'{tag}_b0')
             for index, (a, b) in enumerate(((r'a_1', r'b_1'), (r'a_2', r'b_2')), 1):
                 yy = y - index * row_gap
                 arrow(c, middle, yy + row_gap - 8, middle, yy + 5, TEXT, 0.9)
+                arrow(c, left_rail, yy + 5, left_rail, yy + row_gap - 8, TEXT, 0.9)
+                arrow(c, right_rail, yy + 5, right_rail, yy + row_gap - 8, TEXT, 0.9)
                 draw_math_at(c, r'z^{-1}', middle + 5, yy + row_gap / 2 - 2, 35, 15, 10, name=f'{tag}_z{index}')
                 arrow(c, middle, yy, left_rail, yy, TEXT, 0.9)
                 arrow(c, middle, yy, right_rail, yy, TEXT, 0.9)
@@ -839,6 +886,8 @@ def draw_direct_ii_general(doc):
                 draw_math_at(c, a, left_rail + 10, yy + 12, 32, 15, 10.5, name=f'{tag}_a{index}')
                 draw_math_at(c, b, right_rail - 43, yy + 12, 32, 15, 10.5, name=f'{tag}_b{index}')
         else:
+            dot(c, left_rail, y, 2.4, TEXT)
+            dot(c, right_rail, y, 2.4, TEXT)
             dashed_rect(x + 8, y + 17, 66, 2 * row_gap + 34)
             dashed_rect(x + panel_w - 74, y + 17, 66, 2 * row_gap + 34)
             c.line(left_rail, y, left_rail, bottom)
@@ -855,7 +904,7 @@ def draw_direct_ii_general(doc):
                 dot(c, left_rail, yy, 2.2, TEXT); dot(c, right_rail, yy, 2.2, TEXT)
                 draw_math_at(c, b, left_rail + 17, yy + 12, 32, 15, 10.5, name=f'{tag}_b{index}')
                 draw_math_at(c, a, middle + 16, yy + 12, 32, 15, 10.5, name=f'{tag}_a{index}')
-                if side_labels:
+                if panel_role == 'direct_i':
                     draw_math_at(c, rf'x(n-{index})', x - 56, yy + 8, 54, 15, 9.8, name=f'{tag}_xside{index}')
                     draw_math_at(c, rf'y(n-{index})', x + panel_w + 2, yy + 8, 54, 15, 9.8, name=f'{tag}_yside{index}')
 
@@ -868,8 +917,8 @@ def draw_direct_ii_general(doc):
     c.drawCentredString(left_x + panel_w / 2, top - 42, '直接 I 型')
     c.drawCentredString(right_x + panel_w / 2, top - 42, '交换后的两部分网络')
     c.setFillColor(TEXT)
-    left_start, left_end = draw_panel(left_x, upper_y, False, 'd2g_left', side_labels=True)
-    right_start, right_end = draw_panel(right_x, upper_y, True, 'd2g_right')
+    left_start, left_end = draw_panel(left_x, upper_y, False, 'd2g_left', 'direct_i')
+    right_start, right_end = draw_panel(right_x, upper_y, True, 'd2g_right', 'exchanged')
     draw_math_at(c, r'x(n)', left_start - 38, upper_y + 11, 38, 16, 10.5, name='d2g_x_left')
     draw_math_at(c, r'y(n)', left_end + 2, upper_y + 11, 38, 16, 10.5, name='d2g_y_left')
     draw_math_at(c, r'x(n)', right_start - 38, upper_y + 11, 38, 16, 10.5, name='d2g_x_right')
@@ -880,7 +929,7 @@ def draw_direct_ii_general(doc):
     c.setFont('CNB', 10.5); c.setFillColor(BLUE_DARK)
     c.drawCentredString(MARGIN_X + CONTENT_W / 2, top - 274, '合并后的直接 II 型网络')
     c.setFillColor(TEXT)
-    lower_start, lower_end = draw_panel(lower_x, lower_y, True, 'd2g_lower')
+    lower_start, lower_end = draw_panel(lower_x, lower_y, True, 'd2g_lower', 'merged')
     draw_math_at(c, r'x(n)', lower_start - 38, lower_y + 11, 38, 16, 10.5, name='d2g_x_lower')
     draw_math_at(c, r'y(n)', lower_end + 2, lower_y + 11, 38, 16, 10.5, name='d2g_y_lower')
     doc.y = top - h
