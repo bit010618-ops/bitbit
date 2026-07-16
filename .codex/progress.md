@@ -1,10 +1,19 @@
 # Current DSP Handout Progress
 
-- Active objective: finish the full-book source-faithful diagram audit without collisions.
-- Latest verified unit: cascade IIR example.
-- Restored section gains `2` and `4`, all first/second-order branch coefficients, terminal dots, section junctions, and interior main-line arrows.
-- Audit matrix: `draw_cascade_example` is verified against source `iir-18.png`.
-- Tests: `26 passed` in `work/test_iir_structure_source_topology.py`.
-- Latest preview: `tmp/pdfs/iir_preview/cascade-example-source-locked-07.png`.
-- Stable full-book PDF remains unchanged.
-- Active next item: compare `draw_parallel_example` with its original PPT page and current batch page.
+- Active objective: finish the complete source-faithful handout audit, including diagrams, collisions, mathematical rendering, and fraction notation.
+- Latest verified unit: cascade IIR example, committed and pushed as `ee421d4`.
+- New active unit: full-book formula-rendering and slash-division audit.
+- User rule: every mathematical expression must be rendered; all mathematical division/ratios must use stacked fractions, never `/`.
+- Scope is semantic, not limited to the examples `X(e^{jω})`, `ω/(2π)`, or `R_4(n)`.
+- The added Butterworth factorization table remains, and the original source table is retained in addition.
+- Stable full-book PDF has now been rebuilt from the verified 13 batches.
+- All 13 active batches were regenerated after the formula-rendering fixes.
+- Source audit: `0` findings; 13-batch PDF text audit: `0` findings across 117 pages.
+- Targeted batch audit suite: `44 passed`; merge and full-book audit suite: `50 passed`.
+- Visual contact-sheet review passed for high-risk batches 5, 7, 8, 9, 10, and 13.
+- Final full-book PDF: `outputs/华理814DSP讲义_完整彩色A4版.pdf`, A4, 119 pages, 15,660,703 bytes.
+- Final source audit: `0` findings; final full-book PDF text audit: `0` findings.
+- Final PDF regression: `4 passed` (cover/directory, near-blank pages, text bounds, image bounds).
+- Visual review passed for cover, directory, all chapter starts, and representative high-risk IIR/FIR/multirate pages. Evidence: `tmp/pdfs/math_audit/candidate_pages/contact-1.png` through `contact-5.png`.
+- Candidate and stable full-book PDF SHA-256 hashes match.
+- Exact next action: commit and push this verified full-book audit unit.

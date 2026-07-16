@@ -11,6 +11,7 @@ from make_dsp_batch_266_300_redraw import (
     RED, PALE_BLUE, YELLOW, draw_math_at, draw_formula_block,
     draw_note, arrow, dot, wrap, draw_centered_multiline_text
 )
+from make_dsp_sample_handout_v2 import draw_auto_math_block, draw_auto_math_text
 
 OUT_DIR=ROOT/'outputs'
 PDF_PATH=OUT_DIR/'DSP讲义重制_第八批_原PPT228-265页_FFT_手绘复刻版.pdf'
@@ -24,10 +25,11 @@ CYAN=colors.HexColor('#DFF7FF')
 def red_line(doc,text,size=9.2,leading=14):
     lines=wrap(text,CONTENT_W,'CNB',size)
     doc.ensure(len(lines)*leading+4)
-    c=doc.c; c.setFont('CNB',size); c.setFillColor(RED)
-    for line in lines:
-        c.drawString(MARGIN_X,doc.y,line); doc.y-=leading
-    doc.y-=3
+    bottom=draw_auto_math_block(
+        doc.c,MARGIN_X,doc.y+size,text,CONTENT_W,
+        font='CNB',size=size,leading=leading,color=RED,
+    )
+    doc.y=bottom-size-3
 
 
 def block(c,x,y,w,h,label,stroke=RED,fill=None,font=9.0):
@@ -43,15 +45,19 @@ def sequence_block(c,x,y,w,h,items,title='',stroke=RED,fill=None,font=7.6,
     if fill:
         c.setFillColor(fill); c.roundRect(x,y-h/2,w,h,3,stroke=0,fill=1)
     c.setStrokeColor(stroke); c.setLineWidth(1.1); c.roundRect(x,y-h/2,w,h,3,stroke=1,fill=0)
-    c.setFillColor(TEXT); c.setFont('CNB',font)
     usable=h-top_pad-bottom_pad
     step=usable/(len(items)-1)
     top=y+h/2-top_pad
     for i,item in enumerate(items):
-        c.drawCentredString(x+w/2,top-i*step,item)
+        draw_auto_math_text(
+            c,x+w/2,top-i*step,item,
+            font='CNB',size=font,color=TEXT,align='center',
+        )
     if title:
-        c.setFont('CNB',8)
-        c.drawCentredString(x+w/2,y+h/2+11,title)
+        draw_auto_math_text(
+            c,x+w/2,y+h/2+11,title,
+            font='CNB',size=8,color=TEXT,align='center',
+        )
 
 
 def two_col_table(doc):
@@ -131,9 +137,9 @@ def split_flow(doc):
     arrow(c,arrow_x+52,arrow_y,x+450,arrow_y,RED,1.0)
     c.setFont('CNB',5.8); c.setFillColor(TEXT)
     c.drawCentredString(x+82,upper+15,'偶序号')
-    c.drawCentredString(x+82,upper+7,'x(2r)')
+    draw_auto_math_text(c,x+82,upper+7,'x(2r)',font='CNB',size=5.8,align='center')
     c.drawCentredString(x+82,lower+15,'奇序号')
-    c.drawCentredString(x+82,lower+7,'x(2r+1)')
+    draw_auto_math_text(c,x+82,lower+7,'x(2r+1)',font='CNB',size=5.8,align='center')
     # Source slide 238 branches once from x(n), then routes vertically to the
     # even and odd subsequences.  Keep the shared stem instead of two unrelated
     # arrows starting at different rows of the input frame.
@@ -255,7 +261,8 @@ def fft_butterfly(doc,kind='DIT'):
         if kind=='DIT':
             c.setStrokeColor(RED); c.setFillColor(panel_fill); c.rect(left,ys[-1]-18,right-left,ys[0]-ys[-1]+36,stroke=1,fill=1)
             c.setFillColor(YELLOW); c.roundRect(left+15,ys[0]+10,62,19,2,stroke=0,fill=1)
-            c.setFillColor(BLACK); c.setFont('CNB',8.2); c.drawCentredString(left+46,ys[0]+16,'N/2个蝶形')
+            c.setFillColor(BLACK); c.setFont('CNB',8.2)
+            draw_auto_math_text(c,left+46,ys[0]+16,'N/2 个蝶形',font='CNB',size=8.2,align='center')
         c.setStrokeColor(line_color); c.setLineWidth(1.05)
 
     # Each stage follows the exact row pairings and branch direction shown in the source.
@@ -293,7 +300,7 @@ def fft_butterfly(doc,kind='DIT'):
         c.line(stage_right[1],yy,stage_left[2],yy)
         if kind == 'IFFT':
             arrow(c,stage_right[-1],yy,output_x,yy,line_color,0.8,head=3.2)
-            draw_math_at(c,r'1/N',stage_right[-1]+11,yy+8,28,12,8,name=f'ifft_scale_{row}')
+            draw_math_at(c,r'\frac{1}{N}',stage_right[-1]+11,yy+8,28,12,8,name=f'ifft_scale_{row}')
         else:
             c.line(stage_right[-1],yy,output_x,yy)
 
@@ -388,11 +395,11 @@ def build():
     doc.h2('4.2 快速傅里叶变换的分类')
     doc.p('按时间抽取称为 DIT，按频率抽取称为 DIF；按变换方向还可分为 FFT 和 IFFT。')
     split_flow(doc)
-    draw_formula_block(doc,r'X(k)=X_1(k)+W_N^kX_2(k),\qquad X(k+N/2)=X_1(k)-W_N^kX_2(k)','dit_formula',fontsize=15,max_h=44)
+    draw_formula_block(doc,r'X(k)=X_1(k)+W_N^kX_2(k),\qquad X(k+\frac{N}{2})=X_1(k)-W_N^kX_2(k)','dit_formula',fontsize=15,max_h=44)
     small_butterfly(doc)
 
     doc.h2('基于时间抽取的基 2 FFT')
-    draw_formula_block(doc,r'N=2^M,\qquad M=\log_2N,\qquad N/2','dit_count',fontsize=14,max_h=36)
+    draw_formula_block(doc,r'N=2^M,\qquad M=\log_2N,\qquad \frac{N}{2}','dit_count',fontsize=14,max_h=36)
     doc.p('其中 M 为级数，每一级包含 N/2 个蝶形运算。')
     draw_formula_block(doc,r'\frac{N}{2}\log_2N,\qquad N\log_2N','fft_ops',fontsize=14,max_h=40)
     doc.p('上式分别表示复数乘法次数和复数加法次数。')
@@ -404,7 +411,7 @@ def build():
     doc.p('直接 DFT 需 N^2 次复乘和 N(N-1) 次复加；FFT 只需 (N/2)log2N 次复乘和 Nlog2N 次复加，运算量明显降低。')
 
     doc.h2('基于频率抽取的基 2 FFT')
-    draw_formula_block(doc,r'x_1(n)=x(n)+x(n+N/2),\qquad x_2(n)=[x(n)-x(n+N/2)]W_N^n','dif_def',fontsize=15,max_h=42)
+    draw_formula_block(doc,r'x_1(n)=x(n)+x(n+\frac{N}{2}),\qquad x_2(n)=[x(n)-x(n+\frac{N}{2})]W_N^n','dif_def',fontsize=15,max_h=42)
     doc.bullet(['DIT：输入按倒位序排列，输出为自然顺序。','DIF：输入为自然顺序，输出按倒位序排列。','两种算法的总运算量相同，区别在于分解方向和旋转因子所在支路。'])
     fft_butterfly(doc,'DIF')
 

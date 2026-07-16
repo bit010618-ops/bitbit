@@ -1,4 +1,6 @@
 import os
+import hashlib
+import re
 from pathlib import Path
 from math import cos, pi
 
@@ -75,13 +77,20 @@ def centered_text_baselines(font_name, font_size, center_y, line_count, leading=
 def draw_centered_multiline_text(c, center_x, center_y, text, font_name="CNB",
                                  font_size=9.2, leading=None, color=TEXT):
     lines = str(text).split("\n")
-    c.setFillColor(color)
-    c.setFont(font_name, font_size)
     for line, baseline in zip(
         lines,
         centered_text_baselines(font_name, font_size, center_y, len(lines), leading),
     ):
-        c.drawCentredString(center_x, baseline, line)
+        draw_auto_math_text(
+            c,
+            center_x,
+            baseline,
+            line,
+            font=font_name,
+            size=font_size,
+            color=color,
+            align="center",
+        )
 
 
 def wrap(text, width, font="CN", size=9.8):
@@ -111,6 +120,307 @@ def formula_png(name, expr, fontsize=13, color="#111111"):
     fig.savefig(path, dpi=300, transparent=True, bbox_inches="tight", pad_inches=0.04)
     plt.close(fig)
     return path
+
+
+def _rich_formula_path(expr, fontsize, color):
+    key = hashlib.sha1(f"{expr}|{fontsize}|{color}".encode("utf-8")).hexdigest()[:16]
+    return formula_png(f"inline_{key}", expr, fontsize, color=color)
+
+
+def _matplotlib_color(value):
+    value = str(value)
+    return f"#{value[2:]}" if value.lower().startswith("0x") else value
+
+
+_AUTO_MATH_SPAN_RE = re.compile(
+    r"[A-Za-z0-9α-ωΑ-ΩπΠωΩθΘτΤδΔλΛμΜσΣφΦψΨ"
+    r"_{}^()\[\]|+\-±*/=<>≤≥≠≈∈⇒⇔.,\\]+"
+    r"(?:\s+[A-Za-z0-9α-ωΑ-ΩπΠωΩθΘτΤδΔλΛμΜσΣφΦψΨ"
+    r"_{}^()\[\]|+\-±*/=<>≤≥≠≈∈⇒⇔.,\\]+)*"
+)
+_AUTO_MATH_ALLOWED_SLASH = {"A/D", "D/A", "DFT/IDFT", "DFS/DFT", "IIR/FIR"}
+_AUTO_MATH_GREEK = {
+    "ω": r"\omega", "Ω": r"\Omega", "π": r"\pi", "θ": r"\theta",
+    "τ": r"\tau", "δ": r"\delta", "λ": r"\lambda", "μ": r"\mu",
+    "σ": r"\sigma", "φ": r"\phi", "ψ": r"\psi",
+}
+
+
+def _matching_left(text, close_index, open_char, close_char):
+    depth = 0
+    for index in range(close_index, -1, -1):
+        if text[index] == close_char:
+            depth += 1
+        elif text[index] == open_char:
+            depth -= 1
+            if depth == 0:
+                return index
+    return close_index
+
+
+def _matching_right(text, open_index, open_char, close_char):
+    depth = 0
+    for index in range(open_index, len(text)):
+        if text[index] == open_char:
+            depth += 1
+        elif text[index] == close_char:
+            depth -= 1
+            if depth == 0:
+                return index + 1
+    return open_index + 1
+
+
+def _atom_left(text, slash_index):
+    end = slash_index
+    index = end - 1
+    while index >= 0 and text[index].isspace():
+        index -= 1
+    end = index + 1
+    if index >= 0 and text[index] == ")":
+        return _matching_left(text, index, "(", ")"), end
+    if index >= 0 and text[index] == "]":
+        return _matching_left(text, index, "[", "]"), end
+    allowed = set("_{}^\\")
+    while index >= 0 and (text[index].isalnum() or text[index] in allowed or "α" <= text[index] <= "ω" or "Α" <= text[index] <= "Ω"):
+        index -= 1
+    return index + 1, end
+
+
+def _atom_right(text, slash_index):
+    index = slash_index + 1
+    while index < len(text) and text[index].isspace():
+        index += 1
+    start = index
+    if index < len(text) and text[index] == "(":
+        return start, _matching_right(text, index, "(", ")")
+    if index < len(text) and text[index] == "[":
+        return start, _matching_right(text, index, "[", "]")
+    allowed = set("_{}^\\")
+    while index < len(text) and (text[index].isalnum() or text[index] in allowed or "α" <= text[index] <= "ω" or "Α" <= text[index] <= "Ω"):
+        index += 1
+    return start, index
+
+
+def _strip_outer_group(value):
+    if len(value) >= 2 and ((value[0], value[-1]) in {("(", ")"), ("[", "]")}):
+        return value[1:-1]
+    return value
+
+
+def _fractionize_math(expr):
+    """Replace every mathematical slash in *expr* with a stacked fraction."""
+
+    while "/" in expr:
+        slash = expr.rfind("/")
+        left_start, left_end = _atom_left(expr, slash)
+        right_start, right_end = _atom_right(expr, slash)
+        if left_start == left_end or right_start == right_end:
+            break
+        numerator = _strip_outer_group(expr[left_start:left_end])
+        denominator = _strip_outer_group(expr[right_start:right_end])
+        replacement = rf"\frac{{{numerator}}}{{{denominator}}}"
+        expr = expr[:left_start] + replacement + expr[right_end:]
+    return expr
+
+
+def _normalize_math_expr(expr):
+    expr = _fractionize_math(expr)
+    for symbol, command in _AUTO_MATH_GREEK.items():
+        expr = re.sub(
+            re.escape(symbol) + r"(?=[A-Za-z])",
+            lambda _match, replacement=command + " ": replacement,
+            expr,
+        )
+        expr = expr.replace(symbol, command)
+    expr = re.sub(r"([A-Za-z])_([A-Za-z0-9]+)", r"\1_{\2}", expr)
+    expr = expr.replace("<=", r"\leq ").replace(">=", r"\geq ")
+    expr = expr.replace("≤", r"\leq ").replace("≥", r"\geq ")
+    expr = expr.replace("≠", r"\ne ").replace("≈", r"\approx ")
+    expr = expr.replace("∈", r"\in ").replace("⇒", r"\Rightarrow ").replace("⇔", r"\Leftrightarrow ")
+    expr = expr.replace("±", r"\pm ")
+    return expr.strip()
+
+
+def auto_math_runs(text):
+    """Split mixed Chinese prose into ordinary text and rendered math runs."""
+
+    from audit_math_rendering import classify_plain_text_math
+
+    runs = []
+    cursor = 0
+    for match in _AUTO_MATH_SPAN_RE.finditer(text):
+        candidate = match.group(0)
+        stripped = candidate.strip()
+        if not stripped or stripped in _AUTO_MATH_ALLOWED_SLASH or not classify_plain_text_math(stripped):
+            continue
+        leading = candidate[: len(candidate) - len(candidate.lstrip())]
+        trailing = candidate[len(candidate.rstrip()):]
+        if match.start() > cursor:
+            runs.append(("text", text[cursor:match.start()]))
+        if leading:
+            runs.append(("text", leading))
+        runs.append(("math", _normalize_math_expr(stripped)))
+        if trailing:
+            runs.append(("text", trailing))
+        cursor = match.end()
+    if cursor < len(text):
+        runs.append(("text", text[cursor:]))
+    if not runs:
+        return [("text", text)]
+    merged = []
+    for kind, value in runs:
+        if merged and kind == "text" and merged[-1][0] == "text":
+            merged[-1] = ("text", merged[-1][1] + value)
+        else:
+            merged.append((kind, value))
+    return merged
+
+
+def layout_rich_runs(runs, width, font="CN", size=9.8, leading=16,
+                     math_size=None, math_height=None, color="#1F2933"):
+    """Lay out Chinese text and rendered formula runs into wrapped lines."""
+
+    math_size = math_size or size * 1.15
+    math_height = math_height or size * 1.65
+    tokens = []
+    for run in runs:
+        if isinstance(run, str):
+            kind, value = "text", run
+        else:
+            kind, value = run[:2]
+        if kind == "text":
+            for char in value:
+                tokens.append(("text", char, text_width(font, size, char), size, None))
+        elif kind == "math":
+            path = _rich_formula_path(value, math_size, color)
+            iw, ih = Image.open(path).size
+            scale = math_height / ih
+            tokens.append(("math", value, iw * scale, ih * scale, path))
+        else:
+            raise ValueError(f"Unsupported rich run kind: {kind}")
+
+    lines = []
+    line = []
+    line_width = 0.0
+    for token in tokens:
+        if line and line_width + token[2] > width:
+            lines.append(line)
+            line = []
+            line_width = 0.0
+        line.append(token)
+        line_width += token[2]
+    if line or not lines:
+        lines.append(line)
+
+    line_heights = [max([leading, *(token[3] + 3 for token in line)]) for line in lines]
+    return lines, line_heights
+
+
+def draw_rich_text(c, x, top, runs, width, font="CN", size=9.8, leading=16,
+                   math_size=None, math_height=None, color=TEXT):
+    """Draw rich runs with formulas as transparent math images; return bottom y."""
+
+    color_hex = _matplotlib_color(
+        color.hexval() if hasattr(color, "hexval") else str(color)
+    )
+    lines, line_heights = layout_rich_runs(
+        runs,
+        width,
+        font=font,
+        size=size,
+        leading=leading,
+        math_size=math_size,
+        math_height=math_height,
+        color=color_hex,
+    )
+    cursor_top = top
+    c.setFillColor(color)
+    c.setFont(font, size)
+    for line, line_height in zip(lines, line_heights):
+        xx = x
+        baseline = cursor_top - size
+        for kind, value, token_width, token_height, path in line:
+            if kind == "text":
+                c.drawString(xx, baseline, value)
+            else:
+                c.drawImage(
+                    ImageReader(str(path)),
+                    xx,
+                    baseline - token_height * 0.28,
+                    token_width,
+                    token_height,
+                    mask="auto",
+                )
+            xx += token_width
+        cursor_top -= line_height
+    return cursor_top
+
+
+def draw_auto_math_text(c, x, baseline, text, font="CN", size=9.8,
+                        color=TEXT, align="left", math_size=None,
+                        math_height=None):
+    """Draw one canvas line, rendering every mathematical fragment as math."""
+
+    color_hex = _matplotlib_color(
+        color.hexval() if hasattr(color, "hexval") else str(color)
+    )
+    lines, _ = layout_rich_runs(
+        auto_math_runs(text),
+        1000000,
+        font=font,
+        size=size,
+        leading=size * 1.6,
+        math_size=math_size,
+        math_height=math_height,
+        color=color_hex,
+    )
+    line = lines[0]
+    total_width = sum(token[2] for token in line)
+    if align == "center":
+        xx = x - total_width / 2
+    elif align == "right":
+        xx = x - total_width
+    elif align == "left":
+        xx = x
+    else:
+        raise ValueError(f"Unsupported alignment: {align}")
+
+    c.setFillColor(color)
+    c.setFont(font, size)
+    for kind, value, token_width, token_height, path in line:
+        if kind == "text":
+            c.drawString(xx, baseline, value)
+        else:
+            c.drawImage(
+                ImageReader(str(path)),
+                xx,
+                baseline - token_height * 0.28,
+                token_width,
+                token_height,
+                mask="auto",
+            )
+        xx += token_width
+    return total_width
+
+
+def draw_auto_math_block(c, x, top, text, width, font="CN", size=9.8,
+                         leading=16, color=TEXT, math_size=None,
+                         math_height=None):
+    """Draw wrapped canvas text with every mathematical fragment rendered."""
+
+    return draw_rich_text(
+        c,
+        x,
+        top,
+        auto_math_runs(text),
+        width,
+        font=font,
+        size=size,
+        leading=leading,
+        math_size=math_size,
+        math_height=math_height,
+        color=color,
+    )
 
 
 def _paste_rgba(base, im, xy):
@@ -306,6 +616,9 @@ class Doc:
         self.y -= 6
 
     def h2(self, text):
+        runs = auto_math_runs(text)
+        if any(kind == "math" for kind, _ in runs):
+            return self.rich_h2(runs)
         self.ensure(42)
         c = self.c
         c.setFillColor(BLUE)
@@ -315,14 +628,49 @@ class Doc:
         c.drawString(MARGIN_X + 14, self.y - 15, text)
         self.y -= 33
 
+    def rich_h2(self, runs):
+        lines, heights = layout_rich_runs(
+            runs, CONTENT_W - 14, font="CNB", size=14.0, leading=20,
+            math_size=15, math_height=20,
+        )
+        block_h = max(20, sum(heights))
+        self.ensure(block_h + 22)
+        c = self.c
+        c.setFillColor(BLUE)
+        c.roundRect(MARGIN_X, self.y - block_h, 6, block_h, 2, stroke=0, fill=1)
+        draw_rich_text(
+            c, MARGIN_X + 14, self.y, runs, CONTENT_W - 14,
+            font="CNB", size=14.0, leading=20, math_size=15, math_height=20,
+            color=TEXT,
+        )
+        self.y -= block_h + 13
+
     def h3(self, text):
+        runs = auto_math_runs(text)
+        if any(kind == "math" for kind, _ in runs):
+            return self.rich_h3(runs)
         self.ensure(25)
         self.c.setFillColor(BLUE_DARK)
         self.c.setFont("CNB", 11.2)
         self.c.drawString(MARGIN_X, self.y, text)
         self.y -= 17
 
+    def rich_h3(self, runs):
+        _, heights = layout_rich_runs(
+            runs, CONTENT_W, font="CNB", size=11.2, leading=17,
+            math_size=12.3, math_height=16,
+        )
+        self.ensure(sum(heights) + 8)
+        self.y = draw_rich_text(
+            self.c, MARGIN_X, self.y + 11.2, runs, CONTENT_W,
+            font="CNB", size=11.2, leading=17,
+            math_size=12.3, math_height=16, color=BLUE_DARK,
+        )
+
     def p(self, text, size=9.8, leading=16):
+        runs = auto_math_runs(text)
+        if any(kind == "math" for kind, _ in runs):
+            return self.rich_p(runs, size=size, leading=leading)
         lines = wrap(text, CONTENT_W, "CN", size)
         self.ensure(len(lines) * leading + 6)
         self.c.setFillColor(TEXT)
@@ -332,7 +680,20 @@ class Doc:
             self.y -= leading
         self.y -= 4
 
+    def rich_p(self, runs, size=9.8, leading=16):
+        _, heights = layout_rich_runs(
+            runs, CONTENT_W, font="CN", size=size, leading=leading,
+        )
+        self.ensure(sum(heights) + 6)
+        self.y = draw_rich_text(
+            self.c, MARGIN_X, self.y + size, runs, CONTENT_W,
+            font="CN", size=size, leading=leading, color=TEXT,
+        ) - 4
+
     def bullet(self, items, size=9.4, leading=15):
+        rich_items = [auto_math_runs(item) for item in items]
+        if any(kind == "math" for runs in rich_items for kind, _ in runs):
+            return self.rich_bullet(rich_items, size=size, leading=leading)
         total = 0
         line_sets = []
         for item in items:
@@ -351,7 +712,33 @@ class Doc:
                 self.y -= leading
             self.y -= 3
 
+    def rich_bullet(self, items, size=9.4, leading=15):
+        layouts = [
+            layout_rich_runs(
+                runs, CONTENT_W - 18, font="CN", size=size, leading=leading,
+            )
+            for runs in items
+        ]
+        total = sum(sum(heights) + 3 for _, heights in layouts)
+        self.ensure(total + 3)
+        c = self.c
+        for runs, (_, heights) in zip(items, layouts):
+            c.setFillColor(colors.black)
+            c.circle(MARGIN_X + 3.5, self.y + 3.5, 2.2, stroke=0, fill=1)
+            self.y = draw_rich_text(
+                c, MARGIN_X + 16, self.y + size, runs, CONTENT_W - 18,
+                font="CN", size=size, leading=leading, color=TEXT,
+            ) - 3
+
     def note(self, title, body, compact=False):
+        title_runs = auto_math_runs(title)
+        body_runs = auto_math_runs(body)
+        if any(
+            kind == "math"
+            for runs in (title_runs, body_runs)
+            for kind, _ in runs
+        ):
+            return self.rich_note(title_runs, body_runs, compact=compact)
         size = 8.8 if compact else 9.1
         lines = wrap(body, CONTENT_W - 30, "CN", size)
         h = 28 + len(lines) * 13
@@ -371,6 +758,40 @@ class Doc:
         for line in lines:
             c.drawString(MARGIN_X + 13, yy, line)
             yy -= 13
+        self.y -= h + 8
+
+    def rich_note(self, title_runs, body_runs, compact=False):
+        size = 8.8 if compact else 9.1
+        title_layout = layout_rich_runs(
+            title_runs, CONTENT_W - 30, font="CNB", size=9.2, leading=14,
+            math_size=10.2, math_height=13,
+        )
+        body_layout = layout_rich_runs(
+            body_runs, CONTENT_W - 30, font="CN", size=size, leading=13,
+            math_size=size * 1.12, math_height=12.5,
+        )
+        title_h = sum(title_layout[1])
+        body_h = sum(body_layout[1])
+        h = 13 + title_h + 3 + body_h + 10
+        self.ensure(h + 8)
+        c = self.c
+        c.setFillColor(colors.white)
+        c.rect(MARGIN_X, self.y - h + 8, CONTENT_W, h, stroke=0, fill=1)
+        c.setStrokeColor(colors.HexColor("#A8A8A8"))
+        c.setLineWidth(0.55)
+        c.rect(MARGIN_X, self.y - h + 8, CONTENT_W, h, stroke=1, fill=0)
+        title_top = self.y - 4
+        body_top = draw_rich_text(
+            c, MARGIN_X + 13, title_top, title_runs, CONTENT_W - 30,
+            font="CNB", size=9.2, leading=14,
+            math_size=10.2, math_height=13,
+            color=colors.HexColor("#222222"),
+        ) - 3
+        draw_rich_text(
+            c, MARGIN_X + 13, body_top, body_runs, CONTENT_W - 30,
+            font="CN", size=size, leading=13,
+            math_size=size * 1.12, math_height=12.5, color=TEXT,
+        )
         self.y -= h + 8
 
     def formula_box(self, image_path, height=36):
@@ -417,7 +838,10 @@ class Doc:
         c.setFont("CNB", 8.8)
         xx = x
         for i, head in enumerate(headers):
-            c.drawCentredString(xx + col_w[i] / 2, y - 20, head)
+            draw_auto_math_text(
+                c, xx + col_w[i] / 2, y - 20, head,
+                font="CNB", size=8.8, color=colors.black, align="center",
+            )
             xx += col_w[i]
         y0 = y - row_h
         c.setFont("CN", 8.5)
@@ -440,26 +864,29 @@ class Doc:
                     lhs_x = xx + 18
                     c.setFillColor(TEXT)
                     c.setFont("CN", 8.8)
-                    c.drawString(lhs_x, center_y - 2, lhs)
-                    brace_x = lhs_x + text_width("CN", 8.8, lhs) + 6
+                    lhs_w = draw_auto_math_text(
+                        c, lhs_x, center_y - 2, lhs, font="CN", size=8.8,
+                    )
+                    brace_x = lhs_x + lhs_w + 6
                     case_x = brace_x + 19
                     c.setFont("Times-Roman", 28)
                     c.drawString(brace_x, center_y - 13, "{")
                     c.setFont("CN", 8.2)
-                    c.drawString(case_x, center_y + 4, case_rows[0])
-                    c.drawString(case_x, center_y - 11, case_rows[1])
+                    draw_auto_math_text(c, case_x, center_y + 4, case_rows[0], font="CN", size=8.2)
+                    draw_auto_math_text(c, case_x, center_y - 11, case_rows[1], font="CN", size=8.2)
                 elif isinstance(text, tuple) and text[0] == "piecewise_cases":
                     _, lhs, cases_path = text
                     center_y = y0 - row_h / 2
                     lhs_x = xx + 18
                     c.setFillColor(TEXT)
                     c.setFont("CN", 10.8)
-                    lhs_w = text_width("CN", 10.8, lhs)
+                    lhs_w = draw_auto_math_text(
+                        c, lhs_x, center_y - 4, lhs, font="CN", size=10.8,
+                    )
                     im = Image.open(cases_path)
                     iw, ih = im.size
                     scale = min((col_w[i] - 32 - lhs_w) / iw, min(row_h - 8, 31) / ih)
                     dw, dh = iw * scale, ih * scale
-                    c.drawString(lhs_x, center_y - 4, lhs)
                     c.drawImage(
                         ImageReader(str(cases_path)),
                         lhs_x + lhs_w + 4,
@@ -474,26 +901,34 @@ class Doc:
                     lhs_x = xx + 18
                     c.setFillColor(TEXT)
                     c.setFont("CN", 10.8)
-                    lhs_w = text_width("CN", 10.8, lhs)
+                    lhs_w = draw_auto_math_text(
+                        c, lhs_x, center_y - 4, lhs, font="CN", size=10.8,
+                    )
                     brace_x = lhs_x + lhs_w + 3
                     value_right_x = brace_x + 31
                     condition_x = value_right_x + 5
                     top_y = center_y + 7
                     bottom_y = center_y - 10
-                    c.drawString(lhs_x, center_y - 4, lhs)
                     c.setFont("Times-Roman", 35)
                     c.drawString(brace_x, center_y - 16, "{")
                     c.setFont("CN", 10.5)
-                    c.drawRightString(value_right_x, top_y, case_rows[0][0])
-                    c.drawString(condition_x, top_y, case_rows[0][1])
-                    c.drawRightString(value_right_x, bottom_y, case_rows[1][0])
-                    c.drawString(condition_x, bottom_y, case_rows[1][1])
+                    draw_auto_math_text(c, value_right_x, top_y, case_rows[0][0], font="CN", size=10.5, align="right")
+                    draw_auto_math_text(c, condition_x, top_y, case_rows[0][1], font="CN", size=10.5)
+                    draw_auto_math_text(c, value_right_x, bottom_y, case_rows[1][0], font="CN", size=10.5, align="right")
+                    draw_auto_math_text(c, condition_x, bottom_y, case_rows[1][1], font="CN", size=10.5)
                 else:
-                    lines = wrap(text, col_w[i] - 12, "CN", 8.5)[:2]
-                    yy = y0 - 14
-                    for line in lines:
-                        c.drawString(xx + 6, yy, line)
-                        yy -= 11
+                    runs = auto_math_runs(text)
+                    if any(kind == "math" for kind, _ in runs):
+                        draw_rich_text(
+                            c, xx + 6, y0 - 5, runs, col_w[i] - 12,
+                            font="CN", size=8.5, leading=11, color=TEXT,
+                        )
+                    else:
+                        lines = wrap(text, col_w[i] - 12, "CN", 8.5)[:2]
+                        yy = y0 - 14
+                        for line in lines:
+                            c.drawString(xx + 6, yy, line)
+                            yy -= 11
                 xx += col_w[i]
             y0 -= row_h
         c.setStrokeColor(colors.HexColor("#9A9A9A"))
@@ -524,8 +959,7 @@ def draw_flow(doc):
         (58, "平滑滤波"),
     ]
     gap = 17
-    c.setFont("Times-Italic", 11)
-    c.drawString(x, y - 4, "x(t)")
+    draw_auto_math_text(c, x, y - 4, "x(t)", font="CN", size=11)
     cursor = x + input_w
     for index, (width, label) in enumerate(boxes):
         _axis_arrow(c, cursor, y, cursor + gap - 3, y)
@@ -536,8 +970,7 @@ def draw_flow(doc):
         )
         cursor = bx + width
     _axis_arrow(c, cursor, y, cursor + gap - 3, y)
-    c.setFont("Times-Italic", 11)
-    c.drawString(cursor + gap + 2, y - 4, "y(t)")
+    draw_auto_math_text(c, cursor + gap + 2, y - 4, "y(t)", font="CN", size=11)
     doc.y -= 62
 
 
@@ -589,7 +1022,7 @@ def draw_signal_classification_examples(doc):
     _axis_arrow(c, left, base, right, base)
     _axis_arrow(c, vx, base - geometry["vertical_negative_tail"], vx, vertical_top)
     c.setFont("CN", 7.3)
-    c.drawString(vx + 7, y2 - 5, "x(n)")
+    draw_auto_math_text(c, vx + 7, y2 - 5, "x(n)", font="CN", size=7.3)
     label_geometry = discrete_axis_label_geometry()
     for n in range(-2, 3):
         px = vx + n * 36
@@ -629,7 +1062,7 @@ def draw_rect_sequence_example(doc):
     _axis_arrow(c, left, base, right, base)
     _axis_arrow(c, vx, base - 5, vx, y - 2)
     c.setFont("CN", 7.5)
-    c.drawString(vx + 7, y - 8, "R_N(n)")
+    draw_auto_math_text(c, vx + 7, y - 8, "R_N(n)", font="CN", size=7.5)
     label_geometry = discrete_axis_label_geometry()
     for n in range(0, 3):
         px = vx + n * 47
@@ -647,7 +1080,7 @@ def draw_rect_sequence_example(doc):
     c.drawRightString(vx - 7, base + 39, "1")
     c.drawString(right + 3, base - 10, "n")
     c.setFont("CN", 10)
-    c.drawString(MARGIN_X + 205, doc.y - 54, "例如 N=2")
+    draw_auto_math_text(c, MARGIN_X + 205, doc.y - 54, "例如 N=2", font="CN", size=10)
     doc.y -= 118
 
 
@@ -680,13 +1113,13 @@ def draw_oscillation_nine(doc):
     c = doc.c
     titles = [
         formula_png("osc_0", r"x[n]=\cos(0n)=1", 9),
-        formula_png("osc_pi8", r"x[n]=\cos(\pi n/8)", 9),
-        formula_png("osc_pi4", r"x[n]=\cos(\pi n/4)", 9),
-        formula_png("osc_pi2", r"x[n]=\cos(\pi n/2)", 9),
+        formula_png("osc_pi8", r"x[n]=\cos(\frac{\pi n}{8})", 9),
+        formula_png("osc_pi4", r"x[n]=\cos(\frac{\pi n}{4})", 9),
+        formula_png("osc_pi2", r"x[n]=\cos(\frac{\pi n}{2})", 9),
         formula_png("osc_pi", r"x[n]=\cos(\pi n)", 9),
-        formula_png("osc_3pi2", r"x[n]=\cos(3\pi n/2)", 9),
-        formula_png("osc_7pi4", r"x[n]=\cos(7\pi n/4)", 9),
-        formula_png("osc_15pi8", r"x[n]=\cos(15\pi n/8)", 9),
+        formula_png("osc_3pi2", r"x[n]=\cos(\frac{3\pi n}{2})", 9),
+        formula_png("osc_7pi4", r"x[n]=\cos(\frac{7\pi n}{4})", 9),
+        formula_png("osc_15pi8", r"x[n]=\cos(\frac{15\pi n}{8})", 9),
         formula_png("osc_2pi", r"x[n]=\cos(2\pi n)=1", 9),
     ]
     omegas = [0, pi / 8, pi / 4, pi / 2, pi, 3 * pi / 2, 7 * pi / 4, 15 * pi / 8, 2 * pi]
@@ -710,7 +1143,7 @@ def draw_scale_transform_triplet(doc):
     compressed = {-1: source[-2], 0: source[0], 1: source[2]}
     items = [
         (source, -4, 4, formula_png("scale_xn", r"x(n)", 11)),
-        (expanded, -7, 7, formula_png("scale_xhalf", r"x(n/2)", 11)),
+        (expanded, -7, 7, formula_png("scale_xhalf", r"x(\frac{n}{2})", 11)),
         (compressed, -2, 2, formula_png("scale_x2n", r"x(2n)", 11)),
     ]
     x0 = MARGIN_X + 2
@@ -923,12 +1356,16 @@ def draw_discrete_axes_plot(
                 title_y = y - h - 7
             c.drawImage(ImageReader(str(title)), title_x, title_y, dw, dh, mask="auto")
         else:
-            c.setFillColor(colors.black)
-            c.setFont("CN", 9.0)
             if title_position == "axis_top":
-                c.drawString(x0 + 10, top - 8, title)
+                draw_auto_math_text(
+                    c, x0 + 10, top - 8, title,
+                    font="CN", size=9.0, color=colors.black,
+                )
             else:
-                c.drawCentredString(x + w / 2, y - h - 8, title)
+                draw_auto_math_text(
+                    c, x + w / 2, y - h - 8, title,
+                    font="CN", size=9.0, color=colors.black, align="center",
+                )
 
 
 def draw_example2_plot(doc):
@@ -994,9 +1431,9 @@ def append_chapter3_intro(doc, formula, superposition, homogeneity, linearity):
     c.line(x+197,cy+4,x+205,cy); c.line(x+197,cy-4,x+205,cy)
     c.rect(x,cy-22,135,44,stroke=1,fill=0)
     c.setFont("CN",9); c.setFillColor(TEXT)
-    c.drawString(x-42,cy+13,"x(n)")
+    draw_auto_math_text(c,x-42,cy+13,"x(n)",font="CN",size=9)
     draw_centered_multiline_text(c, x+67.5, cy, "T[·]", "CN", 9, color=TEXT)
-    c.drawString(x+154,cy+13,"y(n)")
+    draw_auto_math_text(c,x+154,cy+13,"y(n)",font="CN",size=9)
     doc.y-=72
     doc.h2("3.1 线性（考点）")
     doc.p("系统线性等价于同时满足叠加性和齐次性。")

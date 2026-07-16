@@ -242,7 +242,7 @@ def build_pdf():
     ex1_x = f("ex1_x", r"X(z)=\frac{z}{z-1}", 14)
     ex1_yzi_pf = f("ex1_yzi_pf", r"\frac{Y_{zi}(z)}{z}=\frac{z+4}{(z-2)(z+1)}=\frac{2}{z-2}-\frac{1}{z+1}", 13)
     ex1_yzi = f("ex1_yzi", r"y_{zi}(n)=[2\cdot 2^n-(-1)^n]u(n)", 14)
-    ex1_yzs_pf = f("ex1_yzs_pf", r"\frac{Y_{zs}(z)}{z}=\frac{z^2+2}{(z-2)(z+1)(z-1)}=\frac{2}{z-2}+\frac{1/2}{z+1}-\frac{3/2}{z-1}", 11)
+    ex1_yzs_pf = f("ex1_yzs_pf", r"\frac{Y_{zs}(z)}{z}=\frac{z^2+2}{(z-2)(z+1)(z-1)}=\frac{2}{z-2}+\frac{\frac{1}{2}}{z+1}-\frac{\frac{3}{2}}{z-1}", 11)
     ex1_yzs = f("ex1_yzs", r"y_{zs}(n)=\left[2\cdot 2^n+\frac{1}{2}(-1)^n-\frac{3}{2}\right]u(n)", 13)
     ex1_y = f("ex1_y", r"y(n)=\left[4\cdot 2^n-\frac{1}{2}(-1)^n-\frac{3}{2}\right]u(n)", 14)
     ex2_q = f("ex2_q", r"x(n)=\left(-\frac{1}{2}\right)^nu(n),\quad y_{zs}(n)=\left[\frac{3}{2}\left(\frac{1}{2}\right)^n+4\left(-\frac{1}{3}\right)^n-\frac{9}{2}\left(-\frac{1}{2}\right)^n\right]u(n)", 11)

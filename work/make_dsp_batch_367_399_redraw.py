@@ -11,7 +11,7 @@ from make_dsp_batch_266_300_redraw import (
     RED, PALE_BLUE, YELLOW, draw_math_at, draw_formula_block,
     draw_note, arrow, dot, wrap, draw_centered_multiline_text
 )
-from make_dsp_sample_handout_v2 import piecewise_png
+from make_dsp_sample_handout_v2 import draw_auto_math_block, draw_auto_math_text, piecewise_png
 
 OUT_DIR=ROOT/'outputs'
 PDF_PATH=OUT_DIR/'DSP讲义重制_第十二批_原PPT367-399页_FIR滤波器设计_手绘复刻版.pdf'
@@ -25,10 +25,11 @@ GRID=colors.HexColor('#B8B8B8')
 def red_line(doc, text, size=9.5, leading=15):
     lines=wrap(text, CONTENT_W, 'CN', size)
     doc.ensure(len(lines)*leading+4)
-    c=doc.c; c.setFont('CNB', size); c.setFillColor(RED)
-    for line in lines:
-        c.drawString(MARGIN_X, doc.y, line); doc.y-=leading
-    doc.y-=3
+    bottom=draw_auto_math_block(
+        doc.c,MARGIN_X,doc.y+size,text,CONTENT_W,
+        font='CNB',size=size,leading=leading,color=RED,
+    )
+    doc.y=bottom-size-3
 
 
 def red_filter_relation(doc, result, left, operator, right, name):
@@ -84,11 +85,17 @@ def mini_axis(c, x, y, w, h, title='', marks=None, bars=None, red=False):
     c.setFont('CN',7.4); c.setFillColor(col)
     c.drawString(x+w+3,y-4,'ω')
     if title:
-        c.drawString(x+10,y+h*0.55+11,title)
+        draw_auto_math_text(
+            c, x+10, y+h*0.55+11, title, font='CN', size=7.4,
+            color=col, math_size=9.5, math_height=13,
+        )
     for pos,lab in marks:
         xx=x+w*pos
         c.line(xx,y-3,xx,y+3)
-        c.drawCentredString(xx,y-12,lab)
+        draw_auto_math_text(
+            c, xx, y-12, lab, font='CN', size=7.4,
+            color=col, align='center', math_size=9.5, math_height=13,
+        )
     for a,b,lev in bars:
         xa=x+w*a; xb=x+w*b; yy=y+h*lev
         c.setStrokeColor(RED); c.setLineWidth(1.2)
@@ -206,9 +213,9 @@ def zero_plane(doc):
     c=doc.c; top=doc.y
     c.setFont('CNB',10); c.setFillColor(BLUE_DARK); c.drawString(MARGIN_X,top-6,'例：由已知零点补全线性相位 FIR 零点')
     c.setFont('CN',8.8); c.setFillColor(TEXT)
-    c.drawString(MARGIN_X, top-28, '0.5 是自镜像零点；0.5e^{±jπ/4} 还需补它们关于单位圆的倒数共轭零点。')
+    draw_auto_math_text(c,MARGIN_X,top-28,'0.5 是自镜像零点；0.5e^{±jπ/4} 还需补它们关于单位圆的倒数共轭零点。',font='CN',size=8.8)
     c.setFont('CNB',8.8); c.setFillColor(RED)
-    c.drawString(MARGIN_X, top-45, '因此最低阶数为 7 个零点，对应 N=8，群延迟 τ=(N-1)/2=3.5。')
+    draw_auto_math_text(c,MARGIN_X,top-45,'因此最低阶数为 7 个零点，对应 N=8，群延迟 τ=(N-1)/2=3.5。',font='CNB',size=8.8,color=RED)
     cx=MARGIN_X+385; cy=top-125; r=48
     c.setStrokeColor(BLUE); c.circle(cx,cy,r,stroke=1,fill=0)
     arrow(c,cx-r-25,cy,cx+r+35,cy,BLACK,0.9); arrow(c,cx,cy-r-24,cx,cy+r+26,BLACK,0.9)
@@ -217,14 +224,15 @@ def zero_plane(doc):
     for px,py,lab in pts:
         xx=cx+px*r; yy=cy+py*r
         c.setFillColor(RED if abs(px)>1 or abs(py)>1 else BLACK); c.circle(xx,yy,3,stroke=0,fill=1)
-    draw_math_at(c,r'\{1,0.5,0.5e^{\pm j\pi/4}\}\Rightarrow\{2e^{\pm j\pi/4}\}',MARGIN_X+30,top-125,250,28,13,name='zeros_set')
+    draw_math_at(c,r'\{1,0.5,0.5e^{\pm j\frac{\pi}{4}}\}\Rightarrow\{2e^{\pm j\frac{\pi}{4}}\}',MARGIN_X+30,top-125,250,28,13,name='zeros_set')
     doc.y=top-h
 
 def sampled_response(doc):
     h=155
     doc.ensure(h+8)
     c=doc.c; top=doc.y
-    c.setFont('CNB',10); c.setFillColor(BLUE_DARK); c.drawString(MARGIN_X,top-6,'频率采样例题：N=33 的低通采样')
+    c.setFont('CNB',10); c.setFillColor(BLUE_DARK)
+    draw_auto_math_text(c,MARGIN_X,top-6,'频率采样例题：N=33 的低通采样',font='CNB',size=10,color=BLUE_DARK)
     x=MARGIN_X+75; y=top-92; w=380; hh=58
     mini_axis(c,x,y,w,hh,'H_k',[(0,'0'),(8/33,'8'),(9/33,'9'),(16/33,'16'),(25/33,'25'),(32/33,'32')],[],red=True)
     c.setStrokeColor(BLUE); c.setFillColor(colors.Color(0.55,0.75,1,alpha=0.6))
@@ -287,7 +295,10 @@ def draw_window_six_diagrams(doc):
         arrow(c, x0, cy, x0 + w, cy, BLACK, 0.9)
         arrow(c, x0 + w / 2, cy - 35, x0 + w / 2, cy + 48, BLACK, 0.9)
         c.setFont('CN', 8.2); c.setFillColor(TEXT)
-        c.drawString(x0 + 4, cy + 51, lt)
+        draw_auto_math_text(
+            c, x0 + 4, cy + 51, lt, font='CN', size=8.2,
+            color=TEXT, math_size=10.5, math_height=14,
+        )
         for k in range(-6, 7):
             xx = x0 + w / 2 + k * 13
             if row == 0:
@@ -303,7 +314,10 @@ def draw_window_six_diagrams(doc):
         rx = right + 10; rw = 190
         arrow(c, rx, cy, rx + rw, cy, BLACK, 0.9)
         arrow(c, rx + rw / 2, cy - 32, rx + rw / 2, cy + 48, BLACK, 0.9)
-        c.drawString(rx + 4, cy + 51, rt)
+        draw_auto_math_text(
+            c, rx + 4, cy + 51, rt, font='CN', size=8.2,
+            color=TEXT, math_size=10.5, math_height=14,
+        )
         c.setStrokeColor(RED); c.setLineWidth(1.3)
         if row == 0:
             c.line(rx + 14, cy + 31, rx + 76, cy + 31); c.line(rx + 76, cy + 31, rx + 76, cy)
@@ -324,7 +338,8 @@ def draw_gibbs_page(doc):
     arrow(c, x, y, x + w, y, BLACK, 1.0)
     arrow(c, x + w * 0.52, y - 18, x + w * 0.52, y + h, BLACK, 1.0)
     c.setFont('CN', 8.5); c.setFillColor(TEXT)
-    c.drawString(x + w + 4, y - 3, 'ω'); c.drawString(x + w * 0.52 + 5, y + h - 2, '|H(ω)|')
+    c.drawString(x + w + 4, y - 3, 'ω')
+    draw_auto_math_text(c,x+w*0.52+5,y+h-2,'|H(ω)|',font='CN',size=8.5)
     pts=[]
     for i in range(160):
         t=-4.2+8.4*i/159
@@ -391,7 +406,11 @@ def fir_chapter_map(doc):
         yy=by-36
         c.setFont('CN',8.3); c.setFillColor(TEXT)
         for item in items:
-            c.drawCentredString(bx,yy,item); yy-=15
+            draw_auto_math_text(
+                c, bx, yy, item, font='CN', size=8.3, color=TEXT,
+                align='center', math_size=10.2, math_height=13,
+            )
+            yy-=15
     doc.y=top-500
 
 
@@ -474,7 +493,7 @@ def draw_source_390_397(doc):
     doc.new_page(); doc.h2('6.5.3 利用频率采样法设计 FIR 滤波器')
     doc.h3('1. 基本思想')
     doc.p('在 0 到 2π 之间等间隔采样 N 点，得到 H_d(k)，再作 N 点 IDFT 得到 h(n)。')
-    draw_formula_block(doc,r'H(k)=H_d(e^{j\omega})\mid_{\omega=2\pi k/N},\quad k=0,1,\ldots,N-1', 'source390_sample', fontsize=15, max_h=42)
+    draw_formula_block(doc,r'H(k)=H_d(e^{j\omega})\mid_{\omega=\frac{2\pi k}{N}},\quad k=0,1,\ldots,N-1', 'source390_sample', fontsize=15, max_h=42)
     draw_formula_block(doc,r'h(n)=\frac{1}{N}\sum_{k=0}^{N-1}H(k)W_N^{-kn},\quad n=0,1,\ldots,N-1', 'source390_idft', fontsize=15, max_h=42)
     sampling_structure(doc)
     doc.new_page(); draw_sampling_constraints(doc)

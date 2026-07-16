@@ -15,6 +15,7 @@ from make_dsp_sample_handout_v2 import (
     MARGIN_X,
     OUT_DIR,
     TEXT,
+    draw_auto_math_block,
     draw_discrete_axes_plot,
     formula_png,
     register_fonts,
@@ -85,15 +86,19 @@ def draw_property(doc, label, formulas, max_h=24, gap=8):
 def draw_red_text(doc, text, size=9.4, leading=17):
     lines = wrap(text, CONTENT_W, "CNB", size)
     doc.ensure(len(lines) * leading + 8)
-    c = doc.c
-    c.setFillColor(colors.HexColor("#D71920"))
-    c.setFont("CNB", size)
-    y = doc.y
-    for line in lines:
-        c.drawString(MARGIN_X, y - leading, line)
-        y -= leading
-    c.setFillColor(TEXT)
-    doc.y = y - 14
+    bottom = draw_auto_math_block(
+        doc.c,
+        MARGIN_X,
+        doc.y + size - leading,
+        text,
+        CONTENT_W,
+        font="CNB",
+        size=size,
+        leading=leading,
+        color=colors.HexColor("#D71920"),
+    )
+    doc.c.setFillColor(TEXT)
+    doc.y = bottom + leading - size - 14
 
 
 def draw_formula_table(doc, headers, rows, col_widths, row_h=42):

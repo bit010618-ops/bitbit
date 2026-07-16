@@ -16,6 +16,7 @@ from make_dsp_sample_handout_v2 import (
     OUT_DIR,
     PAGE_W,
     TEXT,
+    draw_auto_math_text,
     formula_png,
     piecewise_png,
     register_fonts,
@@ -51,15 +52,15 @@ def para_red(doc, parts, size=9.4, leading=16):
             fill = colors.HexColor("#7B3FC6")
         else:
             fill = TEXT
-        c.setFont(font, size)
-        c.setFillColor(fill)
-        for ch in text:
-            w = c.stringWidth(ch, font, size)
-            if x + w > MARGIN_X + CONTENT_W:
+        for line in wrap(text, MARGIN_X + CONTENT_W - x, font, size):
+            width = draw_auto_math_text(
+                c, x, y, line,
+                font=font, size=size, color=fill,
+            )
+            x += width
+            if x >= MARGIN_X + CONTENT_W - 2:
                 x = MARGIN_X
                 y -= line_h
-            c.drawString(x, y, ch)
-            x += w
     doc.y = y - line_h - 5
     c.setFillColor(TEXT)
 
@@ -162,18 +163,25 @@ def draw_unit_circle(doc, zeros=None, poles=None, caption="", w=165, h=120):
         if label:
             c.setFillColor(colors.black)
             label_y = py - 10 if label == "-ω0" else py + 4
-            c.drawString(px + 5, label_y, label)
+            draw_auto_math_text(
+                c, px + 5, label_y, label,
+                font="CN", size=8.2, color=colors.black,
+            )
     for ang, rad, label in poles:
         px = cx + r * rad * math.cos(ang)
         py = cy + r * rad * math.sin(ang)
         c.setFillColor(colors.black)
         c.circle(px, py, 3, stroke=1, fill=1)
         if label:
-            c.drawString(px + 5, py + 4, label)
+            draw_auto_math_text(
+                c, px + 5, py + 4, label,
+                font="CN", size=8.2, color=colors.black,
+            )
     if caption:
-        c.setFont("CN", 8.6)
-        c.setFillColor(TEXT)
-        c.drawCentredString(cx, cy - r - 28, caption)
+        draw_auto_math_text(
+            c, cx, cy - r - 28, caption,
+            font="CN", size=8.6, color=TEXT, align="center",
+        )
     doc.y -= h + 42
 
 
@@ -296,7 +304,7 @@ def draw_comb_diagrams(doc):
     c.setFont("CN", 8.2)
     c.drawString(cx + r + 30, cy - 4, "Re[z]")
     c.drawString(cx + 4, cy + r + 24, "j Im[z]")
-    c.drawCentredString(cx, cy - r - 18, "N=8")
+    draw_auto_math_text(c, cx, cy - r - 18, "N=8", font="CN", size=8.2, align="center")
     # Comb response.
     x1 = MARGIN_X + 285
     by = y0 - 102
@@ -308,7 +316,7 @@ def draw_comb_diagrams(doc):
     c.setFillColor(colors.black)
     c.setFont("CN", 8.2)
     c.drawString(x1 + 250, by - 4, "ω")
-    c.drawString(x1 + 5, by + 90, "|H(e^{jω})|")
+    draw_auto_math_text(c, x1 + 5, by + 90, "|H(e^{jω})|", font="CN", size=8.2)
     c.drawCentredString(x1, by - 12, "0")
     c.drawCentredString(x1 + 122, by - 12, "π")
     c.drawCentredString(x1 + 235, by - 12, "2π")
@@ -383,7 +391,10 @@ def draw_strip_mapping(doc):
     c.setFillColor(colors.black)
     c.setFont("CN", 8.2)
     for yy, lab in [(y - 18, "π/T"), (y - 50, "0"), (y - 82, "-π/T")]:
-        c.drawString(x0 + 8, yy, lab)
+        draw_auto_math_text(
+            c, x0 + 8, yy, lab, font="CN", size=8.2,
+            color=colors.black, math_size=10.5, math_height=13,
+        )
     c.drawCentredString(x0 + 7, y - 105, "s 平面水平条带")
     # z rectangle.
     x1 = MARGIN_X + 300
@@ -485,7 +496,7 @@ def build_pdf():
     comb_zeros = f("comb_zeros", r"z^N=1=e^{j2\pi k}\Rightarrow z=e^{j\frac{2\pi}{N}k},\quad k=0,1,\ldots,N-1", 13, "#D71920")
     ex3_q = f("ex3_q", r"y(n)=x(n)-x(n-2)", 15)
     ex3_h = f("ex3_h", r"H(z)=\frac{Y(z)}{X(z)}=1-z^{-2},\quad h(n)=\{1,0,-1\}", 14)
-    ex3_freq = f("ex3_freq", r"H(e^{j\omega})=e^{-j\omega}[2j\sin\omega]=e^{j(-\omega+\pi/2)}[2\sin\omega]", 13)
+    ex3_freq = f("ex3_freq", r"H(e^{j\omega})=e^{-j\omega}[2j\sin\omega]=e^{j(-\omega+\frac{\pi}{2})}[2\sin\omega]", 13)
     ex3_out = f("ex3_out", r"x(n)=1+2(-1)^n+\cos(0.5\pi n)\Rightarrow y(n)=2\cos(0.5\pi n)", 13)
 
     # s/z and filter design.

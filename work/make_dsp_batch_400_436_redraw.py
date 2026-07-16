@@ -11,6 +11,7 @@ from make_dsp_batch_266_300_redraw import (
     RED, PALE_BLUE, YELLOW, draw_math_at, draw_formula_block,
     draw_note, arrow, dot, wrap, draw_centered_multiline_text
 )
+from make_dsp_sample_handout_v2 import draw_auto_math_block, draw_auto_math_text
 
 OUT_DIR=ROOT/'outputs'
 PDF_PATH=OUT_DIR/'DSP讲义重制_第十三批_原PPT400-436页_多采样率数字信号处理_手绘复刻版.pdf'
@@ -25,10 +26,11 @@ CYAN=colors.HexColor('#DFF7FF')
 def red_line(doc,text,size=9.2,leading=14):
     lines=wrap(text,CONTENT_W,'CNB',size)
     doc.ensure(len(lines)*leading+4)
-    c=doc.c; c.setFont('CNB',size); c.setFillColor(RED)
-    for line in lines:
-        c.drawString(MARGIN_X,doc.y,line); doc.y-=leading
-    doc.y-=3
+    bottom=draw_auto_math_block(
+        doc.c,MARGIN_X,doc.y+size,text,CONTENT_W,
+        font='CNB',size=size,leading=leading,color=RED,
+    )
+    doc.y=bottom-size-3
 
 
 def blue_label(doc,text):
@@ -54,7 +56,7 @@ def tdm_rate_block_geometry():
 
 def system_chain(doc,title,labels,colors_fill=None):
     h=95; doc.ensure(h+8); c=doc.c; top=doc.y
-    c.setFont('CNB',10); c.setFillColor(BLUE_DARK); c.drawString(MARGIN_X,top-6,title)
+    draw_auto_math_text(c,MARGIN_X,top-6,title,font='CNB',size=10,color=BLUE_DARK)
     x=MARGIN_X+40; y=top-50
     colors_fill=colors_fill or [None]*len(labels)
     draw_math_at(c,r'x(n)',x-42,y+7,38,16,11,name=title+'x')
@@ -108,9 +110,12 @@ def spectrum_axis(c,x,y,w,h,label='',peaks=None,color=RED):
     for pos,txt in [(0,'-π'),(.25,'-π/2'),(.5,'0'),(.75,'π/2'),(1,'π')]:
         xx=x+w*pos; c.line(xx,y-3,xx,y+3)
         if txt == '0':
-            c.drawRightString(xx-5,y-14,txt)
+            draw_auto_math_text(c,xx-5,y-14,txt,font='CN',size=7.2,color=BLACK,align='right')
         else:
-            c.drawCentredString(xx,y-12,txt)
+            draw_auto_math_text(
+                c,xx,y-12,txt,font='CN',size=7.2,color=BLACK,
+                align='center',math_size=9.3,math_height=13,
+            )
     peaks=peaks or [(.5,1.0)]
     c.setStrokeColor(color); c.setLineWidth(1.2)
     for pos,amp in peaks:
@@ -134,7 +139,7 @@ def freq_replicas(doc,title='频谱重复与混叠示意',mode='dec'):
 
 def decimation_derivation(doc):
     draw_formula_block(doc,r'x_d(n)=x(nM),\qquad F_d=\frac{F_x}{M},\qquad T_d=MT','dec_time',fontsize=15,max_h=38)
-    draw_formula_block(doc,r'X_d(e^{j\omega})=\frac{1}{M}\sum_{i=0}^{M-1}X(e^{j(\omega-2\pi i)/M})','dec_freq',fontsize=15,max_h=45)
+    draw_formula_block(doc,r'X_d(e^{j\omega})=\frac{1}{M}\sum_{i=0}^{M-1}X(e^{j\frac{\omega-2\pi i}{M}})','dec_freq',fontsize=15,max_h=45)
     red_line(doc,'抽取会压缩并叠加频谱；若原信号不先限带，就会产生频谱混叠。')
 
 
@@ -149,21 +154,21 @@ def decimation_full_derivation(doc):
     )
     draw_formula_block(
         doc,
-        r'X_d(e^{j\omega})=\frac{1}{M}\sum_{i=0}^{M-1}X(e^{j(\omega-2\pi i)/M})',
+        r'X_d(e^{j\omega})=\frac{1}{M}\sum_{i=0}^{M-1}X(e^{j\frac{\omega-2\pi i}{M}})',
         'dec_full_result', fontsize=17, max_h=46
     )
     doc.p('因此，抽取后的频谱由原频谱压缩 M 倍后平移叠加得到。各平移分量若相互重叠，就会产生不可逆的混叠。')
     doc.h3('M=2 的特例')
     draw_formula_block(
         doc,
-        r'X_d(e^{j\omega})=\frac{1}{2}\left[X(e^{j\omega/2})+X(e^{j(\omega/2-\pi)})\right]',
+        r'X_d(e^{j\omega})=\frac{1}{2}\left[X(e^{j\frac{\omega}{2}})+X(e^{j(\frac{\omega}{2}-\pi)})\right]',
         'dec_m2_case', fontsize=16, max_h=48
     )
     red_line(doc,'无混叠条件：抽取前应限制原信号带宽，使 |ω|≤π/M。')
 
 
 def interpolation_derivation(doc):
-    draw_formula_block(doc,r'x_p(n)=x(n/L),\quad n=0,\pm L,\pm 2L,\ldots','interp_piece',fontsize=14,max_h=34)
+    draw_formula_block(doc,r'x_p(n)=x(\frac{n}{L}),\quad n=0,\pm L,\pm 2L,\ldots','interp_piece',fontsize=14,max_h=34)
     doc.p('其余整数 n 处取值均为 0。')
     draw_formula_block(doc,r'X_p(e^{j\omega})=X(e^{j\omega L})','interp_freq',fontsize=18,max_h=36)
     red_line(doc,'内插使采样率提高，同时在频域产生 L-1 个镜像谱，必须接低通内插滤波器去除镜像。')
@@ -400,7 +405,8 @@ def draw_multistage_factorization_page(doc):
 
 def lm_conversion(doc):
     h=200; doc.ensure(h+8); c=doc.c; top=doc.y
-    c.setFont('CNB',10); c.setFillColor(BLUE_DARK); c.drawString(MARGIN_X,top-6,'L/M 倍采样率转换结构')
+    c.setFont('CNB',10); c.setFillColor(BLUE_DARK)
+    draw_auto_math_text(c,MARGIN_X,top-6,'L/M 倍采样率转换结构',font='CNB',size=10,color=BLUE_DARK)
     x=MARGIN_X+35; y=top-70
     draw_math_at(c,r'x(n)',x-35,y+7,35,16,11,name='lm_x')
     for i,lab in enumerate(['↑L','h(n)','↓M']):
@@ -458,21 +464,19 @@ def _stem_envelope(c, x, y, w, h, sample_count, keep_every=1, label=''):
         c.line(x1, y1, x2, y2)
     c.setDash()
     if label:
-        c.setFillColor(TEXT)
-        c.setFont('CNB', 8.5)
-        c.drawString(x + 3, y + h + 14, label)
+        draw_auto_math_text(
+            c, x + 3, y + h + 14, label, font='CNB', size=8.5,
+            color=TEXT, math_size=10.5, math_height=14,
+        )
 
 
 def _draw_spectrum_title(c, x, y, w, h, title):
     if not title:
         return
-    if title.isascii() and any(token in title for token in ('\\', '^', '_', '{')):
-        key = sum((i + 1) * ord(ch) for i, ch in enumerate(title))
-        draw_math_at(c, title, x + 3, y + h + 14, w * 0.72, 17, 10.2, name=f'spectrum_title_{key}')
-    else:
-        c.setFillColor(TEXT)
-        c.setFont('CNB', 8.4)
-        c.drawString(x + 3, y + h + 14, title)
+    draw_auto_math_text(
+        c, x + 3, y + h + 14, title, font='CNB', size=8.4,
+        color=TEXT, math_size=10.5, math_height=14,
+    )
 
 
 def _triangle_spectrum(c, x, y, w, h, centers, half_width, labels=(), title=''):
@@ -489,10 +493,12 @@ def _triangle_spectrum(c, x, y, w, h, centers, half_width, labels=(), title=''):
         hw = half_width * w
         c.line(cx - hw, y, cx, y + h * amp)
         c.line(cx, y + h * amp, cx + hw, y)
-    c.setFillColor(TEXT)
-    c.setFont('CN', 7.2)
     for rel, text in labels:
-        c.drawCentredString(x + w / 2 + rel * w, y - 12, text)
+        draw_auto_math_text(
+            c, x + w / 2 + rel * w, y - 12, text,
+            font='CN', size=7.2, color=TEXT, align='center',
+            math_size=9.3, math_height=13,
+        )
     _draw_spectrum_title(c, x, y, w, h, title)
 
 
@@ -565,7 +571,7 @@ def draw_decimation_spectral_construction_page(doc):
     )
     c.setFillColor(RED)
     c.setFont('CNB', 9.2)
-    c.drawString(MARGIN_X + 30, top - 520, '无混叠条件：抽取前原序列必须限带到 |ω|≤π/M。')
+    draw_auto_math_text(c,MARGIN_X+30,top-520,'无混叠条件：抽取前原序列必须限带到 |ω|≤π/M。',font='CNB',size=9.2,color=RED)
     doc.y = 78
 
 
@@ -894,16 +900,27 @@ def triangle_spectrum(c, x, y, w, h, label, half_band='π/3', peaks=(0.5,)):
     c.setFillColor(TEXT)
     c.setFont('CN', 7.5)
     c.drawString(x + w + 3, y - 2, 'ω')
-    c.drawCentredString(x + w / 2, y - 26, label)
+    draw_auto_math_text(
+        c, x + w / 2, y - 26, label, font='CN', size=7.5,
+        color=TEXT, align='center', math_size=10, math_height=14,
+    )
     for peak in peaks:
         center = x + w * peak
         half = w * 0.11
         c.line(center - half, y, center, y + h)
         c.line(center, y + h, center + half, y)
     center = x + w / 2
-    c.drawCentredString(center - w * 0.11, y - 13, '-' + half_band)
-    c.drawCentredString(center, y - 13, '0')
-    c.drawCentredString(center + w * 0.11, y - 13, half_band)
+    draw_auto_math_text(
+        c, center - w * 0.11, y - 13, '-' + half_band,
+        font='CN', size=7.5, color=TEXT, align='center',
+        math_size=9.5, math_height=13,
+    )
+    draw_auto_math_text(c, center, y - 13, '0', font='CN', size=7.5, color=TEXT, align='center')
+    draw_auto_math_text(
+        c, center + w * 0.11, y - 13, half_band,
+        font='CN', size=7.5, color=TEXT, align='center',
+        math_size=9.5, math_height=13,
+    )
 
 
 def draw_up2_filter_down2_spectra_page(doc):
@@ -944,7 +961,7 @@ def draw_up2_filter_down2_spectra_page(doc):
     )
     c.setFillColor(RED)
     c.setFont('CNB', 9.2)
-    c.drawString(MARGIN_X + 38, top - 395, '等效系统：截止频率为 π/2，增益为 1 的低通滤波器。')
+    draw_auto_math_text(c,MARGIN_X+38,top-395,'等效系统：截止频率为 π/2，增益为 1 的低通滤波器。',font='CNB',size=9.2,color=RED)
     doc.y = 78
 
 
@@ -969,7 +986,7 @@ def source_exercises_and_answers(doc):
     doc.h2('课后题与答案')
     doc.h3('第 2 题  D=2 直接抽取')
     doc.p('信号 x(n) 的频谱支撑区间为 |ω|≤π/3。按因子 D=2 直接抽取，得到 y(m)=x(2m)。画出 y(m) 的频谱，并判断是否丢失信息。')
-    draw_formula_block(doc, r'y(m)=x(2m),\qquad Y(e^{j\omega})=\frac{1}{2}\left[X(e^{j\omega/2})+X(e^{j(\omega/2-\pi)})\right]', 'exercise_d2', fontsize=14, max_h=44)
+    draw_formula_block(doc, r'y(m)=x(2m),\qquad Y(e^{j\omega})=\frac{1}{2}\left[X(e^{j\frac{\omega}{2}})+X(e^{j(\frac{\omega}{2}-\pi)})\right]', 'exercise_d2', fontsize=14, max_h=44)
     c = doc.c
     top = doc.y
     triangle_spectrum(c, MARGIN_X + 40, top - 55, 210, 42, '输入频谱 X(e^{jω})', 'π/3')

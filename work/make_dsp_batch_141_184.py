@@ -16,6 +16,8 @@ from make_dsp_sample_handout_v2 import (
     OUT_DIR,
     TEXT,
     formula_png,
+    draw_rich_text,
+    layout_rich_runs,
     piecewise_png,
     register_fonts,
     wrap,
@@ -111,6 +113,45 @@ def draw_section_box(doc, title, lines, red_title=False):
             c.drawString(x + 12, yy, line)
             yy -= 14
     doc.y = y - 12
+
+
+def draw_rich_section_box(doc, title, lines, red_title=False):
+    layouts = [
+        layout_rich_runs(runs, CONTENT_W - 24, font="CN", size=9.1, leading=14)
+        for runs in lines
+    ]
+    body_h = sum(sum(heights) for _, heights in layouts)
+    h = 40 + body_h
+    doc.ensure(h + 10)
+    c = doc.c
+    x = MARGIN_X
+    y = doc.y - h
+    c.setStrokeColor(colors.HexColor("#A5D4FF"))
+    c.setFillColor(colors.HexColor("#F3FAFF"))
+    c.roundRect(x, y, CONTENT_W, h, 4, stroke=1, fill=1)
+    c.setFont("CNB", 9.8)
+    c.setFillColor(colors.HexColor("#D71920") if red_title else BLUE_DARK)
+    c.drawString(x + 12, y + h - 20, title)
+    yy = y + h - 30
+    for runs, (_, heights) in zip(lines, layouts):
+        yy = draw_rich_text(
+            c, x + 12, yy, runs, CONTENT_W - 24,
+            font="CN", size=9.1, leading=14, color=TEXT,
+        )
+    doc.y = y - 12
+
+
+def draw_rich_red_text(doc, runs, size=9.4, leading=17):
+    _, heights = layout_rich_runs(
+        runs, CONTENT_W, font="CNB", size=size, leading=leading,
+        color="#D71920",
+    )
+    doc.ensure(sum(heights) + 8)
+    doc.y = draw_rich_text(
+        doc.c, MARGIN_X, doc.y, runs, CONTENT_W,
+        font="CNB", size=size, leading=leading,
+        color=colors.HexColor("#D71920"),
+    ) - 14
 
 
 def draw_formula_list(doc, items, max_h=30):
@@ -467,23 +508,23 @@ def draw_dfs_section(doc):
         ],
         max_h=36,
     )
-    draw_section_box(
+    draw_rich_section_box(
         doc,
         "DTFT 与 DFS 的视觉关系",
         [
-            "非周期离散序列 x(n) 的 DTFT 是频域连续且以 2π 为周期的 X(e^{jω})。",
-            "把 x(n) 以 N 为周期延拓得到周期序列后，频域只需在一周期内取 N 个等间隔样本；采样关系为 ω/(2π)=k/N。",
-            "讲义重排时用结构图保留原页含义：时间域从非周期到周期，频域从连续周期谱到离散 DFS 样本。",
+            [("text", "非周期离散序列 "), ("math", r"x(n)"), ("text", " 的 DTFT 是频域连续且以 "), ("math", r"2\pi"), ("text", " 为周期的 "), ("math", r"X(e^{j\omega})"), ("text", "。")],
+            [("text", "把 "), ("math", r"x(n)"), ("text", " 以 "), ("math", r"N"), ("text", " 为周期延拓得到周期序列后，频域只需在一周期内取 "), ("math", r"N"), ("text", " 个等间隔样本；采样关系为 "), ("math", r"\frac{\omega}{2\pi}=\frac{k}{N}"), ("text", "。")],
+            [("text", "讲义重排时用结构图保留原页含义：时间域从非周期到周期，频域从连续周期谱到离散 DFS 样本。")],
         ],
     )
     draw_dfs_relation_map(doc)
-    doc.h2("例 1  求 R_4(n) 周期延拓后的 DFS")
-    doc.p("把实序列 x(n)=R_4(n) 以 N=8 周期延拓，求一周期内的 DFS 系数。")
+    doc.rich_h2([("text", "例 1  求 "), ("math", r"R_4(n)"), ("text", " 周期延拓后的 DFS")])
+    doc.rich_p([("text", "把实序列 "), ("math", r"x(n)=R_4(n)"), ("text", " 以 "), ("math", r"N=8"), ("text", " 周期延拓，求一周期内的 DFS 系数。")])
     draw_formula_center(doc, f("dfs_ex_sum", r"\tilde{X}(k)=\sum_{n=0}^{7}R_4(n)W_8^{kn}=\sum_{n=0}^{3}W_8^{kn}=1+W_8^k+W_8^{2k}+W_8^{3k}", 12.5), max_h=32)
-    doc.bullet([
-        "X(0)=4，X(2)=X(4)=X(6)=0。",
-        "X(1)=1-j(√2+1)，X(3)=1-j(√2-1)。",
-        "X(5)=1+j(√2-1)，X(7)=1+j(√2+1)。",
+    doc.rich_bullet([
+        [("math", r"X(0)=4,\quad X(2)=X(4)=X(6)=0")],
+        [("math", r"X(1)=1-j(\sqrt{2}+1),\quad X(3)=1-j(\sqrt{2}-1)")],
+        [("math", r"X(5)=1+j(\sqrt{2}-1),\quad X(7)=1+j(\sqrt{2}+1)")],
     ])
     doc.h2("3.1.2 DFS 性质")
     draw_red_text(doc, "因为 DFS 可由 z 变换解释，故 DFS 许多性质与 z 变换相似。")
@@ -512,7 +553,7 @@ def draw_dft_definition_examples(doc):
     draw_formula_center(doc, piecewise_png("b141_even_piece", r"x(n)=", r"1,\ n=0,2,\cdots,N-2", r"0,\ n=1,3,\cdots,N-1", fontsize=15), max_h=40)
     draw_formula_center(doc, f("dft_ex2_direct", r"X(k)=\sum_{n=0}^{N-1}[\delta(n)+\delta(n-n_0)]W_N^{kn}=W_N^{0k}+W_N^{n_0k}=1+W_N^{n_0k}", 12), max_h=30)
     draw_formula_center(doc, f("dft_ex2_z", r"X(z)=1+z^{-n_0},\qquad X(k)=X(z)|_{z=e^{j\frac{2\pi}{N}k}}=1+e^{-j\frac{2\pi}{N}kn_0}", 12), max_h=34)
-    draw_formula_center(doc, f("dft_ex2_even", r"X(k)=\sum_{r=0}^{N/2-1}W_N^{2rk}=\frac{1-W_N^{kN}}{1-W_N^{2k}}", 13), max_h=28)
+    draw_formula_center(doc, f("dft_ex2_even", r"X(k)=\sum_{r=0}^{\frac{N}{2}-1}W_N^{2rk}=\frac{1-W_N^{kN}}{1-W_N^{2k}}", 13), max_h=28)
     draw_formula_center(doc, piecewise_png("b141_even_result", r"X(k)=", r"\frac{N}{2},\ k=0,\frac{N}{2}", r"0,\ k\ne0,\frac{N}{2}", fontsize=16), max_h=42)
     doc.h2("例 3  已知 DFT 求反变换")
     draw_formula_row(doc, [f("idft_delta", r"X(k)=\delta(k)", 14), f("idft_rect", r"X(k)=R_N(k)", 14)], max_h=23)
@@ -529,7 +570,7 @@ def draw_circular_shift(doc):
         "最后截取一个主值区间，得到循环移位后的有限长序列。",
     ])
     doc.h2("例 4  循环移位")
-    doc.p("已知 x(n)={1,2,3,4}，长度不足 8 点时先补零到 N 点。下列序列中，下划线项表示 n=0。")
+    doc.rich_p([("text", "已知 "), ("math", r"x(n)=\{1,2,3,4\}"), ("text", "，长度不足 8 点时先补零到 "), ("math", r"N"), ("text", " 点。下列序列中，下划线项表示 "), ("math", r"n=0"), ("text", "。")])
     rows = [
         f("circ_r1", r"x((n+2))_8R_8(n)=\{\underline{3},4,0,0,0,0,1,2\}", 12.5),
         f("circ_r2", r"x((n-2))_8R_8(n)=\{\underline{0},0,1,2,3,4,0,0\}", 12.5),
@@ -554,7 +595,7 @@ def draw_dft_properties(doc):
     draw_red_text(doc, "牢记下面两个等式：")
     draw_formula_center(doc, f("dft_zw_note", r"z=e^{j\omega},\qquad \omega=\frac{2\pi}{N}k", 14), max_h=24, gap=8)
     doc.h2("例 5  频域乘子对应循环移位")
-    doc.p("若 X(k) 是序列 x(n) 的 4 点 DFT，且 x(n)={1, 3/4, 1/2, 1/4}，求 y(n)。")
+    doc.rich_p([("text", "若 "), ("math", r"X(k)"), ("text", " 是序列 "), ("math", r"x(n)"), ("text", " 的 4 点 DFT，且 "), ("math", r"x(n)=\{1,\frac{3}{4},\frac{1}{2},\frac{1}{4}\}"), ("text", "，求 "), ("math", r"y(n)"), ("text", "。")])
     draw_formula_center(doc, f("ex_freqshift_given", r"Y(k)=W_4^{3k}X(k)", 14), max_h=22, gap=8)
     draw_formula_center(doc, f("ex_freqshift_derive", r"Y(k)=W_4^{3k}X(k)=e^{-j\frac{2\pi}{4}k3}X(k)\Rightarrow y(n)=x((n-3))_4R_4(n)=x((n+1))_4R_4(n)", 11.5), max_h=36)
     draw_formula_center(doc, f("ex_freqshift_ans", r"y(n)=\{\underline{\frac{3}{4}},\frac{1}{2},\frac{1}{4},1\}", 13), max_h=24)
@@ -579,10 +620,10 @@ def draw_dft_properties(doc):
             "序列的圆周共轭对称分量对应频域实部，圆周共轭反对称分量对应频域虚部。",
         ],
     )
-    draw_red_text(doc, "特别地，若 x(n) 为实序列，则 DFT 结果具有圆周共轭对称性。")
+    draw_rich_red_text(doc, [("text", "特别地，若 "), ("math", r"x(n)"), ("text", " 为实序列，则 DFT 结果具有圆周共轭对称性。")])
     draw_formula_center(doc, f("real_conj_note", r"X(k)=X^*(N-k),\qquad |X(k)|=|X(N-k)|,\qquad \theta(k)=-\theta(N-k)", 12.8), max_h=26, gap=8)
     doc.h2("例 6  共轭对称求实部对应序列")
-    doc.p("已知有限长序列 x(n)={1,2,3,4}，其 6 点 DFT 为 X(k)。序列 y(n) 的 6 点 DFT 为 Y(k)，且 Y(k)=Re[X(k)]，求 y(n)")
+    doc.rich_p([("text", "已知有限长序列 "), ("math", r"x(n)=\{1,2,3,4\}"), ("text", "，其 6 点 DFT 为 "), ("math", r"X(k)"), ("text", "。序列 "), ("math", r"y(n)"), ("text", " 的 6 点 DFT 为 "), ("math", r"Y(k)"), ("text", "，且 "), ("math", r"Y(k)=\operatorname{Re}[X(k)]"), ("text", "，求 "), ("math", r"y(n)"), ("text", "。")])
     draw_formula_center(doc, f("conj_ex1", r"y(n)=x_{ep}(n)=\frac{x(n)+x^*(N-n)}{2}=\{\underline{1},1,\frac{3}{2},4,\frac{3}{2},1\}", 12), max_h=32)
     draw_formula_center(doc, f("conj_ex2", r"x_e(n)=\frac{x(n)+x^*(-n)}{2}=\{\underline{2},\frac{3}{2},1,1,1,\frac{3}{2},2\},\quad y(n)=x_e((n))_6R_6(n)", 11.2), max_h=34)
     doc.h2("一次 DFT/IDFT 处理两个实序列")
@@ -596,7 +637,7 @@ def draw_dft_properties(doc):
         max_h=28,
     )
     draw_formula_center(doc, f("two_real_idft", r"Y(k)=X_1(k)+jX_2(k)\Rightarrow y(n)=IDFT[Y(k)]=x_1(n)+jx_2(n)", 12.5), max_h=28)
-    doc.p("因此，第一个实序列取 y(n) 的实部，第二个实序列取 y(n) 的虚部。")
+    doc.rich_p([("text", "因此，第一个实序列取 "), ("math", r"y(n)"), ("text", " 的实部，第二个实序列取 "), ("math", r"y(n)"), ("text", " 的虚部。")])
 
 
 def draw_common_pairs_and_relations(doc):
@@ -609,21 +650,21 @@ def draw_common_pairs_and_relations(doc):
     ]
     for path in pairs:
         draw_formula_left(doc, path, max_h=24, gap=8)
-    draw_red_text(doc, "助记：第三个式子时域为直流，说明频域上所有能量 N 都集中在 k=0 这条直流谱线上。")
+    draw_rich_red_text(doc, [("text", "助记：第三个式子时域为直流，说明频域上所有能量 "), ("math", r"N"), ("text", " 都集中在 "), ("math", r"k=0"), ("text", " 这条直流谱线上。")])
     doc.h2("例 7  由常用变换对求 DFT")
-    doc.p("求 x(n)=cos(3πn/5)sin(4πn/5) 的 10 点 DFT。")
+    doc.rich_p([("text", "求 "), ("math", r"x(n)=\cos\!\left(\frac{3\pi n}{5}\right)\sin\!\left(\frac{4\pi n}{5}\right)"), ("text", " 的 10 点 DFT。")])
     draw_formula_center(doc, f("cos_sin_expand", r"x(n)=\frac{1}{4j}\left(e^{j\frac{2\pi}{10}7n}+e^{j\frac{2\pi}{10}n}-e^{-j\frac{2\pi}{10}n}-e^{-j\frac{2\pi}{10}7n}\right)", 11.5), max_h=34)
     draw_formula_center(doc, f("cos_sin_ans", r"X(k)=\frac{5}{2j}\left[\delta(k-7)+\delta(k-1)-\delta(k-9)-\delta(k-3)\right],\quad k\in[0,9]", 12), max_h=32)
-    doc.h2("例 8  已知 8 点 DFT 反求 x(n)")
+    doc.rich_h2([("text", "例 8  已知 8 点 DFT 反求 "), ("math", r"x(n)")])
     draw_formula_center(doc, f("inv8_q", r"X(k)=1+2\sin(\frac{\pi k}{4})+3\cos(\frac{\pi k}{2})+4\sin(\frac{3\pi k}{4})", 13), max_h=28)
     draw_formula_center(doc, f("inv8_expand", r"X(k)=1-j[e^{j\frac{2\pi k}{8}}-e^{-j\frac{2\pi k}{8}}]+1.5[e^{j\frac{4\pi k}{8}}+e^{-j\frac{4\pi k}{8}}]-2j[e^{j\frac{6\pi k}{8}}-e^{-j\frac{6\pi k}{8}}]", 10.8), max_h=34)
     draw_formula_center(doc, f("inv8_ans", r"x(n)=[\underline{1},j,1.5,2j,0,-2j,1.5,-j]", 13), max_h=24)
     doc.h2("3.3 各种变换的关系")
     draw_red_text(doc, "DFS 和 DFT 的关系：DFT 由 DFS 导出。")
-    doc.bullet([
-        "对 x(n), 0<=n<=M-1，做 N 点 DFT(N>=M)。先作 N 点周期延拓得到周期序列，再在任意 N 周期内做 DFS，可得到与 DFT 主值相同的结果。",
-        "DFT 的处理可理解为先周期延拓，再做对应处理。",
-        "DFT 运算相当于周期延拓后取一个主值区间进行 DFS 运算，只是 k 有范围限制。",
+    doc.rich_bullet([
+        [("text", "对 "), ("math", r"x(n),\ 0\leq n\leq M-1"), ("text", "，做 "), ("math", r"N"), ("text", " 点 DFT（"), ("math", r"N\geq M"), ("text", "）。先作 "), ("math", r"N"), ("text", " 点周期延拓得到周期序列，再在任意 "), ("math", r"N"), ("text", " 周期内做 DFS，可得到与 DFT 主值相同的结果。")],
+        [("text", "DFT 的处理可理解为先周期延拓，再做对应处理。")],
+        [("text", "DFT 运算相当于周期延拓后取一个主值区间进行 DFS 运算，只是 "), ("math", r"k"), ("text", " 有范围限制。")],
     ])
     draw_red_text(doc, "DFT 和 DTFT、Z 变换的关系")
     draw_formula_list(
@@ -636,11 +677,11 @@ def draw_common_pairs_and_relations(doc):
         max_h=40,
     )
     draw_formula_center(doc, f("rel_sample", r"X(k)=X(e^{j\omega})|_{\omega=\frac{2\pi k}{N}}=X(z)|_{z=e^{j\frac{2\pi k}{N}}}", 14), max_h=34)
-    doc.p("序列的 DFT 是 DTFT 从 0 到 2π 以 2π/N 为间隔的等间隔采样，也是 z 变换单位圆上的 N 个抽样值。")
-    doc.h2("例 9  R_5(n) 的 DTFT 与 DFT 采样")
-    draw_formula_center(doc, f("r5_dtft", r"X(e^{j\omega})=\sum_{n=0}^{4}e^{-j\omega n}=\frac{1-e^{-j5\omega}}{1-e^{-j\omega}}=e^{-j2\omega}\frac{\sin(5\omega/2)}{\sin(\omega/2)}", 11.5), max_h=36)
+    doc.rich_p([("text", "序列的 DFT 是 DTFT 从 0 到 "), ("math", r"2\pi"), ("text", " 以 "), ("math", r"\frac{2\pi}{N}"), ("text", " 为间隔的等间隔采样，也是 "), ("math", r"z"), ("text", " 变换单位圆上的 "), ("math", r"N"), ("text", " 个抽样值。")])
+    doc.rich_h2([("text", "例 9  "), ("math", r"R_5(n)"), ("text", " 的 DTFT 与 DFT 采样")])
+    draw_formula_center(doc, f("r5_dtft", r"X(e^{j\omega})=\sum_{n=0}^{4}e^{-j\omega n}=\frac{1-e^{-j5\omega}}{1-e^{-j\omega}}=e^{-j2\omega}\frac{\sin(\frac{5\omega}{2})}{\sin(\frac{\omega}{2})}", 11.5), max_h=36)
     draw_formula_center(doc, piecewise_png("b141_r5_n5", r"X_5(k)=", r"5,\ k=0", r"0,\ k=1,2,3,4", fontsize=16), max_h=42)
-    draw_formula_center(doc, f("r5_n10", r"X_{10}(k)=e^{-j\frac{2\pi k}{5}}\frac{\sin(\pi k/2)}{\sin(\pi k/10)},\quad 0\leq k\leq 9", 13), max_h=28)
+    draw_formula_center(doc, f("r5_n10", r"X_{10}(k)=e^{-j\frac{2\pi k}{5}}\frac{\sin(\frac{\pi k}{2})}{\sin(\frac{\pi k}{10})},\quad 0\leq k\leq 9", 13), max_h=28)
 
 
 def draw_end_pages(doc):
@@ -655,13 +696,13 @@ def draw_end_pages(doc):
         ],
     )
     doc.h2("课后习题")
-    doc.bullet([
+    doc.rich_bullet([
         "3-1 求序列 DFT。",
-        "3-2 求 X(k)。其中修改(2)为下列分段式。",
+        [("text", "3-2 求 "), ("math", r"X(k)"), ("text", "。其中修改(2)为下列分段式。")],
     ])
     draw_formula_center(doc, piecewise_png("b141_hw_piece", r"X(k)=", r"-\frac{N}{2}je^{j\theta},\ k=m", r"\frac{N}{2}je^{-j\theta},\ k=N-m", fontsize=15), max_h=42)
-    doc.bullet([
-        "其余 k 时 X(k)=0。",
+    doc.rich_bullet([
+        [("text", "其余 "), ("math", r"k"), ("text", " 时 "), ("math", r"X(k)=0"), ("text", "。")],
         "3-15 实序列的 DFT 及 DFT 的性质。",
         "3-16 利用 DFT 的性质求 DFT。",
         "3-23 DFT 和 DTFT 的关系。",

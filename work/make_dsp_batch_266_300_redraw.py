@@ -20,7 +20,9 @@ from reportlab.pdfbase import pdfmetrics
 
 from make_dsp_sample_handout_v2 import (
     BLUE, BLUE_DARK, CONTENT_W, MARGIN_X, MUTED, TEXT, PAGE_H, PAGE_W,
-    Doc, register_fonts, wrap, centered_text_baselines, draw_centered_multiline_text,
+    Doc, register_fonts, wrap, centered_text_baselines, draw_auto_math_block,
+    draw_auto_math_text,
+    draw_centered_multiline_text,
 )
 
 plt.rcParams['mathtext.fontset'] = 'stix'
@@ -280,15 +282,17 @@ def draw_note(doc, title, lines):
     c.setStrokeColor(colors.HexColor('#A7D5FF'))
     c.setFillColor(PALE_BLUE)
     c.roundRect(MARGIN_X, y, CONTENT_W, h, 4, stroke=1, fill=1)
-    c.setFillColor(BLUE_DARK)
-    c.setFont('CNB', 10)
-    c.drawString(MARGIN_X + 12, y + h - 19, title)
-    c.setFillColor(TEXT)
-    c.setFont('CN', 9.2)
+    draw_auto_math_text(
+        c, MARGIN_X + 12, y + h - 19, title,
+        font='CNB', size=10, color=BLUE_DARK,
+    )
     yy = y + h - 37
     for ls in wrapped:
         for line in ls:
-            c.drawString(MARGIN_X + 12, yy, line)
+            draw_auto_math_block(
+                c, MARGIN_X + 12, yy + 9.2, line, CONTENT_W - 24,
+                font='CN', size=9.2, leading=14, color=TEXT,
+            )
             yy -= 14
     doc.y = y - 12
 
@@ -829,7 +833,11 @@ def draw_direct_ii_general(doc):
     c.setStrokeColor(TEXT)
     c.setFillColor(TEXT)
     c.setFont('CN', 10.5)
-    c.drawString(MARGIN_X, top - 16, '设 M=N=2，先交换直接 I 型前向、反馈两部分，再合并公共延时链得到直接 II 型。')
+    draw_auto_math_text(
+        c,MARGIN_X,top-16,
+        '设 M=N=2，先交换直接 I 型前向、反馈两部分，再合并公共延时链得到直接 II 型。',
+        font='CN',size=10.5,
+    )
 
     def dashed_rect(x, y, w, hh):
         c.setDash(4, 3)
@@ -962,7 +970,7 @@ def draw_filter_type_plots(doc):
         arrow(c,x,y,x+w,y,colors.HexColor('#163DFF'),1.1,5)
         arrow(c,center,y,center,y+39,colors.HexColor('#163DFF'),1.1,5)
         draw_math_at(c,r'|H(j\Omega)|',center+8,y+38,65,17,11,name=f'ideal_h_{kind}')
-        draw_math_at(c,r'\Omega(\mathrm{rad/s})',x+w+2,y-1,84,15,10,name=f'ideal_o_{kind}')
+        draw_math_at(c,r'\Omega(\mathrm{rad}\,\mathrm{s}^{-1})',x+w+2,y-1,84,15,10,name=f'ideal_o_{kind}')
         c.setStrokeColor(RED); c.setLineWidth(1.65)
         if kind=='低通':
             pts=[(x,y),(x+w*.30,y),(x+w*.30,y+28),(x+w*.70,y+28),(x+w*.70,y),(x+w,y)]
@@ -1222,7 +1230,7 @@ def draw_butterworth_response(doc):
     c.setFillColor(badge_40); c.setStrokeColor(badge_40); c.rect(x + 275, y + 16, 44, 20, stroke=1, fill=1)
     c.setFillColor(colors.white); c.setFont('CNB', 12); c.drawCentredString(x + 297, y + 21, '40dB')
     draw_math_at(c, r'|H_a(j\Omega)|', x - 50, y + hh + 8, 80, 20, 12, name='bw_y_label')
-    draw_math_at(c, r'\Omega(\mathrm{rad/s})', x + w + 8, y - 3, 72, 18, 11, name='bw_x_label')
+    draw_math_at(c, r'\Omega(\mathrm{rad}\,\mathrm{s}^{-1})', x + w + 8, y - 3, 72, 18, 11, name='bw_x_label')
     doc.y -= h
 
 
@@ -1650,7 +1658,7 @@ def draw_cascade_example(doc):
 def draw_parallel_example(doc):
     topology = cascade_parallel_source_topology()['example']
     doc.p('并联型把 H(z) 展开成部分分式，各分支输出相加。源课件给出的例题中，分解后各分支可以分别用一阶或二阶结构实现。')
-    draw_formula_block(doc, r'H(z)=\sum_{i=1}^{(N+1)/2}\frac{\beta_{0i}+\beta_{1i}z^{-1}}{1-\alpha_{1i}z^{-1}-\alpha_{2i}z^{-2}}+\sum_{i=0}^{M-N}G_i z^{-i}', 'parallel_formula_full', fontsize=13, max_h=56)
+    draw_formula_block(doc, r'H(z)=\sum_{i=1}^{\frac{N+1}{2}}\frac{\beta_{0i}+\beta_{1i}z^{-1}}{1-\alpha_{1i}z^{-1}-\alpha_{2i}z^{-2}}+\sum_{i=0}^{M-N}G_i z^{-i}', 'parallel_formula_full', fontsize=13, max_h=56)
     draw_formula_block(doc, r'y(n)=x(n)+\frac{1}{3}x(n-1)+\frac{3}{4}y(n-1)-\frac{1}{8}y(n-2)', 'parallel_diff_eq', fontsize=14, max_h=42)
     draw_formula_block(doc, r'H(z)=\frac{1+\frac{1}{3}z^{-1}}{1-\frac{3}{4}z^{-1}+\frac{1}{8}z^{-2}}=\frac{1+\frac{1}{3}z^{-1}}{(1-\frac{1}{2}z^{-1})(1-\frac{1}{4}z^{-1})}', 'parallel_decomp', fontsize=13, max_h=54)
     h = 210

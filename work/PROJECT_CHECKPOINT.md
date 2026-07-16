@@ -1,6 +1,6 @@
 # DSP Handout Project Checkpoint
 
-Last updated: 2026-07-15 16:08 +08:00
+Last updated: 2026-07-17 04:00 +08:00
 Branch: `main`
 Remote: `origin` -> `https://github.com/bit010618-ops/bitbit.git`
 Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
@@ -14,6 +14,13 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 5. Treat chat screenshots only as defect reports; use disk files and rendered output as the progress source of truth.
 
 ## Verified Work
+
+- The full-book mathematical rendering audit is clean across all 13 active generators: source scanner `0` findings.
+- All 13 batch PDFs were regenerated; their combined 117 content pages pass the PDF-text scan with `0` raw-LaTeX, raw-subscript, or mathematical slash-division findings.
+- The focused math-rendering suite reports `44 passed`.
+- Contact sheets for batches 5, 7, 8, 9, 10, and 13 were visually inspected; no new clipping, overlap, or unrendered formula text was found.
+- Audit reports: `work/full_book_math_text_audit.md` and `work/full_book_pdf_text_audit.md`.
+- Visual evidence: `tmp/pdfs/math_audit/batch5-contact.png`, `batch7-contact.png`, `batch8-contact.png`, `batch9-contact.png`, `batch10-contact.png`, and `batch13-contact.png`.
 
 - The FFT source audit is complete for the three tracked FFT diagram families in `work/figure_audit_matrix.md`.
 - The stable full-book PDF remains the prior 118-page version at `outputs/华理814DSP讲义_完整彩色A4版.pdf`.
@@ -47,10 +54,20 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 - Verified cascade render: `tmp/pdfs/iir_preview/cascade-example-source-locked-07.png`, compared against `tmp/pdfs/audit_source/iir-18.png`.
 - Targeted verification now reports `26 passed` in `work/test_iir_structure_source_topology.py`.
 
+## Full-book Math Audit Completion
+
+- The 13 verified batch PDFs were merged into a temporary 119-page A4 candidate with the existing cover, directory, and page-number workflow.
+- Candidate PDF text audit: `0` findings.
+- Candidate PDF regression: `4 passed` (cover/directory, near-blank pages, text bounds, image bounds).
+- Merge and full-book audit suite: `50 passed`.
+- Candidate visual inspection passed for cover, directory, all chapter starts, and representative formula/diagram-heavy pages. Evidence: `tmp/pdfs/math_audit/candidate_pages/contact-1.png` through `contact-5.png`.
+- The verified candidate replaced `outputs/华理814DSP讲义_完整彩色A4版.pdf`.
+- Stable PDF: 119 pages, A4, 15,660,703 bytes; SHA-256 matches the candidate.
+- Stable source audit: `0` findings; stable PDF-text audit: `0` findings; stable PDF regression: `4 passed`.
+
 ## Current WIP Defects - Not Fixed Yet
 
-1. The stable full-book PDF has not been rebuilt from these batch-9 generator changes.
-2. The remaining full-book source audit must continue from `draw_parallel_example`; do not repeat the verified FFT, four-network, direct-I, parallel-IIR overview, Butterworth-table, direct-example, or cascade-example items above.
+None for the full-book mathematical rendering and stacked-fraction audit.
 
 ## Source References
 
@@ -86,12 +103,9 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 
 ## Exact Next Step
 
-1. Continue with the next unverified matrix item, `draw_parallel_example`, comparing the current batch page against its original PPT page.
-2. Compare that diagram against its original PDF/PPT page before editing.
-3. Add a failing structural test for any confirmed mismatch, then make the smallest source-faithful generator change.
-4. Render and visually inspect the affected page before updating this checkpoint again.
+Commit and push the verified full-book audit unit to `origin/main`.
 
 ## Commit Policy
 
-- This checkpoint is intentionally WIP. Do not describe the full-book audit or stable full-book PDF as complete.
+- The full-book mathematical rendering and stacked-fraction audit is complete and verified.
 - Update, commit, and push this file after each verified unit of work.

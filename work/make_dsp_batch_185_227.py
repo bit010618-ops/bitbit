@@ -17,6 +17,8 @@ from make_dsp_sample_handout_v2 import (
     PAGE_W,
     TEXT,
     discrete_axis_label_geometry,
+    draw_auto_math_block,
+    draw_auto_math_text,
     formula_png,
     register_fonts,
     wrap,
@@ -80,15 +82,18 @@ def draw_blue_note(doc, title, lines, red_title=False):
     c.setStrokeColor(colors.HexColor("#A5D4FF"))
     c.setFillColor(colors.HexColor("#F3FAFF"))
     c.roundRect(MARGIN_X, y, CONTENT_W, h, 4, stroke=1, fill=1)
-    c.setFont("CNB", 9.8)
-    c.setFillColor(colors.HexColor("#D71920") if red_title else BLUE_DARK)
-    c.drawString(MARGIN_X + 12, y + h - 20, title)
-    c.setFont("CN", 9.1)
-    c.setFillColor(TEXT)
+    title_color = colors.HexColor("#D71920") if red_title else BLUE_DARK
+    draw_auto_math_text(
+        c, MARGIN_X + 12, y + h - 20, title,
+        font="CNB", size=9.8, color=title_color,
+    )
     yy = y + h - 39
     for ws in wrapped:
         for line in ws:
-            c.drawString(MARGIN_X + 12, yy, line)
+            draw_auto_math_block(
+                c, MARGIN_X + 12, yy + 9.1, line, CONTENT_W - 24,
+                font="CN", size=9.1, leading=14, color=TEXT,
+            )
             yy -= 14
     doc.y = y - 12
 
@@ -109,15 +114,17 @@ def draw_two_col(doc, left_title, left_lines, right_title, right_lines):
         c.setStrokeColor(colors.HexColor("#D8E8F6"))
         c.setFillColor(colors.HexColor("#F8FBFE"))
         c.roundRect(x, y, col_w, h, 4, stroke=1, fill=1)
-        c.setFont("CNB", 9.8)
-        c.setFillColor(BLUE_DARK)
-        c.drawString(x + 10, y + h - 19, title)
-        c.setFont("CN", 8.8)
-        c.setFillColor(TEXT)
+        draw_auto_math_text(
+            c, x + 10, y + h - 19, title,
+            font="CNB", size=9.8, color=BLUE_DARK,
+        )
         yy = y + h - 38
         for line in lines:
             for part in wrap(line, col_w - 18, "CN", 8.8):
-                c.drawString(x + 10, yy, part)
+                draw_auto_math_block(
+                    c, x + 10, yy + 8.8, part, col_w - 18,
+                    font="CN", size=8.8, leading=13, color=TEXT,
+                )
                 yy -= 13
     doc.y -= h + 12
 
@@ -133,9 +140,10 @@ def draw_pipeline(doc, labels):
         c.setLineWidth(1.2)
         c.setFillColor(colors.white)
         c.roundRect(x, y, w, h, 4, stroke=1, fill=1)
-        c.setFont("CNB", 8.8)
-        c.setFillColor(BLUE_DARK)
-        c.drawCentredString(x + w / 2, y + 11, label)
+        draw_auto_math_text(
+            c, x + w / 2, y + 11, label,
+            font="CNB", size=8.8, color=BLUE_DARK, align="center",
+        )
         if i < len(labels) - 1:
             x2 = x + w
             c.setStrokeColor(BLUE)
@@ -236,17 +244,12 @@ def draw_stem_plot(
             )
         else:
             c.drawCentredString(x, y + 7 if val >= 0 else y - 14, f"{val:g}")
-    if "\\" in title or "^" in title:
-        title_img = formula_png("b185_stem_title", title, 12)
-        iw, ih = img_size(title_img)
-        scale = min(120 / iw, 18 / ih)
-        dw, dh = iw * scale, ih * scale
-        title_x = zero_x + 24 - dw / 2 if title_position == "axis_top" else (left + right - dw) / 2
-        title_y = top - 4 if title_position == "axis_top" else y0 - 2
-        c.drawImage(ImageReader(str(title_img)), title_x, title_y, dw, dh, mask="auto")
-    else:
-        c.setFont("CNB", 8.6)
-        c.drawCentredString((left + right) / 2, y0 + 2, title)
+    title_x = zero_x + 24 if title_position == "axis_top" else (left + right) / 2
+    title_y = top - 4 if title_position == "axis_top" else y0 + 2
+    draw_auto_math_text(
+        c, title_x, title_y, title,
+        font="CNB", size=8.6, color=TEXT, align="center",
+    )
     doc.y -= height + 15
 
 
@@ -261,23 +264,26 @@ def draw_small_table(doc, headers, rows, col_widths=None, font_size=8.7):
     c.setStrokeColor(colors.HexColor("#C9DDEC"))
     c.setFillColor(colors.HexColor("#F3F8FC"))
     c.rect(x0, y, CONTENT_W, row_h, stroke=1, fill=1)
-    c.setFont("CNB", font_size)
-    c.setFillColor(TEXT)
     x = x0
     for head, cw in zip(headers, col_widths):
-        c.drawCentredString(x + cw / 2, y + 8, head)
+        draw_auto_math_text(
+            c, x + cw / 2, y + 8, head,
+            font="CNB", size=font_size, color=TEXT, align="center",
+        )
         c.line(x, y, x, y - row_h * len(rows))
         x += cw
     c.line(x0 + CONTENT_W, y, x0 + CONTENT_W, y - row_h * len(rows))
     yy = y - row_h
-    c.setFont("CN", font_size)
     for row in rows:
         x = x0
         c.setFillColor(colors.white)
         c.rect(x0, yy, CONTENT_W, row_h, stroke=1, fill=0)
         c.setFillColor(TEXT)
         for cell, cw in zip(row, col_widths):
-            c.drawCentredString(x + cw / 2, yy + 8, cell)
+            draw_auto_math_text(
+                c, x + cw / 2, yy + 8, cell,
+                font="CN", size=font_size, color=TEXT, align="center",
+            )
             x += cw
         yy -= row_h
     doc.y -= h + 12
@@ -537,8 +543,8 @@ def build():
         doc,
         [
             ("矩形窗", f("win1", r"w(n)=R_N(n),\quad x(n)=\cos(\omega_0 n)", 13.5), 28),
-            ("窗频谱", f("win2", r"W(e^{j\omega})=\frac{\sin(\omega N/2)}{\sin(\omega/2)}e^{-j\frac{N-1}{2}\omega}", 13), 34),
-            ("幅度", f("win3", r"|W(e^{j\omega})|=\left|\frac{\sin(\omega N/2)}{\sin(\omega/2)}\right|", 13.5), 32),
+            ("窗频谱", f("win2", r"W(e^{j\omega})=\frac{\sin(\frac{\omega N}{2})}{\sin(\frac{\omega}{2})}e^{-j\frac{N-1}{2}\omega}", 13), 34),
+            ("幅度", f("win3", r"|W(e^{j\omega})|=\left|\frac{\sin(\frac{\omega N}{2})}{\sin(\frac{\omega}{2})}\right|", 13.5), 32),
         ],
     )
     draw_stem_plot(

@@ -12,6 +12,7 @@ from make_dsp_batch_266_300_redraw import (
     RED, PURPLE, PALE_BLUE, YELLOW, draw_math_at, draw_formula_block,
     draw_note, arrow, dot, delay_box, sum_node, wrap, draw_centered_multiline_text
 )
+from make_dsp_sample_handout_v2 import draw_auto_math_text
 
 OUT_DIR=ROOT/'outputs'
 PDF_PATH=OUT_DIR/'DSP讲义重制_第十一批_原PPT333-366页_FIR结构与线性相位_手绘复刻版.pdf'
@@ -150,7 +151,7 @@ def _draw_amplitude_panel(c, x, y, w, h, kind, name, frame):
     arrow(c, x0, y + 10, x0, y + h - 9, colors.black, 0.85, head=4)
     c.setFillColor(TEXT)
     c.setFont('CNB', 8)
-    c.drawString(x0 + 3, y + h - 13, 'H(ω)')
+    draw_auto_math_text(c,x0+3,y+h-13,'H(ω)',font='CNB',size=8)
     c.drawRightString(x + w - 3, axis_y - 12, 'ω')
     c.setFont('CN', 6.2)
     c.drawString(x0 + 1, axis_y - 10, '0')
@@ -200,8 +201,8 @@ def _draw_phase_panel(c, x, y, w, h, antisymmetric, name):
     arrow(c, x0, y + 10, x0, y + h - 9, colors.black, 0.85, head=4)
     c.setFillColor(TEXT)
     c.setFont('CNB', 8.5)
-    c.drawString(x0 + 3, y + h - 15, 'θ(ω)')
-    c.drawRightString(x + w - 3, axis_y - 12, 'ω(rad)')
+    draw_auto_math_text(c,x0+3,y+h-15,'θ(ω)',font='CNB',size=8.5)
+    draw_auto_math_text(c,x+w-3,axis_y-12,'ω(rad)',font='CNB',size=8.5,align='right')
     c.setFont('CN', 7)
     c.drawString(x0 - 8, axis_y + 5, '0')
     c.drawCentredString(x0 + (w - 48) / 2, axis_y + 5, 'π')
@@ -485,7 +486,7 @@ def comb_and_resonator(doc):
     draw_formula_block(doc,r'H(z)=(1-z^{-N})\frac{1}{N}\sum_{k=0}^{N-1}\frac{H(k)}{1-W_N^kz^{-1}}','fs_formula',fontsize=15,max_h=50)
     draw_formula_block(doc,r'H_1(z)=1-z^{-N},\qquad |H_1(e^{j\omega})|=2\left|\sin\frac{\omega N}{2}\right|','comb_formula',fontsize=15,max_h=42)
     draw_note(doc,'结构修正', ['梳状滤波器的零点会抵消谐振柜中的极点；为改善有限字长下的不稳定，可把半径从 1 改为 r，使极点移入单位圆。'])
-    draw_formula_block(doc,r'H(z)=(1-r^Nz^{-N})\frac{1}{N}\sum_{k=0}^{N-1}\frac{H_r(k)}{1-rW_N^kz^{-1}},\qquad z_k=re^{j2\pi k/N}','fs_correct',fontsize=13,max_h=50)
+    draw_formula_block(doc,r'H(z)=(1-r^Nz^{-N})\frac{1}{N}\sum_{k=0}^{N-1}\frac{H_r(k)}{1-rW_N^kz^{-1}},\qquad z_k=re^{j\frac{2\pi k}{N}}','fs_correct',fontsize=13,max_h=50)
 
 
 def comb_response_geometry():
@@ -784,7 +785,7 @@ def build():
     frequency_sampling_network(doc)
     doc.h3('例：频率采样结构实现')
     doc.p('已知 FIR 滤波器单位脉冲响应为 h(n)=δ(n)-δ(n-1)+δ(n-4)，取 N=5，要求画出频率采样结构并给出计算公式。')
-    draw_formula_block(doc,r'H(k)=\sum_{n=0}^{N-1}h(n)W_N^{kn}=1-e^{-j2\pi k/5}+e^{-j8\pi k/5},\quad k=0,1,2,3,4','freq_sampling_ex',fontsize=13,max_h=45)
+    draw_formula_block(doc,r'H(k)=\sum_{n=0}^{N-1}h(n)W_N^{kn}=1-e^{-j\frac{2\pi k}{5}}+e^{-j\frac{8\pi k}{5}},\quad k=0,1,2,3,4','freq_sampling_ex',fontsize=13,max_h=45)
 
     doc.h2('6.3 FIR 线性相位结构')
     doc.p('线性相位系统的频率响应可以写成幅度项乘以线性相位项。幅度为实偶函数或实奇函数，相位是 ω 的线性函数。线性相位和广义线性相位系统也称为常数群延迟系统。')

@@ -11,6 +11,7 @@ from make_dsp_batch_266_300_redraw import (
     RED, PURPLE, PALE_BLUE, formula_png, draw_math_at, draw_formula_block,
     draw_note, arrow, wrap, draw_centered_multiline_text
 )
+from make_dsp_sample_handout_v2 import draw_auto_math_text
 
 OUT_DIR = ROOT / 'outputs'
 PDF_PATH = OUT_DIR / 'DSP讲义重制_第十批_原PPT301-332页_IIR设计方法_手绘复刻版.pdf'
@@ -22,9 +23,7 @@ def draw_curve_pair(doc, title, mode='low_high'):
     doc.ensure(h + 10)
     c = doc.c
     top = doc.y
-    c.setFont('CNB', 10)
-    c.setFillColor(BLUE_DARK)
-    c.drawString(MARGIN_X, top - 14, title)
+    draw_auto_math_text(c,MARGIN_X,top-14,title,font='CNB',size=10,color=BLUE_DARK)
     kinds = ['low', 'high'] if mode == 'low_high' else ['band', 'stop']
     for idx, kind in enumerate(kinds):
         x = MARGIN_X + 60 + idx * 250
@@ -188,7 +187,7 @@ def analog_bandpass_example(doc):
     )
     draw_formula_block(
         doc,
-        r'H_a(s)=\left.H(p)\right|_{p=(s^2+\Omega_0^2)/(sB)}',
+        r'H_a(s)=\left.H(p)\right|_{p=\frac{s^2+\Omega_0^2}{sB}}',
         'analog_bp_transform', fontsize=16, max_h=38
     )
     draw_note(doc, '带通变换要点', ['先把四个边缘频率映射为低通指标，再设计低通原型。', '带通变换会使系统阶数加倍：三阶低通原型得到六阶带通滤波器。'])
@@ -206,14 +205,14 @@ def build():
     doc.h2('5.3.2 巴特沃斯低通滤波器的设计方法：阶数确定')
     doc.p('阶数 N 的大小主要影响幅度特性下降的速度，应由技术指标确定。把通带和阻带指标代入巴特沃斯幅度平方函数，可得到阶数和频率参数。')
     draw_formula_block(doc, r'|H_a(j\Omega)|^2=\frac{1}{1+\left(\frac{\Omega}{\Omega_c}\right)^{2N}}', 'b301_mag', fontsize=17, max_h=45)
-    draw_formula_block(doc, r'1+\left(\frac{\Omega_p}{\Omega_c}\right)^{2N}=10^{\alpha_p/10},\qquad 1+\left(\frac{\Omega_s}{\Omega_c}\right)^{2N}=10^{\alpha_s/10}', 'b301_subs', fontsize=15, max_h=46)
-    draw_formula_block(doc, r'\lambda_{sp}=\frac{\Omega_s}{\Omega_p},\qquad k_{sp}=\sqrt{\frac{10^{\alpha_s/10}-1}{10^{\alpha_p/10}-1}},\qquad N=\frac{\lg k_{sp}}{\lg \lambda_{sp}}', 'b303_n', fontsize=15, max_h=50)
+    draw_formula_block(doc, r'1+\left(\frac{\Omega_p}{\Omega_c}\right)^{2N}=10^{\frac{\alpha_p}{10}},\qquad 1+\left(\frac{\Omega_s}{\Omega_c}\right)^{2N}=10^{\frac{\alpha_s}{10}}', 'b301_subs', fontsize=15, max_h=46)
+    draw_formula_block(doc, r'\lambda_{sp}=\frac{\Omega_s}{\Omega_p},\qquad k_{sp}=\sqrt{\frac{10^{\frac{\alpha_s}{10}}-1}{10^{\frac{\alpha_p}{10}}-1}},\qquad N=\frac{\lg k_{sp}}{\lg \lambda_{sp}}', 'b303_n', fontsize=15, max_h=50)
     draw_note(doc, '阶数取整', ['求出的 N 可能是小数，实际滤波器阶数应取大于等于 N 的最小整数。', '若技术指标中没有给出 3 dB 截止频率，可先按通带和阻带指标求出 Ωc。'])
-    draw_formula_block(doc, r'\Omega_c=\frac{\Omega_p}{\left(10^{\alpha_p/10}-1\right)^{1/(2N)}}=\frac{\Omega_s}{\left(10^{\alpha_s/10}-1\right)^{1/(2N)}}', 'b304_wc', fontsize=14, max_h=48)
+    draw_formula_block(doc, r'\Omega_c=\frac{\Omega_p}{\left(10^{\frac{\alpha_p}{10}}-1\right)^{\frac{1}{2N}}}=\frac{\Omega_s}{\left(10^{\frac{\alpha_s}{10}}-1\right)^{\frac{1}{2N}}}', 'b304_wc', fontsize=14, max_h=48)
 
     doc.h3('例：按技术指标设计巴特沃斯低通滤波器')
     doc.p('已知通带截止频率 fp=5 kHz，通带最大衰减 αp=2 dB，阻带截止频率 fs=12 kHz，阻带最小衰减 αs=30 dB。')
-    draw_formula_block(doc, r'k_{sp}=\sqrt{\frac{10^{30/10}-1}{10^{2/10}-1}}=41.328,\qquad \lambda_{sp}=\frac{\Omega_s}{\Omega_p}=\frac{12}{5}=2.4', 'b307_ksp', fontsize=14, max_h=45)
+    draw_formula_block(doc, r'k_{sp}=\sqrt{\frac{10^{\frac{30}{10}}-1}{10^{\frac{2}{10}}-1}}=41.328,\qquad \lambda_{sp}=\frac{\Omega_s}{\Omega_p}=\frac{12}{5}=2.4', 'b307_ksp', fontsize=14, max_h=45)
     draw_formula_block(doc, r'N=\frac{\lg k_{sp}}{\lg\lambda_{sp}}=4.2509\Rightarrow N=5', 'b307_n', fontsize=16, max_h=35)
     draw_formula_block(doc, r'p_k=e^{j\left(\frac{\pi}{2}+\frac{(2k+1)\pi}{2N}\right)},\quad k=0,1,\ldots,N-1', 'b307_pk', fontsize=15, max_h=40)
     doc.p('查表取 N=5 的归一化巴特沃斯多项式，再按 Ωc 去归一化得到实际模拟低通系统函数。')
@@ -222,7 +221,7 @@ def build():
     doc.h2('5.3.3 模拟滤波器的频带变换')
     doc.p('原型低通滤波器可以通过频率变量替换得到高通、带通和带阻滤波器。设计步骤是先把目标指标换算为归一化低通指标，求得 H(p)，再代回变换式得到目标模拟滤波器。')
     draw_curve_pair(doc, '低通到高通变换', 'low_high')
-    draw_formula_block(doc, r'\lambda=\frac{1}{\eta},\qquad H_a(s)=\left. H(p)\right|_{p=\Omega_c/s}', 'b310_lh', fontsize=16, max_h=40)
+    draw_formula_block(doc, r'\lambda=\frac{1}{\eta},\qquad H_a(s)=\left. H(p)\right|_{p=\frac{\Omega_c}{s}}', 'b310_lh', fontsize=16, max_h=40)
     draw_curve_pair(doc, '低通到带通/带阻变换', 'band_stop')
     draw_formula_block(doc, r'\lambda=\frac{\eta^2-\eta_0^2}{\eta B},\qquad B=\eta_u-\eta_l,\qquad \eta_0^2=\eta_l\eta_u', 'b312_band', fontsize=15, max_h=46)
     draw_formula_block(doc, r'H_a(s)=\left. H(p)\right|_{p=\frac{s^2+\Omega_0^2}{sB}},\qquad H_a(s)=\left. H(p)\right|_{p=\frac{sB}{s^2+\Omega_0^2}}', 'b317_transforms', fontsize=13, max_h=54)
@@ -247,8 +246,8 @@ def build():
     doc.h3('例：用双线性变换法设计低通滤波器')
     doc.p('原课件例题把数字通带与阻带截止频率预畸变为模拟指标，再设计巴特沃斯模拟低通，最后代入双线性变换得到 H(z)。')
     draw_formula_block(doc, r'\omega_p=0.2\pi,\ \alpha_p=1\mathrm{dB},\qquad \omega_s=0.3\pi,\ \alpha_s=15\mathrm{dB}', 'bilinear_specs', fontsize=15, max_h=38)
-    draw_formula_block(doc, r'\Omega_p=0.65\pi\,\mathrm{rad/s},\qquad \Omega_s=1.019\pi\,\mathrm{rad/s}', 'bilinear_prewarp_num', fontsize=15, max_h=38)
-    draw_formula_block(doc, r'k_{sp}=\sqrt{\frac{10^{15/10}-1}{10^{1/10}-1}}=10.8751,\qquad N=\frac{\lg k_{sp}}{\lg \lambda_{sp}}=5.3056\Rightarrow N=6', 'bilinear_order', fontsize=14, max_h=50)
+    draw_formula_block(doc, r'\Omega_p=0.65\pi\,\mathrm{rad}\,\mathrm{s}^{-1},\qquad \Omega_s=1.019\pi\,\mathrm{rad}\,\mathrm{s}^{-1}', 'bilinear_prewarp_num', fontsize=15, max_h=38)
+    draw_formula_block(doc, r'k_{sp}=\sqrt{\frac{10^{\frac{15}{10}}-1}{10^{\frac{1}{10}}-1}}=10.8751,\qquad N=\frac{\lg k_{sp}}{\lg \lambda_{sp}}=5.3056\Rightarrow N=6', 'bilinear_order', fontsize=14, max_h=50)
     draw_formula_block(doc, r'H(z)=\left. H_a(s)\right|_{s=\frac{2}{T}\frac{1-z^{-1}}{1+z^{-1}}}', 'bilinear_sub', fontsize=16, max_h=40)
     doc.h3('例：H(s) 转 H(z)')
     draw_formula_block(doc, r'H(s)=\frac{2}{s^2+4s+3}=\frac{1}{s+1}-\frac{1}{s+3}', 'hs_to_hz_1', fontsize=15, max_h=42)
