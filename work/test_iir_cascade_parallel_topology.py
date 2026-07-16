@@ -18,9 +18,12 @@ def test_cascade_and_parallel_examples_keep_source_networks():
     assert spec['cascade'] == {
         'sections': ('first_order', 'second_order'),
         'main_path': 'horizontal',
-        'first_order_feedback': ('0.25', '-0.379'),
-        'second_order_feedback': ('-0.5', '5.264'),
+        'section_main_gains': ('2', '4'),
+        'first_order_pairs': (('0.25', '-0.379'),),
+        'second_order_pairs': (('1', '-1.24'), ('-0.5', '5.264')),
         'delay_count': (1, 2),
+        'main_line_policy': ('terminal_dots', 'interior_arrows'),
+        'section_junctions': 'source_nodes',
     }
     assert spec['parallel'] == {
         'direct_path_coefficients': ('G_0', 'G_1', 'G_{M-N}'),

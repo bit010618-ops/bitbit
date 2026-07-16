@@ -19,8 +19,8 @@ def test_multirate_generator_is_valid_python():
 
 def test_decimation_derivation_preserves_source_pages_406_to_408():
     assert "def decimation_full_derivation" in SOURCE
-    assert r"X_d(e^{j\omega})=\frac{1}{M}\sum_{i=0}^{M-1}X(e^{j(\omega-2\pi i)/M})" in SOURCE
-    assert r"X_d(e^{j\omega})=\frac{1}{2}\left[X(e^{j\omega/2})+X(e^{j(\omega/2-\pi)})\right]" in SOURCE
+    assert r"X_d(e^{j\omega})=\frac{1}{M}\sum_{i=0}^{M-1}X(e^{j\frac{\omega-2\pi i}{M}})" in SOURCE
+    assert r"X_d(e^{j\omega})=\frac{1}{2}\left[X(e^{j\frac{\omega}{2}})+X(e^{j(\frac{\omega}{2}-\pi)})\right]" in SOURCE
 
 
 def test_interpolation_derivation_preserves_source_pages_417_to_420():

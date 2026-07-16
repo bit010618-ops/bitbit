@@ -29,8 +29,11 @@ Audit the complete DSP handout and all batch generators so that every mathematic
 - Temporary and stable full-book PDFs are identical by SHA-256, A4, and 119 pages.
 - Stable full-book source audit: `0` findings; PDF-text audit: `0` findings.
 - Full-book PDF regression: `4 passed`.
+- Full project regression: `236 passed`.
+- Six stale tests were updated to reflect the verified implementation: rendered spectrum titles, rendered unit-circle labels, image-rendered FFT sequence labels, enriched cascade source topology, and nested stacked fractions in the decimation derivation.
+- No generator or PDF content changed during the full regression pass.
 - Final visual evidence: `tmp/pdfs/math_audit/candidate_pages/contact-1.png` through `contact-5.png`.
 
 ## Exact next action
 
-Commit and push the verified generator changes, audit tooling/reports, checkpoint files, and final 119-page stable PDF.
+Commit and push the regression-test and checkpoint updates, then close the full-book math-rendering audit.

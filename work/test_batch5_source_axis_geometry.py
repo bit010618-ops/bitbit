@@ -39,7 +39,8 @@ def test_notch_unit_circle_keeps_one_outside_and_moves_negative_omega_down():
     assert "c.drawCentredString(cx + r + 3, cy - 12, '1')" in source
     assert "c.drawCentredString(cx + r + 7, cy - 12, '1')" not in source
     assert "label_y = py - 10 if label == '-ω0' else py + 4" in source
-    assert "c.drawString(px + 5, label_y, label)" in source
+    assert "draw_auto_math_text(" in source
+    assert "c, px + 5, label_y, label" in source
 
 
 def test_source_pages_131_132_keep_frequency_guides_and_hz_labels():

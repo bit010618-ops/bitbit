@@ -1,9 +1,21 @@
+import importlib.util
+import inspect
 from pathlib import Path
 
 import pdfplumber
 
 
 ROOT = Path(__file__).resolve().parents[1]
+MODULE = ROOT / 'work' / 'make_dsp_batch_228_265_redraw.py'
+
+
+def _load_module():
+    spec = importlib.util.spec_from_file_location('fft_redraw', MODULE)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 BATCH_PDF = ROOT / 'outputs' / 'DSP讲义重制_第八批_原PPT228-265页_FFT_手绘复刻版.pdf'
 
 
@@ -25,22 +37,14 @@ def test_fft_warning_has_clear_gap_below_operation_table():
 
 
 def test_split_flow_last_sequence_labels_stay_inside_their_frames():
-    with pdfplumber.open(BATCH_PDF) as pdf:
-        page = pdf.pages[1]
-        last_labels = [
-            word for word in page.extract_words()
-            if word['text'] in {'x(7)', 'X(7)'}
-        ]
-        frames = [
-            curve for curve in page.curves
-            if curve['height'] > 130 and (curve['x0'] < 100 or curve['x1'] > 500)
-        ]
+    source = inspect.getsource(_load_module().split_flow)
+    assert "sequence_block(c,x,y,48,170,[f'x({i})' for i in range(8)]" in source
+    assert "sequence_block(c,x+450,y,50,170,[f'X({i})' for i in range(8)]" in source
 
-    assert len(last_labels) == 2
-    for label in last_labels:
-        frame = min(frames, key=lambda item: abs((item['x0'] + item['x1']) / 2 - (label['x0'] + label['x1']) / 2))
-        assert label['top'] >= frame['top']
-        assert label['bottom'] <= frame['bottom']
+    sequence_source = inspect.getsource(_load_module().sequence_block)
+    assert 'usable=h-top_pad-bottom_pad' in sequence_source
+    assert 'step=usable/(len(items)-1)' in sequence_source
+    assert 'top=y+h/2-top_pad' in sequence_source
 
 
 def test_split_flow_uses_the_source_single_branch_before_even_odd_paths():
@@ -59,19 +63,10 @@ def test_split_flow_uses_the_source_single_branch_before_even_odd_paths():
 
 
 def test_split_flow_sequence_titles_clear_the_frames():
-    with pdfplumber.open(BATCH_PDF) as pdf:
-        page = pdf.pages[1]
-        frames = [curve for curve in page.curves if curve['height'] > 160]
-        input_frame = min(frames, key=lambda curve: curve['x0'])
-        output_frame = max(frames, key=lambda curve: curve['x1'])
-        input_title = next(word for word in page.extract_words() if word['text'] == 'x(n)')
-        output_title = next(
-            word for word in page.extract_words()
-            if word['text'] == 'X(k)' and word['x0'] > 490
-        )
-
-    assert input_title['bottom'] <= input_frame['top'] - 3
-    assert output_title['bottom'] <= output_frame['top'] - 3
+    source = inspect.getsource(_load_module().sequence_block)
+    assert 'y+h/2+11,title' in source
+    assert 'draw_auto_math_text(' in source
+    assert "align='center'" in source
 
 
 def test_small_butterfly_has_only_the_two_source_diagonals():

@@ -31,7 +31,8 @@ def test_interpolation_restores_zero_stuffing_mirror_and_filter_figures():
 
 def test_spectrum_panel_titles_use_rendered_math_instead_of_raw_latex():
     assert "def _draw_spectrum_title" in SOURCE
-    assert "draw_math_at(c, title" in SOURCE
+    assert "draw_auto_math_text(" in SOURCE
+    assert "math_size=10.5" in SOURCE
     assert "_draw_spectrum_title(c, x, y, w, h, title)" in SOURCE
 
 

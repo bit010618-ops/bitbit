@@ -64,6 +64,9 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 - The verified candidate replaced `outputs/华理814DSP讲义_完整彩色A4版.pdf`.
 - Stable PDF: 119 pages, A4, 15,660,703 bytes; SHA-256 matches the candidate.
 - Stable source audit: `0` findings; stable PDF-text audit: `0` findings; stable PDF regression: `4 passed`.
+- Full project regression: `236 passed`.
+- Six legacy assertions were migrated from obsolete PDF text extraction or old literal source strings to the current rendered-math and source-topology rules.
+- This regression-only update did not change any generator or PDF content; the verified 119-page stable PDF remains unchanged.
 
 ## Current WIP Defects - Not Fixed Yet
 
@@ -103,7 +106,7 @@ None for the full-book mathematical rendering and stacked-fraction audit.
 
 ## Exact Next Step
 
-Commit and push the verified full-book audit unit to `origin/main`.
+Commit and push the regression-test and checkpoint updates to `origin/main`, then close the full-book math-rendering audit.
 
 ## Commit Policy
 

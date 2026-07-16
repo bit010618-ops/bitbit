@@ -1,7 +1,7 @@
 # Current DSP Handout Progress
 
 - Active objective: finish the complete source-faithful handout audit, including diagrams, collisions, mathematical rendering, and fraction notation.
-- Latest verified unit: cascade IIR example, committed and pushed as `ee421d4`.
+- Latest verified PDF unit: complete full-book math audit, committed and pushed as `853cf52`.
 - New active unit: full-book formula-rendering and slash-division audit.
 - User rule: every mathematical expression must be rendered; all mathematical division/ratios must use stacked fractions, never `/`.
 - Scope is semantic, not limited to the examples `X(e^{jω})`, `ω/(2π)`, or `R_4(n)`.
@@ -16,4 +16,6 @@
 - Final PDF regression: `4 passed` (cover/directory, near-blank pages, text bounds, image bounds).
 - Visual review passed for cover, directory, all chapter starts, and representative high-risk IIR/FIR/multirate pages. Evidence: `tmp/pdfs/math_audit/candidate_pages/contact-1.png` through `contact-5.png`.
 - Candidate and stable full-book PDF SHA-256 hashes match.
-- Exact next action: commit and push this verified full-book audit unit.
+- Full project regression: `236 passed` after migrating six stale assertions from PDF text extraction or legacy source strings to the current rendered-math and source-topology rules.
+- No generator or PDF content changed during the full regression pass; the verified 119-page stable PDF remains unchanged.
+- Exact next action: commit and push the regression-test and checkpoint updates.
