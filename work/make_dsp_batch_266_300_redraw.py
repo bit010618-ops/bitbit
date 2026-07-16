@@ -143,9 +143,12 @@ def cascade_parallel_source_topology():
         'cascade': {
             'sections': ('first_order', 'second_order'),
             'main_path': 'horizontal',
-            'first_order_feedback': ('0.25', '-0.379'),
-            'second_order_feedback': ('-0.5', '5.264'),
+            'section_main_gains': ('2', '4'),
+            'first_order_pairs': (('0.25', '-0.379'),),
+            'second_order_pairs': (('1', '-1.24'), ('-0.5', '5.264')),
             'delay_count': (1, 2),
+            'main_line_policy': ('terminal_dots', 'interior_arrows'),
+            'section_junctions': 'source_nodes',
         },
         'parallel': {
             'direct_path_coefficients': ('G_0', 'G_1', 'G_{M-N}'),
@@ -1612,27 +1615,35 @@ def draw_cascade_example(doc):
     h = 154
     doc.ensure(h + 10)
     c = doc.c; top = doc.y; y = top - 40; x = MARGIN_X + 58
+    first_left = x + 88
+    first_right = first_left + 72
+    second_left = x + 272
+    second_right = second_left + 88
     c.setStrokeColor(TEXT); c.setFillColor(TEXT); c.setLineWidth(1.0)
-    arrow(c, x, y, x + 430, y, TEXT, 1.0)
+    c.line(x, y, x + 430, y)
+    for start, end in ((x + 18, x + 38), (first_right + 18, first_right + 40), (second_right + 16, second_right + 38)):
+        arrow(c, start, y, end, y, TEXT, 1.0)
+    for node_x in (x, first_left, first_right, second_left, second_right, x + 430):
+        dot(c, node_x, y, 2.4, TEXT)
     draw_math_at(c, r'x(n)', x - 36, y + 13, 36, 15, 10, name='cascade_source_x')
     draw_math_at(c, r'y(n)', x + 436, y + 13, 36, 15, 10, name='cascade_source_y')
 
-    def section(left, width, levels, feedback):
+    def section(left, width, coefficient_pairs, name):
         right = left + width
-        for i in range(levels):
+        for i, (left_coefficient, right_coefficient) in enumerate(coefficient_pairs):
             yy = y - 36 * (i + 1)
             c.line(left, y if i == 0 else yy + 36, left, yy)
             c.line(right, y if i == 0 else yy + 36, right, yy)
             arrow(c, left, yy, right, yy, TEXT, 0.9)
-            draw_math_at(c, r'z^{-1}', (left + right) / 2 - 14, yy + 15, 28, 13, 9, name=f'cascade_delay_{left}_{i}')
+            draw_math_at(c, r'z^{-1}', (left + right) / 2 - 14, yy + 15, 28, 13, 9, name=f'cascade_delay_{name}_{i}')
+            draw_math_at(c, left_coefficient, left + 5, yy - 13, 34, 13, 9.5, name=f'cascade_left_{name}_{i}')
+            draw_math_at(c, right_coefficient, right - 43, yy - 13, 42, 13, 9.5, name=f'cascade_right_{name}_{i}')
         c.line(left, y, right, y)
 
-    section(x + 88, 72, topology['delay_count'][0], topology['first_order_feedback'])
-    section(x + 272, 88, topology['delay_count'][1], topology['second_order_feedback'])
-    draw_math_at(c, r'0.25', x + 92, y - 52, 32, 13, 9.5, name='cascade_a1')
-    draw_math_at(c, r'-0.379', x + 132, y - 52, 45, 13, 9.5, name='cascade_b1')
-    draw_math_at(c, r'-0.5', x + 282, y - 91, 34, 13, 9.5, name='cascade_a2')
-    draw_math_at(c, r'5.264', x + 328, y - 91, 40, 13, 9.5, name='cascade_b2')
+    section(first_left, 72, topology['first_order_pairs'], 'first')
+    section(second_left, 88, topology['second_order_pairs'], 'second')
+    draw_math_at(c, topology['section_main_gains'][0], first_left + 28, y + 13, 18, 13, 9.5, name='cascade_gain_first')
+    draw_math_at(c, topology['section_main_gains'][1], second_left + 36, y + 13, 18, 13, 9.5, name='cascade_gain_second')
     doc.y = top - h
 
 

@@ -69,7 +69,7 @@
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_butter_table` | 673 |  |  | pending | 待逐图对照 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_simple_coeff_grid` | 713 |  |  | not applicable | 未被 `build()` 调用，属于未输出的旧辅助函数，不对应当前 PDF 页面。 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_direct_ii_examples` | 750 | 279 | batch 5 | verified | 直接 I/II 数值例图保留原图系数与支路方向；顶端主线恢复输入/输出红色端点和线内箭头，输出端不再由箭头替代；`25 passed`；预览 `tmp/pdfs/iir_preview/direct-example-source-locked-05.png`。 |
-| 9 | make_dsp_batch_266_300_redraw.py | `draw_cascade_example` | 804 |  |  | pending | 待逐图对照 |
+| 9 | make_dsp_batch_266_300_redraw.py | `draw_cascade_example` | 804 | 284 | batch 7 | verified | 级联通用框图与具体实现均对照原图；补回节增益 `2、4`、第二节首层 `1、-1.24` 及末层 `-0.5、5.264`，恢复端点圆点、节节点和主线内部箭头；`26 passed`；预览 `tmp/pdfs/iir_preview/cascade-example-source-locked-07.png`。 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_parallel_example` | 854 |  |  | pending | 待逐图对照 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_analog_digital_bridge` | 896 |  |  | pending | 待逐图对照 |
 | 9 | make_dsp_batch_266_300_redraw.py | `draw_butter_tables_full` | 959 | 297-298 | batch 12-13 | verified | 新增原图巴特沃斯归一化极点位置表，完整保留我方因式分解表与原展开系数表；9 阶数据、对角表头、颜色和公式均通过逐页复验，且因式分解表标题与表格同页；`24 passed`；预览 `tmp/pdfs/iir_preview/butter-pole-table-final-12.png`、`butter-pole-table-final-13.png`。 |

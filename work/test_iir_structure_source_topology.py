@@ -327,6 +327,20 @@ def test_direct_i_and_ii_examples_preserve_source_terminal_dots_and_interior_arr
     assert policy['output_endpoint'] == 'dot_not_arrow'
 
 
+def test_cascade_example_preserves_every_source_section_coefficient():
+    module = load_module()
+    cascade = module.cascade_parallel_source_topology()['cascade']
+
+    assert cascade['section_main_gains'] == ('2', '4')
+    assert cascade['first_order_pairs'] == (('0.25', '-0.379'),)
+    assert cascade['second_order_pairs'] == (
+        ('1', '-1.24'),
+        ('-0.5', '5.264'),
+    )
+    assert cascade['main_line_policy'] == ('terminal_dots', 'interior_arrows')
+    assert cascade['section_junctions'] == 'source_nodes'
+
+
 def test_parallel_iir_overview_preserves_source_bus_and_branch_topology():
     module = load_module()
     topology = module.parallel_iir_source_topology()
