@@ -1,6 +1,6 @@
 # DSP Handout Project Checkpoint
 
-Last updated: 2026-07-17 04:00 +08:00
+Last updated: 2026-07-18 +08:00
 Branch: `main`
 Remote: `origin` -> `https://github.com/bit010618-ops/bitbit.git`
 Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
@@ -72,6 +72,17 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 
 None for the full-book mathematical rendering and stacked-fraction audit.
 
+## Full-book Spacing And Formula-size Audit Completion
+
+- Shared rich-text helpers now reserve explicit vertical leading for headings, paragraphs, and bullet rows; the previously reported cramped bullet blocks no longer collide.
+- Active display-formula helpers enforce a 28 pt printable minimum height. Same-level formulas use this common baseline; only genuinely dense multi-level formulas retain larger requested heights.
+- All affected batch PDFs were rebuilt and merged into a 119-page A4 candidate without deleting content or compressing chapter endings.
+- Ten contact sheets cover all 119 pages and were visually inspected. High-resolution checks were completed for pages 3, 6, 18, 24, 36, 40, 45, 70, 96, 102, and 118.
+- The geometry audit's ten remaining hits were confirmed as diagram/axis boundary contacts rather than body-text overlap.
+- Stable mathematical-text audit: `0 findings`; stable PDF regression: `4 passed`; full project regression: `246 passed`.
+- Candidate and stable artifact SHA-256 match: `EF4B400AC3182BAD903492B57235ED6746A7D815F5F193A2A1634B95175CFE69`.
+- Stable PDF replaced at `outputs/华理814DSP讲义_完整彩色A4版.pdf`: 119 A4 pages, 15,659,492 bytes.
+
 ## Source References
 
 - Direct-I overview source: `tmp/pdfs/audit_source/iir-10.png`
@@ -106,7 +117,7 @@ None for the full-book mathematical rendering and stacked-fraction audit.
 
 ## Exact Next Step
 
-Commit and push the regression-test and checkpoint updates to `origin/main`, then close the full-book math-rendering audit.
+Commit and push the verified spacing/formula-size audit to `origin/main`, then close the active goal.
 
 ## Commit Policy
 

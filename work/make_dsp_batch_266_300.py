@@ -30,6 +30,7 @@ from make_dsp_sample_handout_v2 import (
     PAGE_H,
     PAGE_W,
     register_fonts,
+    normalize_display_formula_height,
     wrap,
 )
 
@@ -65,6 +66,7 @@ def img_size(path):
 
 
 def draw_formula(doc, path, max_w=None, max_h=36, gap=11, center=True):
+    max_h = normalize_display_formula_height(max_h)
     doc.ensure(max_h + gap)
     iw, ih = img_size(path)
     max_w = max_w or CONTENT_W * 0.88

@@ -44,6 +44,12 @@ LINE = colors.HexColor("#CADCEB")
 TEXT = colors.HexColor("#1F2933")
 MUTED = colors.HexColor("#5E6B75")
 PALE = colors.HexColor("#F6F9FC")
+DISPLAY_FORMULA_MIN_HEIGHT = 28
+
+
+def normalize_display_formula_height(requested):
+    """Keep standalone formulas printable without shrinking dense formulas."""
+    return max(DISPLAY_FORMULA_MIN_HEIGHT, requested)
 
 
 def register_fonts():
@@ -665,7 +671,7 @@ class Doc:
             self.c, MARGIN_X, self.y + 11.2, runs, CONTENT_W,
             font="CNB", size=11.2, leading=17,
             math_size=12.3, math_height=16, color=BLUE_DARK,
-        )
+        ) - 11.2
 
     def p(self, text, size=9.8, leading=16):
         runs = auto_math_runs(text)
@@ -688,7 +694,7 @@ class Doc:
         self.y = draw_rich_text(
             self.c, MARGIN_X, self.y + size, runs, CONTENT_W,
             font="CN", size=size, leading=leading, color=TEXT,
-        ) - 4
+        ) - size - 4
 
     def bullet(self, items, size=9.4, leading=15):
         rich_items = [auto_math_runs(item) for item in items]
@@ -728,7 +734,7 @@ class Doc:
             self.y = draw_rich_text(
                 c, MARGIN_X + 16, self.y + size, runs, CONTENT_W - 18,
                 font="CN", size=size, leading=leading, color=TEXT,
-            ) - 3
+            ) - size - 3
 
     def note(self, title, body, compact=False):
         title_runs = auto_math_runs(title)
@@ -795,11 +801,13 @@ class Doc:
         self.y -= h + 8
 
     def formula_box(self, image_path, height=36):
+        formula_height = normalize_display_formula_height(height - 14)
+        height = max(height, formula_height + 14)
         self.ensure(height + 10)
         c = self.c
         im = Image.open(image_path)
         iw, ih = im.size
-        scale = min((CONTENT_W * 0.72) / iw, (height - 14) / ih)
+        scale = min((CONTENT_W * 0.72) / iw, formula_height / ih)
         dw, dh = iw * scale, ih * scale
         x = MARGIN_X + (CONTENT_W - dw) / 2
         y = self.y - height + (height - dh) / 2
@@ -1168,6 +1176,7 @@ def draw_scale_transform_triplet(doc):
 
 
 def draw_formula_plain(doc, image_path, max_w=None, max_h=34, center=True, gap=12):
+    max_h = normalize_display_formula_height(max_h)
     doc.ensure(max_h + gap)
     c = doc.c
     im = Image.open(image_path)

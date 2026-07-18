@@ -20,6 +20,7 @@ from make_dsp_sample_handout_v2 import (
     draw_auto_math_block,
     draw_auto_math_text,
     formula_png,
+    normalize_display_formula_height,
     register_fonts,
     wrap,
 )
@@ -45,6 +46,7 @@ def draw_formula_center(doc, path, max_w=None, max_h=34, gap=10):
 
 
 def draw_label_formula(doc, label, path, max_h=30, gap=9):
+    max_h = normalize_display_formula_height(max_h)
     doc.ensure(max_h + 20)
     c = doc.c
     c.setFont("CNB", 9.8)

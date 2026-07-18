@@ -17,6 +17,7 @@ from make_dsp_sample_handout_v2 import (
     formula_png,
     piecewise_png,
     register_fonts,
+    normalize_display_formula_height,
     wrap,
 )
 from make_dsp_batch_016_024 import BatchDoc, draw_formula
@@ -32,6 +33,7 @@ def f(name, expr, size=14, color="#111111"):
 
 
 def draw_formula_left(doc, image_path, max_w=None, max_h=28, gap=8, indent=0):
+    max_h = normalize_display_formula_height(max_h)
     doc.ensure(max_h + gap)
     c = doc.c
     im = Image.open(image_path)
@@ -400,7 +402,11 @@ def build_pdf():
     paragraph_red_inline(doc, "由题目已知系统为", "因果系统", "，所以 ROC 在大圆圆外；因此 ROC 包含单位圆，系统稳定。")
     doc.p("继续作部分分式展开，得到单位取样响应：")
     draw_formula_rows(doc, [ex3_pf, ex3_hn], max_h=31)
-    doc.note("814 考点提示", "这类题常把“因果”作为题干条件给出。只知道极点在单位圆内还不够，必须结合因果条件或 ROC，才能判断系统是否因果稳定。", compact=True)
+    doc.p(
+        "814 考点提示：这类题常把“因果”作为题干条件给出。只知道极点在单位圆内还不够，必须结合因果条件或 ROC，才能判断系统是否因果稳定。",
+        size=8.8,
+        leading=12.4,
+    )
 
     doc.h2("2.4.4 系统的频率响应")
     doc.p("LTI 系统的频率响应是单位脉冲响应 h(n) 的 DTFT；从 z 域看，也就是系统函数在单位圆上的取值。")
@@ -422,9 +428,10 @@ def build_pdf():
 
     doc.h2("2.4.4 系统的频率响应：正弦稳态")
     doc.p("若输入为固定频率的复指数序列，输出仍保持同一频率，只改变幅度和相位。")
-    draw_formula_rows(doc,[steady_input,steady_conv,steady_output],max_h=25)
+    doc.y += 2
+    draw_formula_rows(doc,[steady_input,steady_conv,steady_output],max_h=25,gap=1)
     draw_red_text(doc,"正弦稳态响应：幅度乘以幅频响应，相位加上相频响应。")
-    draw_formula(doc,steady_sine,max_h=27,gap=6)
+    draw_formula(doc,steady_sine,max_h=27,gap=2)
 
     doc.save()
     NOTE_PATH.write_text(

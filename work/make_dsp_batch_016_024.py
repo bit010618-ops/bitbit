@@ -30,6 +30,7 @@ from make_dsp_sample_handout_v2 import (
     formula_png,
     piecewise_png,
     register_fonts,
+    normalize_display_formula_height,
     wrap,
 )
 
@@ -107,6 +108,7 @@ class BatchDoc(Doc):
 
 
 def draw_formula(doc, image_path, max_w=None, max_h=34, center=True, gap=12):
+    max_h = normalize_display_formula_height(max_h)
     doc.ensure(max_h + gap)
     c = doc.c
     im = Image.open(image_path)

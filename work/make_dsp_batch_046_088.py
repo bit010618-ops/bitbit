@@ -19,6 +19,7 @@ from make_dsp_sample_handout_v2 import (
     draw_discrete_axes_plot,
     formula_png,
     register_fonts,
+    normalize_display_formula_height,
     wrap,
 )
 from make_dsp_batch_016_024 import BatchDoc, draw_formula
@@ -31,6 +32,7 @@ SOURCE_SAMPLE_RED = colors.HexColor("#E60012")
 
 
 def draw_formula_left(doc, image_path, max_w=None, max_h=30, gap=10, indent=0):
+    max_h = normalize_display_formula_height(max_h)
     doc.ensure(max_h + gap)
     c = doc.c
     im = Image.open(image_path)
@@ -56,11 +58,13 @@ def append_chapter_review(doc):
         "复习时把变换式、收敛域和对应时域序列放在一起判断。",
         "重点练习右边序列、左边序列、双边序列以及由 ROC 反推序列。",
         "DTFT 性质需同时记住名称与公式，特别是位移、调制、反褶、共轭对称和卷积。",
-    ])
-    doc.note("课后题", "按原课件课后题继续练习 Z 变换与 DTFT，涉及单边/双边变换时务必写明收敛域。", compact=True)
+    ], leading=13)
+    doc.h3("课后题")
+    doc.p("按原课件课后题继续练习 Z 变换与 DTFT，涉及单边/双边变换时务必写明收敛域。", size=9.2, leading=13)
 
 
 def draw_property(doc, label, formulas, max_h=24, gap=8):
+    max_h = normalize_display_formula_height(max_h)
     if not isinstance(formulas, (list, tuple)):
         formulas = [formulas]
     row_h = max_h * len(formulas) + 8
@@ -606,7 +610,7 @@ def build_pdf():
     draw_formula(doc, f_dtft_ex_result, max_h=30)
     draw_property(doc, "(7) 时域卷积", f_dtft_time_conv, max_h=25)
     draw_property(doc, "(8) 频域卷积", f_dtft_freq_conv, max_h=30)
-    draw_property(doc, "(9) 帕塞瓦尔定理", f_dtft_parseval, max_h=30)
+    draw_property(doc, "(9) 帕塞瓦尔定理", f_dtft_parseval, max_h=38)
     doc.note("814 考点提示", "DTFT 性质常和序列平移、调制、反褶及共轭对称结合考。遇到 n x(n) 时优先想到频域微分；遇到实序列、偶奇性时优先检查共轭对称关系。", compact=True)
     append_chapter_review(doc)
 

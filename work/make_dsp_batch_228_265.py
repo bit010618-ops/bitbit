@@ -16,6 +16,7 @@ from make_dsp_sample_handout_v2 import (
     TEXT,
     formula_png,
     register_fonts,
+    normalize_display_formula_height,
     wrap,
 )
 from make_dsp_batch_016_024 import BatchDoc, draw_formula
@@ -56,6 +57,7 @@ def draw_source_figure(doc, filename, max_h=220, gap=12, max_w=None):
 
 
 def draw_formula_left(doc, path, max_w=None, max_h=36, gap=9, x_offset=0):
+    max_h = normalize_display_formula_height(max_h)
     doc.ensure(max_h + gap)
     c = doc.c
     iw, ih = img_size(path)
@@ -80,6 +82,7 @@ def draw_formula_at(c, expr, name, x, y, max_w=80, max_h=16, size=8.5, color="#1
 
 
 def draw_label_formula(doc, label, path, max_h=30, gap=9):
+    max_h = normalize_display_formula_height(max_h)
     doc.ensure(max_h + 18)
     c = doc.c
     c.setFont("CNB", 9.8)

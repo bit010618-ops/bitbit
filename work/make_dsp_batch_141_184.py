@@ -20,6 +20,7 @@ from make_dsp_sample_handout_v2 import (
     layout_rich_runs,
     piecewise_png,
     register_fonts,
+    normalize_display_formula_height,
     wrap,
 )
 from make_dsp_batch_016_024 import BatchDoc, draw_formula
@@ -45,6 +46,7 @@ def draw_formula_center(doc, path, max_w=None, max_h=34, gap=10):
 
 
 def draw_formula_row(doc, paths, weights=None, max_h=28, gap=10):
+    max_h = normalize_display_formula_height(max_h)
     weights = weights or [1] * len(paths)
     total_weight = sum(weights)
     widths = [CONTENT_W * w / total_weight for w in weights]
@@ -63,6 +65,7 @@ def draw_formula_row(doc, paths, weights=None, max_h=28, gap=10):
 
 
 def draw_label_formula(doc, label, path, max_h=28, gap=8):
+    max_h = normalize_display_formula_height(max_h)
     doc.ensure(max_h + 20)
     c = doc.c
     c.setFont("CNB", 9.8)
@@ -535,8 +538,8 @@ def draw_dfs_section(doc):
             ("线性", f("dfs_prop_lin", r"DFS[a\tilde{x}_1(n)+b\tilde{x}_2(n)]=a\tilde{X}_1(k)+b\tilde{X}_2(k)", 12.2)),
             ("时域移位", f("dfs_prop_tshift", r"DFS[\tilde{x}(n+m)]=W_N^{-mk}\tilde{X}(k)", 12.2)),
             ("频域移位", f("dfs_prop_fshift", r"DFS[W_N^{mn}\tilde{x}(n)]=\tilde{X}(k+m)", 12.2)),
-            ("周期卷积和", f("dfs_prop_conv_a", r"\tilde{y}(n)=\sum_{m=0}^{N-1}\tilde{x}_1(m)\tilde{x}_2(n-m)", 15.5), 38),
-            ("", f("dfs_prop_conv_b", r"=\sum_{m=0}^{N-1}\tilde{x}_2(m)\tilde{x}_1(n-m)", 15.5), 38),
+            ("周期卷积和", f("dfs_prop_conv_a", r"\tilde{y}(n)=\sum_{m=0}^{N-1}\tilde{x}_1(m)\tilde{x}_2(n-m)", 15.5), 44),
+            ("", f("dfs_prop_conv_b", r"=\sum_{m=0}^{N-1}\tilde{x}_2(m)\tilde{x}_1(n-m)", 15.5), 44),
         ],
         max_h=38,
     )
@@ -696,6 +699,9 @@ def draw_end_pages(doc):
         ],
     )
     doc.h2("课后习题")
+    # The exercise list is a chapter tail, so a slightly smaller heading gap
+    # avoids an orphan page while retaining the original text and formula size.
+    doc.y += 6
     doc.rich_bullet([
         "3-1 求序列 DFT。",
         [("text", "3-2 求 "), ("math", r"X(k)"), ("text", "。其中修改(2)为下列分段式。")],
