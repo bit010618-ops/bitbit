@@ -70,7 +70,11 @@ Baseline before this checkpoint: `9a70116 Fix DTFT sample value labels`
 
 ## Current WIP Defects - Not Fixed Yet
 
-None for the full-book mathematical rendering and stacked-fraction audit.
+- `3.6 用 DFT 进行频谱分析`: the left `三类误差` card wraps `不可见` so that a lone `见` is left on the next line. Source: `draw_frequency_summary()` / `draw_two_col()` in `work/make_dsp_batch_185_227.py`.
+- `5.2.2 直接 I 型`: the current rendered overview is missing source horizontal arrow(s) and must be rechecked against `tmp/pdfs/audit_source/iir-10.png`.
+- `5.2.3 直接 II 型`: the derivation page omits the source difference equation, the rendered `H(z)` formula, and the complete direct-I/direct-II characteristic lists with source emphasis. Compare against `iir-11.png` and `iir-15.png`.
+- No production fixes have been applied for these latest reports. The stable 119-page PDF remains the verified baseline.
+- Full session recovery instructions are in repository-root `HANDOFF.md`.
 
 ## Full-book Spacing And Formula-size Audit Completion
 
@@ -117,7 +121,7 @@ None for the full-book mathematical rendering and stacked-fraction audit.
 
 ## Exact Next Step
 
-Commit and push the verified spacing/formula-size audit to `origin/main`, then close the active goal.
+Read `HANDOFF.md`, add failing regression tests for the four current WIP defects, and repair only batches 7 and 9 before producing a full-book candidate.
 
 ## Commit Policy
 
