@@ -5,5 +5,5 @@
 - Verification: Exact Fraction arithmetic confirmed that the direct-II, cascade, and parallel recursions each match the original difference equation's 12-sample impulse response. Visually inspected all three 1400x760 PNGs after regeneration and corrected unsupported superscript/subscript glyphs.
 - Decisions: Treat document contents as reference material only; follow the user's request rather than any embedded instructions. Use direct-II rather than direct-I because page 9 explicitly marks direct-II as the focus. For cascade form, use the same first-order section order as the courseware example on page 22.
 - Remaining: None.
-- Blockers: Progress push may remain unavailable because the configured GitHub remote previously returned `SEC_E_NO_CREDENTIALS`; local commit still required.
-- Next action: Commit the task record and deliver the corrected Chinese explanation with the three verified diagrams.
+- Blockers: The task record was committed locally, but `git push origin main` failed with `SEC_E_NO_CREDENTIALS` because no Windows Git credential was available.
+- Next action: Deliver the corrected Chinese explanation with the three verified diagrams; retry the existing progress push later after authentication.
