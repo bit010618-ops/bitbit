@@ -5,5 +5,5 @@
 - Verification: Exact Fraction arithmetic expanded the cascade denominator to (1, -3/4, 1/8), recombined the parallel numerator to (1, 1/3), and confirmed matching impulse responses for all three realizations over eight samples.
 - Decisions: Treat the system as an LTI system under zero initial conditions for deriving H(z). Use the direct-form-I diagram that follows the original difference equation; note that other equivalent direct/cascade orderings are valid.
 - Remaining: None.
-- Blockers: None.
-- Next action: Deliver the verified Chinese solution and diagrams to the user.
+- Blockers: Progress push could not authenticate: `SEC_E_NO_CREDENTIALS`; the task record is committed locally.
+- Next action: Deliver the verified Chinese solution and diagrams to the user; push the progress commits later when Git credentials are available.
