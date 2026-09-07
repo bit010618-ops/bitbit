@@ -18,3 +18,9 @@ Completed: Confirmed three source files exist and both marginpkg archives open. 
 - (1) 求系统函数 H(s)，画出零极点图；(2) 求系统频响，几何法绘制幅频响应 |H(jw)| 曲线，判断是什么类型滤波器；(3) 若初始条件 y(0-)=0，y'(0-)=2，y(t)=(e^(-t)+e^(-2t)-e^(-3t))u(t)，求激励 f(t)；(4) 画系统的简化框图。
 - User wants final-answer and detailed-explanation branches but reports prior answer crops included too much or omitted material. Need source-to-card visual checks of start/end, full formulas, subquestion mapping and cross-page joins; representative sample before bulk processing. Do not assume answer sources exist or silently invent missing solutions.
 - Requirements captured only; no card/package edits made. Existing Git authentication limitation remains SEC_E_NO_CREDENTIALS; upload not confirmed.
+
+## Production authorized
+User requests completed classified marginpkg now. Exclude final answers and detailed explanations. Preserve original question images; no LaTeX rewriting. Inspect provided sources, classify by syllabus chapter and fine type, clean page furniture and repair two identified questions, validate archive and visual content.
+
+## Verified production milestone
+Inventoried 291 source question cards from 18 years and read full syllabus (13 topics). Classified all 291 cards. Rendered original PDF regions with headers/footers removed; visually reviewed all 287 resulting cards across 24 contact sheets, merging 4 dependent pairs. Refined 20 card boundaries with adjacent text fragments. User confirmed 2020 DFT entire question follows photograph (4-point circular convolution; W6^(4k)X(k); X(3k)). Typeset and visually checked two authorized photo corrections. 2020 Q6 graph exists in source PDF and is preserved; prior text-only missing-graph suspicion resolved. 2017 Q7(2) source sequence/circular-convolution length incomplete, retained pending. Next: package using reference native schema and verify reopened package graph/media integrity.
