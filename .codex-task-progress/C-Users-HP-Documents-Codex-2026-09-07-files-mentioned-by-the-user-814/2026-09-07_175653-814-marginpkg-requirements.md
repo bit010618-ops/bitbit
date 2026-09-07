@@ -11,3 +11,10 @@ Completed: Confirmed three source files exist and both marginpkg archives open. 
 - Photo stem: x(n)=4δ(n)+3δ(n−1)+2δ(n−2)+δ(n−3), with its 6-point DFT denoted X(k). This identifies the source question; do not confuse subquestion (3) with an incorrect 4-point DFT excerpt.
 - Correction image: D:/WeChat/xwechat_files/wxid_2u98fqzuwq0g22_49a6/temp/RWTemp/2026-09/9e20f478899dc29eb19741386f9343c8/a4cbcbc2da98adb38948517329351d17.jpg
 - This is a recorded requirement only; package cards have not yet been edited. Previous push failed with SEC_E_NO_CREDENTIALS.
+
+## Additional correction and answer-quality requirement
+- User supplied correction photo for 2023 question 5, whose existing card has missing/incorrect text. Source: D:/WeChat/xwechat_files/wxid_2u98fqzuwq0g22_49a6/temp/RWTemp/2026-09/9e20f478899dc29eb19741386f9343c8/8e9ccd9f6502941b84fd32a61cf56ef0.jpg
+- Visible stem: y''(t)+5y'(t)+6y(t)=f'(t)+f(t), 15 points.
+- (1) 求系统函数 H(s)，画出零极点图；(2) 求系统频响，几何法绘制幅频响应 |H(jw)| 曲线，判断是什么类型滤波器；(3) 若初始条件 y(0-)=0，y'(0-)=2，y(t)=(e^(-t)+e^(-2t)-e^(-3t))u(t)，求激励 f(t)；(4) 画系统的简化框图。
+- User wants final-answer and detailed-explanation branches but reports prior answer crops included too much or omitted material. Need source-to-card visual checks of start/end, full formulas, subquestion mapping and cross-page joins; representative sample before bulk processing. Do not assume answer sources exist or silently invent missing solutions.
+- Requirements captured only; no card/package edits made. Existing Git authentication limitation remains SEC_E_NO_CREDENTIALS; upload not confirmed.
