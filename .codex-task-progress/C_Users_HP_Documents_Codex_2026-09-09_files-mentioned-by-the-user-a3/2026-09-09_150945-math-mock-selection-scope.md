@@ -34,3 +34,18 @@ Completed the authorized 130+ mock-exam selection and PDF compilation.
 
 # Remaining / exact next action
 No PDF or report production work remains. Commit only this task log, attempt permitted upstream push, and deliver the two final files. Previous push was blocked by local Git authentication SEC_E_NO_CREDENTIALS; do not claim uploaded unless final retry confirms success. Preserve unrelated untracked task logs.
+
+# User-requested layout revision (2026-09-10)
+User supplied a page reference and requested matching headers/footers plus sequential paper codes. Keep the selected 32 papers and their order. Use M01-M32 at upper right, reference-style upper-left 启用前 ★ 绝密, centered actual paper title, and centered footer with actual title and within-paper page number. Update contents/bookmarks and provide a code-to-paper/question-page index. Original source PDFs remain read-only. Verify the revised decorations, navigation and unchanged question artwork before delivery. Last upstream push retry failed with SEC_E_NO_CREDENTIALS; local compilation commit dbee857 retained.
+
+# Verified layout revision complete
+Final current deliverables:
+- outputs/数学一130+整卷模拟精选32套_代号版.pdf (132 A4 pages; 32 papers; 704 questions; 2,103,853 bytes).
+- outputs/32套卷代号与题目索引.md (M01-M32, real title, physical page range and per-page question ranges).
+- outputs/选卷说明与真实卷名对照_代号版.md (selection rationale and provenance updated to code edition).
+The previous edition remains available, but the code edition is the current deliverable.
+
+Revision verification: CODED_VERIFY_OK. All 128 paper pages have the expected reference-style header and footer and sequential M01-M32 code; all 32 contents links and 35 bookmarks checked. All 128 body regions are pixel-identical to the prior verified edition at 108 dpi, and all 703 artwork placements are identical. Rendered all 132 revised pages, visually inspected all 32 distinct header/footer pairs and representative complete pages; Poppler independently rendered the revised first paper page correctly. CODE_INDEX_OK: 704 unique question IDs; example M07-18 resolves to physical page 31, M23-21 to 96, M32-22 to 132.
+Final revised PDF SHA-256: 4db939db049cd76fe971c02366c51d0ffac628d3ecd9dea07047f976f2c88a44.
+
+No document work remains. Deliver the current code-edition PDF, index and updated selection report. Upstream synchronization remains unavailable: last push returned schannel AcquireCredentialsHandle SEC_E_NO_CREDENTIALS (0x8009030e). Do not claim cloud upload. This record is locally committed; unrelated repository files were not staged.
