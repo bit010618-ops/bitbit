@@ -21,3 +21,16 @@ Deliver the verified PDF immediately, then continue the MarginNote phase. Audit 
 
 ## Git
 This task uses fallback repository progress only. Stage/commit this task file only; never stage unrelated changes. Historical remote authentication failure SEC_E_NO_CREDENTIALS; do not claim upload unless push succeeds.
+
+## MarginNote delivery milestone (2026-09-09)
+- All 274 daily questions now have authored final answers and detailed solutions; 822 LaTeX-rendered media cards. Original answers were absent, so all solution leaves identify 补写解析（依据原题）.
+- Final native package: outputs/高数错题每日复习_34天_题目答案解析.marginpkg (25,092,219 bytes), SHA256 7d33b76e306fe5c9f85f197741b5f1cb123bfd8b4ad7a1b0e80d7eb690826ee3.
+- Reference-native primary excerpt fields (not body-note images), narrow source titles and expanded body width; 34 daily groups plus pending M016/E006. Exactly 274 question cards, 274 final answer leaves, 274 detailed solution leaves, 548 collapsed wrappers, 1408 database notes total.
+- verify_native.py reopened the actual final ZIP/SQLite and verified integrity, all image bytes/archives, source UUIDs, hierarchy, collapsed flags, native layout fields and exact frozen PDF day/order; NATIVE_VERIFY_OK.
+- render_native_cards.py produced 822 pages/cards with NO missing glyphs or overfull warnings. Corrected Chinese math subscripts in D019 rendering. Representative full-size S067, E028, D019, D047, M057 images reviewed successfully.
+- S verification 29 symbolic checks passed; M verification 156 exact/symbolic checks passed covering 65 usable questions (generic mixed derivative identities checked with explicit polynomial instances, general derivations also reviewed); E verification 92 checks passed. D all 48 solutions reviewed, ten complex explicit integrals independently calculated using SymPy and matched. I7 endpoint derivations reviewed.
+- Corrected solution arithmetic S034=-31/32, S081=(pi,-2). Explicitly retained source/definition caveats S021, S082, M039, M047, M057, D032; no frozen PDF question text changed. PDF SHA256 reconfirmed unchanged.
+- Added outputs/高数每日复习_交付说明.md, explaining provenance, pending sources, daily plan, and verification boundary.
+
+## Remaining verification boundary / exact next action
+Deliver the native package now with the already verified PDF available. This Windows host cannot run MarginNote; no application import or actual title/body UI screenshot has been verified. Do NOT claim native app display tested or goal fully complete. Goal remains active pending actual import/display evidence; user can import and provide feedback to validate narrow header, large body and fold interactions. No remaining missing solution among 274 daily questions. Preserve stable source records for future additional sets.
