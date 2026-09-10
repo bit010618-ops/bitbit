@@ -67,3 +67,12 @@ C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\pd
 SHA256 41d38c5dd85e8fb31fa740f456b2b9eb93a64321c154e42b439c6fd17f350c0f
 output/pdf/信号与DSP_使用说明及待核对项.md记录8处原题条件疑点及打印建议。所有B类题逐条确认原cards.json有真实卡片，未扩选内嵌PDF。原316来源记录经合并/拆分全部映射日程；2个MATLAB小问明确排除。
 当前可交付上述题目留白PDF；仍不宣称整项任务完成。下一步核对原题疑点与3孤立手写节点，然后按同日程撰写最终答案及详细解析、生成MarginNote。目标active。先前1a61746进度提交已成功push；本次记录也应提交并push。
+
+
+## 2026-09-11：前20天MarginNote答案解析版已实际生成
+继续原任务，未重排已交付PDF。write_solutions_core_a.py/core_b.py独立编写前20天69道不同题的答案与解析（70次练习），不是原答案截图。draw_core_solutions.py生成17幅数学波形/结构图。verify_core_math.py完成43项独立数值核对，包含原微分方程、卷积/DFT、相位因子、IIR转换后指标；不把采样频响检查称作连续区间符号证明。
+LaTeX编译207张卡片，无Overfull/缺字；207卡片的18张联系表全部目视，4个结构/波形图曾单独放大；原题配图沿用经审阅的原图裁片。窄题源标题+主摘录图片，答案和解析分别折叠。package_native.py使用参考包primary excerpt字段，修复NS.string UID引用并采用FMT_BINARY。
+输出：output/marginnote/信号与DSP_前20天核心回顾_题目答案解析.marginpkg，12197616字节。
+SHA256 75e6b17d5710ddc9d78454b2ccadd969689a140723908a88238bce2114b96e6b。
+verify_native.py重新解包：20天、70题面、70答案、70解析、140折叠分支、371节点；210次嵌入图片像素一致，题序同PDF，SQLite integrity及ZIP CRC通过。未做MarginNote原生导入测试，不能声称iPad布局已实测。
+尚余261个不同练习单元待独立解析，全题量111天MarginNote尚未完成；8处源题疑点、3孤立手写节点仍未闭环。工具get_goal当前返回usageLimited，不能通过update_goal恢复，不标记complete或blocked。下一步继续后续日程答案解析并逐批验证。
