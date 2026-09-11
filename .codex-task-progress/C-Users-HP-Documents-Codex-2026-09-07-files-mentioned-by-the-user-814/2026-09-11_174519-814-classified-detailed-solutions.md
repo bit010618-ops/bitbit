@@ -42,3 +42,38 @@ output/marginnote/华理814分类真题_逐步详解_106题进度版.marginpkg
 本批新增write_ch03_e.py（7）、write/draw_ch03_f.py（6、3图）、write_ch03_g.py（EX162）、verify_ch03_efg_math.py（135检查）、render_corrections.py、build_question_pdf.py。package.py通过原ID更新EX162题面字段；verify_package.py仅对该题允许已列明题面字段变化，原位置字段严格保持。旧92及之前输出保留。
 
 
+# 2026-09-12 当前进度：112题解析、章节目录、作答留白与中文配图
+
+目标仍进行中：先完成分类真题287题独立逐步详解，再恢复每日小练剩余156题。现112/287题已完成（第一章27、第二章23、第三章62）；剩余175题，从第四章25题继续。
+
+新增第三章EX-298、119、084、033、424、530六题，12张答案解析卡片与5幅图，343项数学核对通过；累计959项。六题24条完整视觉审阅切片均已查看；累计224张答案解析卡片已目视。修正EX-033“下图虚线”为“图中虚线”。224页LaTeX渲染无Overfull/Missing/Undefined，最高卡片6995px。
+
+用户最新要求：PDF可见标签乱码修复；按章节做目录；目录美化；长题不要挤在页底，兼顾页数；所有自配图例、说明改中文，不只截图圈出部分。已完成：
+
+- 可见中文页眉、来源、目录、页码全部使用矢量字形轮廓，无字体加载依赖；仅不可见EX编号保留Helvetica搜索层。
+- 一页章节目录，14项可点击，信号与系统1–7章及DSP8–13章分组，章号/章名/页码对齐，附录独立。书签和物理页码已更新。
+- 共213页，287题保持原顺序；77页放两题、133页放一题、2页续答、1页目录。按题面高度、多小问、画图、设计/推导需求分配。EX-288第211页单题，题后478.11pt（约168.7mm）空间。EX-436和EX-336增加续答页。半页题至少150pt空间，单题至少320pt或有续答。
+- 题面286张源图与PDF嵌入图像素完全一致；EX-162按用户确认补全，600dpi插图，第76页；287个源图文件哈希不变。仅题目和空白，不含答案解析；这版原题主体仍保留原卡图片，并非全册重新LaTeX转写。
+- 213页Poppler渲染完成，9张全册页面联系表目视；目录、EX162、续答页及EX288分别放大查看，无乱码、越界、重叠。
+- 自配25幅解析图全部改用支持中文字体；所有英文解释标题、图例、冲激强度/幅度说明已中文化；数学变量、标准单位保留。25幅图的7张联系表全数目视，EX530长卡内中文图也单独检查。未修改来源原题图。
+
+## 当前交付
+
+题目PDF：output/pdf/华理814分类真题_章节目录与作答留白版.pdf
+213页；SHA256 785ddcf46d1358df6ba26580d051564f68abc74547bce30c5d3ee550d506a2bf。
+
+MarginNote：output/marginnote/华理814分类真题_逐步详解_112题进度版.marginpkg
+42,497,009字节；SHA256 b6ec2646849662f5be39b6181966eb88de54294b0385b3c26d749c2a1c0998a7。
+全部287题保留，112题有折叠最终答案和详细解析，224折叠分支、811节点、512图片像素核验、CRC/SQLite均通过。286题原图不变，EX162原位补全，原章节和题型层级不变。原生MarginNote导入仍未测试。
+
+## 验证和复现
+
+build_question_pdf.py、layout_policy.py、styled_contents.py、outlined_text.py控制新版题目版。
+verify_spacious_pdf.py→spacious_pdf_verification.json、question_pdf_manifest.json。
+localize_figures.py重绘六个draw脚本的25幅图；qa_chinese_figures.py审计。
+write_ch03_h.py/ch03_i.py、draw_ch03_hi.py、verify_ch03_hi_math.py完成第三章六题；ch03_hi_math_checks.json有343记录。
+render.py→224卡，package.py和verify_package.py→CLASSIFIED_PACKAGE_OK。
+旧106题及153/154页PDF均保留。最新文件已请求在Codex打开，工具返回queued，未声称窗口已显示。
+
+下一步：核对第四章25题原题卡并独立逐题写解析；后续所有配图维持中文说明。每日小练仍暂停于60天174/330题。
+
