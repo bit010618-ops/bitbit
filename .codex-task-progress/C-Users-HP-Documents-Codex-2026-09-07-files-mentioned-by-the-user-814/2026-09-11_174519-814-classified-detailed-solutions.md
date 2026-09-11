@@ -19,3 +19,21 @@ PDF仍为output/pdf/信号练习册_题目版.pdf，212页（封面1+正文211�
 
 证据：last7_math_verification.json、last7_visual_verification.json、qa/last7/manifest.json、package_verification_287.json、source_conditions_287.json、resume_after_classified_287.json。
 
+# 2026-09-12：每日解析推进至第65天
+
+完整目标保持进行。分类真题287/287已独立写出答案解析并验证打包，部分原题缺条件/符号仍为显式条件解；详见分类使用说明和47条条件记录，不把覆盖数当成题意全部确认。原生MarginNote导入尚未实测。
+
+每日小练新增第61—65天18道独立解析，现192/330题，余138题；保留原111天日程。累计65天205次安排（含间隔复习），题目/答案/解析均具备。B1-0193按原图两段相位分别以正负中心频率为零点，幅度未标故保留K，示意波形参数明确标注。DSP-P20-Q12选151点汉明窗、截止0.325π，用导数界约束网格之间幅度，证实完整通带0.9987—1.0024、阻带小于0.0021，非最小阶数声明。并联结构完整绘出三个延时单元，不擅改不稳定原系数；无MATLAB题、无额外扩题。
+
+407项核验通过：398数学数值/条件检查与9项旧文件哈希保持检查。数学含拉氏直接积分、DTFT/IDFT、带通逆积分、离散卷积、并联与合并传递函数递推对比。4幅中文图及18完整面板（54卡）亲自目视；渲染576卡无缺字/溢出警告。旧522卡哈希完全一致，六份既有解析、日程、题库、60天包均保持。
+
+新交付：output/marginnote/信号与DSP_65天_题目答案解析.marginpkg
+大小37,758,903字节，SHA256 92b93af96803b9ca24e6b4e0a1bee610386241ff4dad13f1f8df4e0c6bf5773d。
+NATIVE_PACKAGE_VERIFY_OK：205题、205答案、205解析、410折叠分支、1091节点、615像素比较；ZIP CRC及SQLite完整性通过，与PDF日程一致。未原生导入，不能宣称应用内导入效果已测。
+
+分类包仍为华理814分类真题_逐步详解_287题进度版.marginpkg，SHA256 86d5b8867dd83a99ead3c858522d240335043127762ae3325e37e915f2fe4f91。配套题目PDF仍为信号练习册_题目版.pdf，212页，短标题/波形封面，无答案；原题画面保持，不声称已全部LaTeX重打。分类条件说明已独立保存，不重复本轮重做。
+
+下一步：继续第66天，按work/signals_daily/next_after_65days.json核对原卡后独立详解。保留65天包和既有成果；完成全部每日330题后才做完整目标验收。分类缺失题意及原生导入限制持续保留，不据此阻断可继续的每日题目。
+
+证据：fifth_math_checks.json、fifth_visual_checks.json、qa_native65/manifest.json、native_65days_manifest.json、native_65days_verification.json、next_after_65days.json。上一轮仅封面复核未推进解析；本轮已增加真实作者内容和经过验证的交付。
+
