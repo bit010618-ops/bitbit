@@ -37,3 +37,20 @@ NATIVE_PACKAGE_VERIFY_OK：205题、205答案、205解析、410折叠分支、10
 
 证据：fifth_math_checks.json、fifth_visual_checks.json、qa_native65/manifest.json、native_65days_manifest.json、native_65days_verification.json、next_after_65days.json。上一轮仅封面复核未推进解析；本轮已增加真实作者内容和经过验证的交付。
 
+# 2026-09-12：每日解析推进至第70天
+
+完整目标继续进行。分类287/287题已独立写出答案与详细解析；部分原题缺条件/符号仍为显式条件解，不把覆盖数当作题意全部确认。原生MarginNote导入尚未实测。
+
+新增第66—70天16道独立解析，目前208/330题，剩余122题。111天原日程保持，累计70天内容含间隔复习；无MATLAB、无从内嵌PDF额外扩题。四倍抽取保留1/4幅度和数字/物理频率区分；未知原频谱保留符号与原图中心段描取，不捏造解析曲线。补零DFT分别推导偶/奇频点；DSP-P07-Q06反褶与平移逐样本核对；P08-Q13负底数-3/4经原图放大确认；DFS正变换两种归一化约定明确区分。全通系统给出零极点图、两节直接II结构及完整幅度证明。
+
+138项数学核验通过。16完整面板共48新卡亲自目视；5幅中文图目视，横截型加法连接修正后重渲染复看。最终624卡，208唯一题，渲染无缺字/溢出警告。旧576卡哈希不变；既有六份解析、原日程、题库、60天包及65天包共10文件哈希保持。
+
+新交付：C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\marginnote\信号与DSP_70天_题目答案解析.marginpkg
+SHA256 be771f1c5ba71fa703dbc1e2c5971f61a1f9d00556077cf7fdc03f633085c752。NATIVE_PACKAGE_VERIFY_OK，ZIP CRC、SQLite、媒体像素、折叠顺序、原题追溯及日程一致性通过，完整计数见native_70days_verification.json。应用内导入/显示尚未实测。
+
+封面再次目视核对：信号练习册_题目版.pdf仍为短标题“信号练习册”与连续/离散黑白波形，不含814。SHA256 524bfac15fed43794db4f17a230f4bb917dbcfe0307f4da1b9c5afc22a01e325 实测一致，212页，原211页保持，正文无解析。本轮未重复改动已符合要求的封面。
+
+下一步：从第71天开始，读取next_after_70days.json，逐题核对原卡并独立推导；完成全部330道每日题后再做总验收。保留分类条件说明与原生导入限制，不能把阶段包当作全目标完成。
+
+证据：sixth_math_checks.json、sixth_visual_checks.json、qa_native70/manifest.json、native_70days_manifest.json、native_70days_verification.json、next_after_70days.json。
+
