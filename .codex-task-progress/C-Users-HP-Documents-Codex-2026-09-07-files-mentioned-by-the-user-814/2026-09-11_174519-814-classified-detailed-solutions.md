@@ -106,3 +106,20 @@ SHA256 285a59bc2f80836bf1db5fedb9aa9af795d4e35e62b90f02ca0c16b5d8e517d8，文件
 
 证据：ninth_math_checks.json、ninth_visual_checks.json、qa_native85/manifest.json、native_85days_manifest.json、native_85days_verification.json。
 
+# 2026-09-12：每日解析推进至第90天
+
+完整目标继续进行。分类287/287题已有独立答案解析，部分源题条件保留显式条件解；原生MarginNote导入未测。
+
+新增第86—90天17道逐步解析，累计266/330道，剩余64道。六组Z变换完整说明收敛域、零极点及重数；有限序列约去的点明确为可去奇点，不误作零极点。两差分系统给出H、h、幅频与结构，输入反求核对n=0。二次多项式输入逐步待定系数并明确未给初始条件时先给零状态、再给初始值参数项。16点对称FIR保持原题长度，区分带符号零相位幅度与非负模值两种定义，未捏造Hg定义。采样例完整说明2.5Hz分量折叠到1.5Hz及滤波器增益。
+
+110项数学与冻结文件保持核验通过：Z级数、零极点、复数FIR逆DFT、原差分递推与结构、延时拉氏数值积分、多项式输入含非零初态及混叠谱线。17完整面板51新卡、5个中文图文件亲自目视。两幅频图端点标注校正后重新渲染复核。798张唯一卡片无缺字或溢出警告，旧747张哈希不变。
+
+新包：C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\marginnote\信号与DSP_90天_题目答案解析.marginpkg
+SHA256 d8ad2bf675200cb89704bd7879d847a250f74adee60da75fc51730446ca09a5b，文件61,282,198字节。第1—90天287次练习安排、287答案、287解析、574折叠分支、1526节点、861媒体像素比较；ZIP CRC、SQLite、折叠及日程一致性通过。应用内导入未测。
+
+题目PDF继续使用C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\pdf\信号与DSP_全题量留白版_题面校正版.pdf，SHA256 960c9df5d908228338968648ed4ead61b3ff20f80dffa91f5b78e0c5d99ae536。本次无题面修改；111天日程、题库及此前85天成果保持。分类题目版封面不重复修改。
+
+下一步：第91—95天，按next_after_90days.json逐题核对原卡并独立推导，冻结基准resume_after_90days.json。全部330题完成后再总验收，不把阶段包当作全目标完成。
+
+证据：tenth_math_checks.json、tenth_visual_checks.json、qa_native90/manifest.json、native_90days_manifest.json、native_90days_verification.json。
+
