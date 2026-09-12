@@ -157,3 +157,20 @@ SHA256 031e76135b752f1cfabe5234d360fc8a4dbe0e9710b5419799a9a005041dbe69，文件
 
 证据：twelfth_math_checks.json、twelfth_visual_checks.json、qa_native100/manifest.json、native_100days_manifest.json、native_100days_verification.json。
 
+# 2026-09-12：每日解析推进至第105天
+
+完整目标继续进行。分类287/287题已有独立答案解析，源题条件缺失处保留显式条件解；原生MarginNote导入未测。本轮完成第101—105天18道独立解析，累计320/330，余10道。
+
+全通题证明距离比恒为1/|a|，区分单位幅归一化及a=±1精确约消；群延迟题明确π/2频谱零点无定义。二阶谐振器完整零极点、增益、峰值位置和余弦相移推导，说明稳态条件。频谱反求系统给出最简解与未激励频带的任意扩展，不误报唯一性。DFT题用解析公式和图核对任意N采样、N=6精确值及IDFT正交性，不添加MATLAB编程要求。双边拉氏未给ROC时列明三种区域答案。
+
+169项数学和冻结文件核验通过：原递推冲激频响、正弦响应代回、几何全通、局部群延迟、左右序列级数、重极点拉氏数值积分、7种N的DFT/IDFT、理想低通逆积分与非唯一频域扩展。5幅中文图、18完整面板54张新卡目视通过；960卡无缺字和溢出，旧906卡哈希保持。
+
+新包：C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\marginnote\信号与DSP_105天_题目答案解析.marginpkg
+SHA256 49b905f09d289f3fd9a5fc098079c1a67600108c8cb4f8f24e18c973744c4c17，文件76,059,225字节。348练习安排、348答案、348解析、696折叠、1846节点、1044媒体像素比较，ZIP CRC与SQLite、折叠顺序、题序均通过。应用内导入未测。
+
+题目PDF：C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\pdf\信号与DSP_全题量留白版_题面校正版.pdf，SHA256 960c9df5d908228338968648ed4ead61b3ff20f80dffa91f5b78e0c5d99ae536；本轮题面、111天日程和旧100天内容不变。
+
+下一步：最后第106—111天10道，按next_after_105days.json核对原卡；重点为源条件冲突的显式讨论，不能猜改。冻结基准resume_after_105days.json。完成全部330后进行总验收。
+
+证据：thirteenth_math_checks.json、thirteenth_visual_checks.json、qa_native105/manifest.json、native_105days_manifest.json、native_105days_verification.json。
+
