@@ -54,3 +54,21 @@ SHA256 be771f1c5ba71fa703dbc1e2c5971f61a1f9d00556077cf7fdc03f633085c752。NATIVE
 
 证据：sixth_math_checks.json、sixth_visual_checks.json、qa_native70/manifest.json、native_70days_manifest.json、native_70days_verification.json、next_after_70days.json。
 
+# 2026-09-12：每日解析推进至第75天
+
+完整目标继续进行。分类287/287题已有独立答案与详细解析，部分源题条件仍为显式条件解；原生MarginNote导入未测。
+
+新增第71—75天13道详细解析，累计221/330道，剩余109道；75天含237次题目安排，保留111天日程。253项数学及保持检查通过。13完整面板39新卡亲自目视，旧624卡哈希不变；663张唯一卡片渲染无缺字或溢出警告。
+
+核对原稿修正DSP-P06-Q04第二问Y(z)因子中的正负号，并为DSP-P19-Q09第二问补回遗漏的FIR条件。其他328题保持；原始文件与早期包保留。B1-0210原图双左半阴影不能构成通常实信号单边带，详细解析明确区分原图字面结果与常规下边带条件解，不默改源图。
+
+MarginNote：C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\marginnote\信号与DSP_75天_题目答案解析.marginpkg
+SHA256 cd488771e9938597f5c5ff842badf837cf1fca725eeab0ab3a8f23ba0f2e4600。237题、237答案、237解析、474折叠分支、1261节点、711媒体像素检查；ZIP CRC、SQLite完整性、日程和折叠关系通过。应用内导入/显示尚未实测。
+
+题面校正版PDF：C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\pdf\信号与DSP_全题量留白版_题面校正版.pdf
+SHA256 960c9df5d908228338968648ed4ead61b3ff20f80dffa91f5b78e0c5d99ae536。241页，只含题目与留白；第153和155页校正并亲自目视，其余239页像素完全一致。旧PDF保留，后续交付使用current_deliverables.json中校正版路径，未来重新排版以已校正exercise_units.json为准，勿复制旧daily_review_draft.pdf作为最新版。
+
+下一步：第76—80天，读取next_after_75days.json，逐题核对原卡并详细推导。冻结基准升级为resume_after_75days.json，旧基准中的题库哈希仅因上述两项已验证校正而改变。全部330道完成后再做总验收。
+
+证据：seventh_math_checks.json、seventh_visual_checks.json、qa_native75/manifest.json、native_75days_verification.json、daily_question_correction_75.json、seventh_question_corrections.json。
+
