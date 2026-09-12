@@ -89,3 +89,20 @@ SHA256 10a694da65aee4ef1edea9806e49aea8f024e8c64110ecb60e5d726aa96dad68。包含
 
 证据：eighth_math_checks.json、eighth_visual_checks.json、qa_native80/manifest.json、native_80days_manifest.json、native_80days_verification.json。
 
+# 2026-09-12：每日解析推进至第85天
+
+完整目标继续进行。分类287/287题已有独立答案解析，部分源题条件保留显式条件解；原生MarginNote导入未测。
+
+新增第81—85天13道逐步解析，累计249/330道，剩余81道。含五个差分系统的完整结构、H与h推导，三幅零极点/收敛域子图，16点II型FIR频率采样设计与全系数。抽取选择题明确B、D、E在已知原频带且允许频带搬移重建的条件下可恢复，并指出D与E抽取输出相同，未知频带时不能区分。FIR补齐复数样值与Nyquist零点，明确半整数延时的后半区带符号幅度，未擅自归一化。1/t按主值逐步由正则化积分推导。
+
+183项数学与冻结文件保持核验通过，包括完整DFT对比、五个原差分方程与结构递推/卷积对比、FIR复数IDFT和实余弦公式交叉核验、双边Z级数及主值正则化数值积分。13完整面板39新卡、3图文件（含五结构图）亲自目视。步骤分段后全部重渲染再复看；747张唯一卡片无缺字/溢出，旧708张哈希保持。
+
+新包：C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\marginnote\信号与DSP_85天_题目答案解析.marginpkg
+SHA256 285a59bc2f80836bf1db5fedb9aa9af795d4e35e62b90f02ca0c16b5d8e517d8，文件56,355,405字节。第1—85天269次练习安排、269答案、269解析、538折叠分支、1431节点、807媒体像素比较；ZIP CRC、SQLite、折叠及日程一致性通过。应用内导入未测。
+
+题目PDF仍使用C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\pdf\信号与DSP_全题量留白版_题面校正版.pdf，SHA256 960c9df5d908228338968648ed4ead61b3ff20f80dffa91f5b78e0c5d99ae536。本次无题面修改；原111天日程、题库和此前80天成果保持。已完成的分类题目版封面不重复修改。
+
+下一步：第86—90天，按next_after_85days.json逐题核对原卡、独立推导，基准resume_after_85days.json。全部330题完成后再总验收，不把阶段交付当作全目标完成。
+
+证据：ninth_math_checks.json、ninth_visual_checks.json、qa_native85/manifest.json、native_85days_manifest.json、native_85days_verification.json。
+
