@@ -72,3 +72,20 @@ SHA256 960c9df5d908228338968648ed4ead61b3ff20f80dffa91f5b78e0c5d99ae536。241页
 
 证据：seventh_math_checks.json、seventh_visual_checks.json、qa_native75/manifest.json、native_75days_verification.json、daily_question_correction_75.json、seventh_question_corrections.json。
 
+# 2026-09-12：每日解析推进至第80天
+
+完整目标保持进行。分类287/287题已有独立答案解析，部分源题缺失条件为显式条件解；原生MarginNote导入仍未实测。
+
+新增第76—80天15道详细解析，累计236/330道，剩余94道。完整111天日程、题库、既有75天包及旧解析保持。零状态响应题B1-0184保留原题增长指数，按因果单边语境给条件解；负尺度单边拉氏条件明示。B0-0438分别推导100点实际输入与128点FFT，49点重叠、51点保留，直接卷积比较含首尾通过。两种FIR设计详细推导并同轴比较，未额外直流归一化、未捏造未给设计指标。k=1一阶系统明确普通DTFT不存在，配图只为非零频率形式曲线。零极点图没有具体参数，公式保留参数、草图标明示意数值。
+
+198项数学/旧文件保持检查通过；包括数值卷积、双边Z反变换级数、DFT/IDFT、两种直接型递推比较、窗法逆DTFT积分、重叠保留法完整输出与直接卷积对比。15完整面板45卡及6幅中文图亲自目视。最终708卡、236唯一题，无缺字或溢出警告；663张此前卡片哈希不变。
+
+新包：C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\marginnote\信号与DSP_80天_题目答案解析.marginpkg
+SHA256 10a694da65aee4ef1edea9806e49aea8f024e8c64110ecb60e5d726aa96dad68。包含254次练习安排，254答案、254解析、508折叠分支、1351节点、762媒体像素比较。ZIP CRC、SQLite、媒体、折叠顺序与PDF日程检查通过；应用内导入未测。
+
+题目PDF继续使用C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\pdf\信号与DSP_全题量留白版_题面校正版.pdf，SHA256 960c9df5d908228338968648ed4ead61b3ff20f80dffa91f5b78e0c5d99ae536，本轮没有新增题面修改。分类题目版封面及内容也不重复改动。
+
+下一步：第81—85天，按next_after_80days.json逐题核对原卡并详细推导，使用resume_after_80days.json冻结基准。全部330道完成后再做整体目标验收，勿把阶段包标成全目标完成。
+
+证据：eighth_math_checks.json、eighth_visual_checks.json、qa_native80/manifest.json、native_80days_manifest.json、native_80days_verification.json。
+
