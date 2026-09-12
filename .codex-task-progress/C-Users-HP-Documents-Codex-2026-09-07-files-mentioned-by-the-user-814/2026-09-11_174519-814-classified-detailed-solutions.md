@@ -140,3 +140,20 @@ SHA256 23f6c48f6df9beff0da5aeecc2e6f2615396d86fcbf37ae6a2082b010c69c92c，文件
 
 证据：eleventh_math_checks.json、eleventh_visual_checks.json、qa_native95/manifest.json、native_95days_manifest.json、native_95days_verification.json。
 
+# 2026-09-12：每日解析推进至第100天
+
+完整目标继续进行。分类287/287题已有独立答案解析，源题条件缺失处保留显式条件解；原生MarginNote导入未测。上轮已完成18道独立解析与260项数学验证，本轮修正排版、完成全部新卡目视和打包验证，属于实质进展。
+
+新增第96—100天18道逐步解析，累计302/330道，剩余28道。带阻设计从四边预畸变、低通映射、最小阶数到模拟和数字系统函数、四阶零极点、全通阻带指标逐步推导，严格满足3dB而非误用3.0103dB。FIR提供对称折叠直接型和频率采样型图，列出五个复数系数并验证结构。广义线性相位核对三个序列时间原点，串联系统证明和并联系统反例齐备；单边Z差分题保留非零初值，y(0)题不偷换成y(-1)=0。
+
+260项数学与冻结文件核验通过，包括差分精确分数递推、部分分式、DFT与两种FIR结构独立卷积对比、广义线性相位及反例、带阻模拟数字频响、10001点全频带和边界指标、零极点及阶数、非线性系统反例。18完整面板54新卡、4中文图亲自目视；两处行内公式改为独立公式消除溢出，图中系数用数学字体消除缺字。906卡无缺字或溢出警告，旧852卡哈希保持。
+
+新包：C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\marginnote\信号与DSP_100天_题目答案解析.marginpkg
+SHA256 031e76135b752f1cfabe5234d360fc8a4dbe0e9710b5419799a9a005041dbe69，文件71,051,690字节。第1—100天329次练习安排、329答案、329解析、658折叠分支、1746节点、987媒体像素比较。ZIP CRC、SQLite完整性、媒体、折叠顺序与日程一致性通过；应用内导入未测。
+
+题目PDF继续使用C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\pdf\信号与DSP_全题量留白版_题面校正版.pdf，SHA256 960c9df5d908228338968648ed4ead61b3ff20f80dffa91f5b78e0c5d99ae536。本次无题面修改；111天日程、330道题库及此前95天成果保持。分类题目版封面不重复修改。
+
+下一步：第101—105天，按next_after_100days.json逐题核对原卡并独立推导，冻结基准resume_after_100days.json。全部330道解析完成后再总验收，不把阶段包当作全目标完成。
+
+证据：twelfth_math_checks.json、twelfth_visual_checks.json、qa_native100/manifest.json、native_100days_manifest.json、native_100days_verification.json。
+
