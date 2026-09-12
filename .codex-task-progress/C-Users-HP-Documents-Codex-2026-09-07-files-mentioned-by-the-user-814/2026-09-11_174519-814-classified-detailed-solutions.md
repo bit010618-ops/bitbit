@@ -123,3 +123,20 @@ SHA256 d8ad2bf675200cb89704bd7879d847a250f74adee60da75fc51730446ca09a5b，文件
 
 证据：tenth_math_checks.json、tenth_visual_checks.json、qa_native90/manifest.json、native_90days_manifest.json、native_90days_verification.json。
 
+# 2026-09-12：每日解析推进至第95天
+
+完整目标继续进行。分类287/287题已有独立答案解析，源题条件缺失处保留显式条件解；原生MarginNote导入未测。上轮90天包为已验证实质进展，本轮再完成18道。
+
+新增第91—95天18道逐步解析，累计284/330道，剩余46道。横向滤波器给出8抽头、7延时、7个真正零点和原点7重极点，说明z=a可去与a=0退化；三参数配图明确是示意。二阶巴特沃斯完整预畸变、去归一化、双线性代换、系数展开、直接II型图及15点IDFT时域周期叠加推导。单边Z题保留两个超前初始项并给出周期与三角两种解。由频谱实部恢复因果序列明确实序列条件及纯虚冲激歧义；FFT时间题明确基2复乘折算、采算重叠及IFFT归一化是否计费。正负指数序列卷积讨论收敛条件和a=1/0特例。
+
+106项数学与冻结文件保持核验通过，包括左右序列数值卷积、有限多项式零点和可去点、复参数频响、原差分方程与直接II型独立递推、15点IDFT与长冲激响应尾部叠加对比、单边递推初值、频谱实部及有限区间拉氏积分。18完整面板54新卡、2中文图文件亲自目视；横向滤波器图例移出绘图区后重渲染复核。852卡无缺字或溢出警告，旧798卡哈希保持。
+
+新包：C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\marginnote\信号与DSP_95天_题目答案解析.marginpkg
+SHA256 23f6c48f6df9beff0da5aeecc2e6f2615396d86fcbf37ae6a2082b010c69c92c，文件65,971,631字节。第1—95天307次练习安排、307答案、307解析、614折叠分支、1631节点、921媒体像素比较。ZIP CRC、SQLite完整性、媒体、折叠顺序与日程一致性通过；应用内导入未测。
+
+题目PDF继续使用C:\Users\HP\Documents\Codex\2026-09-07\files-mentioned-by-the-user-814\output\pdf\信号与DSP_全题量留白版_题面校正版.pdf，SHA256 960c9df5d908228338968648ed4ead61b3ff20f80dffa91f5b78e0c5d99ae536。本次无题面修改；111天日程、330道题库及此前90天成果保持。分类题目版封面不重复修改。
+
+下一步：第96—100天，按next_after_95days.json逐题核对原卡并独立推导，冻结基准resume_after_95days.json。全部330道解析完成后再总验收，不把阶段包当作全目标完成。
+
+证据：eleventh_math_checks.json、eleventh_visual_checks.json、qa_native95/manifest.json、native_95days_manifest.json、native_95days_verification.json。
+
